@@ -4,8 +4,10 @@
 name             'mac-app-store'
 maintainer       'Jonathan Hartman'
 maintainer_email 'j@p4nt5.com'
-license          'apache2'
-description      'Installs/Configures mac-app-store'
-long_description 'Installs/Configures mac-app-store'
+license          'Apache v2.0'
+description      'Automates installation of Mac App Store apps'
+long_description 'Automates installation of Mac App Store apps'
 version          '0.0.1'
+
+supports         'mac_os_x'
 # rubocop:enable SingleSpaceBeforeFirstArg

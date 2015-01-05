@@ -10,65 +10,82 @@ Mac App Store Cookbook
 [codeclimate]: https://codeclimate.com/github/RoboticCheese/mac-app-store-chef
 [coveralls]: https://coveralls.io/r/RoboticCheese/mac-app-store-chef
 
-TODO: Enter the cookbook description here.
+A Chef cookbook for installation of Mac App Store apps.
 
 Requirements
 ============
 
-TODO: Describe cookbook dependencies.
+Obviously, OS X is required. Some tempered expectations are as well--there is
+no documented public API for installing App Store apps, so this cookbook works
+by attempting to automating GUI window switches and button clicks. It remains to
+be seen what might result from, for example, a user performing certain mouse
+actions at the same time Chef is trying to do the same.
+
+To allow it to take over mouse navigation, the app running Chef (e.g. Terminal
+or iTerm) needs to be allowed in System Preferences under Security & Privacy ->
+Privacy -> Accessibility.
+
+To use this cookbook, you must be signed into the App Store. If you open the App
+Store and click the "Purchases" header button, you should see a list of apps.
+
+Nothing in this cookbook will attempt to purchase an app for you--it can only
+install ones that are already in your purchase history.
 
 Usage
 =====
 
-TODO: Describe how to use the cookbook.
+A new resource is defined as well as an attribute-driven default recipe, either
+of which can be used.
 
 Recipes
 =======
 
 ***default***
 
-TODO: Describe each component recipe.
+Installs any apps in an attribute list.
 
 Attributes
 ==========
 
 ***default***
 
-TODO: Describe any noteworthy attributes.
+A list of apps to install is empty by default and can be overridden with an
+array of app names.
+
+    default['mac_app_store']['apps'] = nil
 
 Resources
 =========
 
-***mac_app_store***
+***mac_app_store_app***
 
-TODO: Describe each included resource.
+Used to install a single app from the App Store.
 
 Syntax:
 
-    mac_app_store 'my_resource' do
-        attribute1 'value1'
-        action :create
+    mac_app_store_app 'Some App' do
+        action :install
     end
 
 Actions:
 
-| Action  | Description  |
-|---------|--------------|
-| action1 | Do something |
+| Action     | Description                     |
+|------------|---------------------------------|
+| `:install` | Default; installs the given app |
 
 Attributes:
 
 | Attribute  | Default        | Description          |
 |------------|----------------|----------------------|
 | attribute1 | `'some_value'` | Do something         |
-| action     | `:create`      | Action(s) to perform |
+| action     | `:install`     | Action(s) to perform |
 
 Providers
 =========
 
-TODO: Describe each included provider
+***Chef::Provider::MacAppStoreApp***
 
-***Chef::Provider::SomeProvider***
+All the logic for app installs.
 
 Contributing
 ============

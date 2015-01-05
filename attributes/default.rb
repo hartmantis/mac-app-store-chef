@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: mac-app-store
-# Recipe:: default
+# Attributes:: default
 #
 # Copyright 2015 Jonathan Hartman
 #
@@ -18,10 +18,4 @@
 # limitations under the License.
 #
 
-unless node['platform'] == 'mac_os_x'
-  fail(Chef::Exceptions::UnsupportedPlatform, node['platform'])
-end
-
-apps = node['mac_app_store'] && node['mac_app_store']['apps'] || []
-
-apps.each { |a| mac_app_store_app a }
+default['mac_app_store']['apps'] = nil

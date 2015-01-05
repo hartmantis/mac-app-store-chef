@@ -1,9 +1,9 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: mac-app-store
-# Recipe:: default
+# Library:: matchers
 #
-# Copyright 2015 Jonathan Hartman
+# Copyright 2014-2015 Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,10 +18,8 @@
 # limitations under the License.
 #
 
-unless node['platform'] == 'mac_os_x'
-  fail(Chef::Exceptions::UnsupportedPlatform, node['platform'])
+if defined?(ChefSpec)
+  def install_mac_app_store_app(name)
+    ChefSpec::Matchers::ResourceMatcher.new(:mac_app_store_app, :install, name)
+  end
 end
-
-apps = node['mac_app_store'] && node['mac_app_store']['apps'] || []
-
-apps.each { |a| mac_app_store_app a }
