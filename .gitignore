@@ -1,0 +1,24 @@
+.vagrant
+Berksfile.lock
+berks-cookbooks
+*~
+*#
+.#*
+\#*#
+.*.sw[a-z]
+*.un~
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Bundler
+Gemfile.lock
+bin/*
+.bundle/*
+
+.kitchen/
+.kitchen.local.yml
+
+.env.sh
+coverage
