@@ -22,6 +22,10 @@ unless node['platform'] == 'mac_os_x'
   fail(Chef::Exceptions::UnsupportedPlatform, node['platform'])
 end
 
-apps = node['mac_app_store'] && node['mac_app_store']['apps'] || []
+apps = node['mac_app_store'] && node['mac_app_store']['apps'] || {}
 
-apps.each { |a| mac_app_store_app a }
+apps.each do |k, v|
+  mac_app_store_app k do
+    app_id v
+  end
+end

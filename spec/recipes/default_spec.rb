@@ -23,13 +23,21 @@ describe 'mac-app-store::default' do
 
     context 'an attribue set of apps' do
       let(:overrides) do
-        { mac_app_store: { apps: %w(app1 app2) } }
+        {
+          mac_app_store: {
+            apps: {
+              'app1' => 'com.example.app1',
+              'app2' => 'com.example.app2'
+            }
+          }
+        }
       end
 
       it 'installs the apps' do
         r = chef_run
         %w(app1 app2).each do |a|
           expect(r).to install_mac_app_store_app(a)
+            .with(app_id: "com.example.#{a}")
         end
       end
     end

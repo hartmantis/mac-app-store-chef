@@ -49,10 +49,13 @@ Attributes
 
 ***default***
 
-A list of apps to install is empty by default and can be overridden with an
-array of app names.
-
     default['mac_app_store']['apps'] = nil
+
+A set of apps to install is empty by default and can be overridden with a hash
+of app names (as displayed in the App Store) and app IDs (as displayed in the
+output of `pkgutil --pkgs`.
+
+    default['mac_app_store']['apps']['Tweetbot for Twitter'] = 'com.tapbots.TweetbotMac'
 
 Resources
 =========
@@ -64,6 +67,7 @@ Used to install a single app from the App Store.
 Syntax:
 
     mac_app_store_app 'Some App' do
+        app_id 'com.example.someapp'
         action :install
     end
 
@@ -75,10 +79,10 @@ Actions:
 
 Attributes:
 
-| Attribute  | Default        | Description          |
-|------------|----------------|----------------------|
-| attribute1 | `'some_value'` | Do something         |
-| action     | `:install`     | Action(s) to perform |
+| Attribute  | Default        | Description                                  |
+|------------|----------------|----------------------------------------------|
+| app\_id    | `nil`          | Required; the app ID as displayed by pkgutil |
+| action     | `:install`     | Action(s) to perform                         |
 
 Providers
 =========
