@@ -26,9 +26,20 @@ describe Chef::Provider::MacAppStoreApp do
   end
 
   describe '#load_current_resource' do
+    let(:installed) { true }
+
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:installed?)
+        .and_return(installed)
+    end
+
     it 'returns a MacAppStoreApp resource instance' do
       expected = Chef::Resource::MacAppStoreApp
       expect(provider.load_current_resource).to be_an_instance_of(expected)
+    end
+
+    it 'sets the resource installed status' do
+      expect(provider.load_current_resource.installed?).to eq(true)
     end
   end
 
@@ -51,6 +62,32 @@ describe Chef::Provider::MacAppStoreApp do
     it 'sets installed state to true' do
       expect(new_resource).to receive(:'installed=').with(true)
       provider.action_install
+    end
+  end
+
+  describe '#installed?' do
+    let(:installed) { nil }
+    let(:shell_out) { double(error?: !installed) }
+
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:shell_out)
+        .with("pkgutil --pkg-info #{app_id}").and_return(shell_out)
+    end
+
+    context 'app installed' do
+      let(:installed) { true }
+
+      it 'returns true' do
+        expect(provider.send(:installed?)).to eq(true)
+      end
+    end
+
+    context 'app not installed' do
+      let(:installed) { false }
+
+      it 'returns false' do
+        expect(provider.send(:installed?)).to eq(false)
+      end
     end
   end
 

@@ -46,6 +46,8 @@ class Chef
       #
       def load_current_resource
         @current_resource ||= Resource::MacAppStoreApp.new(new_resource.name)
+        @current_resource.installed = installed?
+        @current_resource
       end
 
       #
@@ -57,6 +59,15 @@ class Chef
       end
 
       private
+
+      #
+      # Use pkgutil to determine whether an app is installed
+      #
+      # @return [TrueClass, FalseClass]
+      #
+      def installed?
+        !shell_out("pkgutil --pkg-info #{new_resource.app_id}").error?
+      end
 
       #
       # A resource for the AXElements gem dep
