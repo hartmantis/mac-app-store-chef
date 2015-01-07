@@ -19,6 +19,7 @@
 #
 
 require 'chef/provider'
+require 'chef/mixin/shell_out'
 require 'chef/resource/chef_gem'
 require_relative 'resource_mac_app_store_app'
 
@@ -28,6 +29,8 @@ class Chef
     #
     # @author Jonathan Hartman <j@p4nt5.com>
     class MacAppStoreApp < Provider
+      include Chef::Mixin::ShellOut
+
       AXE_VERSION ||= '~> 6.0'
 
       #
@@ -54,11 +57,82 @@ class Chef
       # Install the app from the Mac App Store
       #
       def action_install
-        axe_gem.run_action(:install)
+        unless current_resource.installed?
+          axe_gem.run_action(:install)
+          require 'ax_elements'
+          original_focus = AX::SystemWide.new.focused_application
+          set_focus_to(app_store)
+          sleep 5
+
+          select_menu_item(app_store, 'Store', 'Purchases')
+          sleep 5
+
+          scroll_to(row)
+
+          click(install_button)
+          sleep 5
+
+          set_focus_to(original_focus)
+        end
         new_resource.installed = true
       end
 
       private
+
+      #
+      # Find the install button in the app row
+      #
+      # @return [AX::Button]
+      #
+      def install_button
+        row.cells.find do |c|
+          begin
+            c.group.button.description == 'Install'
+          # Not every cell has the same schema
+          rescue Accessibility::SearchFailure
+            next
+          end
+        end.group.button
+      end
+
+      #
+      # Find the row for the app in question in the App Store window
+      #
+      # @return [AX::Row]
+      #
+      def row
+        table.rows.find do |r|
+          begin
+            r.cell.link.title == new_resource.name
+          # Not every row in the table is an app
+          rescue Accessibility::SearchFailure
+            next
+          end
+        end
+      end
+
+      #
+      # Find the table in the App Store window
+      #
+      # @return [AX::ScrollArea]
+      #
+      def table
+        app_store.main_window.group(id: 'primary').scroll_area.web_area.table
+      end
+
+      #
+      # Find the App Store application running or launch it
+      #
+      # @return [AX::Application]
+      #
+      def app_store
+        begin
+          AX::Application.new('App Store')
+        rescue NoMethodError
+          AX::Application.launch('com.apple.AppStore')
+          AX::Application.new('App Store')
+        end
+      end
 
       #
       # Use pkgutil to determine whether an app is installed
