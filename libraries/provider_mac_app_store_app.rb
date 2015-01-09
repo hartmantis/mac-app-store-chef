@@ -126,12 +126,7 @@ class Chef
       # @return [AX::Application]
       #
       def app_store
-        begin
-          AX::Application.new('App Store')
-        rescue NoMethodError
-          AX::Application.launch('com.apple.AppStore')
-          AX::Application.new('App Store')
-        end
+        @app_store ||= AX::Application.new('com.apple.appstore')
       end
 
       #
