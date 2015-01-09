@@ -59,8 +59,13 @@ class Chef
       def action_install
         unless current_resource.installed?
           axe_gem.run_action(:install)
+
           require 'ax_elements'
           original_focus = AX::SystemWide.new.focused_application
+          quit_when_done = NSRunningApplication.runningApplicationsWithBundleIdentifier(
+            'com.apple.appstore'
+          ).empty?
+
           set_focus_to(app_store)
           sleep 5
 
@@ -72,6 +77,7 @@ class Chef
           click(install_button)
           sleep 5
 
+          quit_when_done && app_store.terminate
           set_focus_to(original_focus)
         end
         new_resource.installed = true
