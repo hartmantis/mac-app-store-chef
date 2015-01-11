@@ -67,10 +67,16 @@ class Chef
           ).empty?
 
           set_focus_to(app_store)
-          sleep 5
+          unless wait_for(:menu_item, ancestor: app_store, title: 'Purchases')
+            fail(Chef::Exceptions::CommandTimeout,
+                 'Timed out waiting for App Store to load')
+          end
 
           select_menu_item(app_store, 'Store', 'Purchases')
-          sleep 5
+          if app_store.main_window.link(title: 'sign in')
+            fail(Chef::Exceptions::ConfigurationError,
+                 'User must be signed into App Store to install apps')
+          end
 
           scroll_to(row)
 
