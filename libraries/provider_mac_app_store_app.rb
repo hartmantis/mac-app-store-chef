@@ -135,6 +135,20 @@ class Chef
       end
 
       #
+      # Check whether an app is purchased or not
+      #
+      # @return [TrueClass, FalseClass]
+      #
+      def purchased?
+        begin
+          row
+          true
+        rescue Accessibility::SearchFailure
+          false
+        end
+      end
+
+      #
       # A resource for the AXElements gem dep
       #
       # @return [Chef::Resource::ChefGem]
