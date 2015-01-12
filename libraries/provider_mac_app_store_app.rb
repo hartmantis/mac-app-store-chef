@@ -113,23 +113,7 @@ class Chef
       # @return [AX::Row]
       #
       def row
-        table.rows.find do |r|
-          begin
-            r.cell.link.title == new_resource.name
-          # Not every row in the table is an app
-          rescue Accessibility::SearchFailure
-            next
-          end
-        end
-      end
-
-      #
-      # Find the table in the App Store window
-      #
-      # @return [AX::ScrollArea]
-      #
-      def table
-        app_store.main_window.group(id: 'primary').scroll_area.web_area.table
+        app_store.main_window.row(link: { title: new_resource.name })
       end
 
       #
