@@ -97,14 +97,7 @@ class Chef
       # @return [AX::Button]
       #
       def install_button
-        row.cells.find do |c|
-          begin
-            c.group.button.description == 'Install'
-          # Not every cell has the same schema
-          rescue Accessibility::SearchFailure
-            next
-          end
-        end.group.button
+        row.button
       end
 
       #
