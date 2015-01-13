@@ -62,9 +62,9 @@ class Chef
 
           require 'ax_elements'
           original_focus = AX::SystemWide.new.focused_application
-          quit_when_done = NSRunningApplication.runningApplicationsWithBundleIdentifier(
-            'com.apple.appstore'
-          ).empty?
+          quit_when_done = NSRunningApplication
+            .runningApplicationsWithBundleIdentifier('com.apple.appstore')
+            .empty?
 
           set_focus_to(app_store)
           unless wait_for(:menu_item, ancestor: app_store, title: 'Purchases')
@@ -73,6 +73,7 @@ class Chef
           end
 
           select_menu_item(app_store, 'Store', 'Purchases')
+          sleep 5
           if app_store.main_window.link(title: 'sign in')
             fail(Chef::Exceptions::ConfigurationError,
                  'User must be signed into App Store to install apps')
