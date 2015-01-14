@@ -74,9 +74,11 @@ class Chef
 
           select_menu_item(app_store, 'Store', 'Purchases')
           sleep 5
-          if app_store.main_window.link(title: 'sign in')
+          begin
+            app_store.main_window.link(title: 'sign in')
             fail(Chef::Exceptions::ConfigurationError,
                  'User must be signed into App Store to install apps')
+          rescue Accessibility::SearchFailure
           end
 
           scroll_to(row)
