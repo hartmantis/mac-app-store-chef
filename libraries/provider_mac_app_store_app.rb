@@ -33,6 +33,20 @@ class Chef
 
       AXE_VERSION ||= '~> 6.0'
 
+      attr_reader :original_focus
+      attr_reader :quit_when_done
+      alias_method :quit_when_done?, :quit_when_done
+
+      def initialize(new_resource, run_context)
+        super
+        axe_gem.run_action(:install)
+        require 'ax_elements'
+        @original_focus = AX::SystemWide.new.focused_application
+        @quit_when_done = NSRunningApplication
+          .runningApplicationsWithBundleIdentifier('com.apple.appstore')
+          .empty?
+      end
+
       #
       # WhyRun is supported by this provider
       #
@@ -58,35 +72,12 @@ class Chef
       #
       def action_install
         unless current_resource.installed?
-          axe_gem.run_action(:install)
-
-          require 'ax_elements'
-          original_focus = AX::SystemWide.new.focused_application
-          quit_when_done = NSRunningApplication
-            .runningApplicationsWithBundleIdentifier('com.apple.appstore')
-            .empty?
-
-          set_focus_to(app_store)
-          unless wait_for(:menu_item, ancestor: app_store, title: 'Purchases')
-            fail(Chef::Exceptions::CommandTimeout,
-                 'Timed out waiting for App Store to load')
-          end
-
-          select_menu_item(app_store, 'Store', 'Purchases')
-          sleep 5
-          begin
-            app_store.main_window.link(title: 'sign in')
-            fail(Chef::Exceptions::ConfigurationError,
-                 'User must be signed into App Store to install apps')
-          rescue Accessibility::SearchFailure
-          end
-
           scroll_to(row)
-
           click(install_button)
+          # TODO: Icky hardcoded sleep is icky
           sleep 5
 
-          quit_when_done && app_store.terminate
+          quit_when_done? && app_store.terminate
           set_focus_to(original_focus)
         end
         new_resource.installed = true
@@ -109,7 +100,25 @@ class Chef
       # @return [AX::Row]
       #
       def row
-        app_store.main_window.row(link: { title: new_resource.name })
+        purchases.main_window.row(link: { title: new_resource.name })
+      end
+
+      def purchases
+        set_focus_to(app_store)
+        unless wait_for(:menu_item, ancestor: app_store, title: 'Purchases')
+          fail(Chef::Exceptions::CommandTimeout,
+               'Timed out waiting for App Store to load')
+        end
+        select_menu_item(app_store, 'Store', 'Purchases')
+        # TODO: Icky hardcoded sleep is icky
+        sleep 5
+        begin
+          app_store.main_window.link(title: 'sign in')
+          fail(Chef::Exceptions::ConfigurationError,
+               'User must be signed into App Store to install apps')
+        rescue Accessibility::SearchFailure
+        end
+        app_store
       end
 
       #
