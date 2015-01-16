@@ -72,8 +72,7 @@ class Chef
       #
       def action_install
         unless current_resource.installed?
-          scroll_to(row)
-          click(install_button)
+          press(install_button)
           # TODO: Icky hardcoded sleep is icky
           sleep 5
 
@@ -91,7 +90,21 @@ class Chef
       # @return [AX::Button]
       #
       def install_button
-        row.button
+        app_page.main_window.web_area.group.group.button
+      end
+
+      #
+      # Follow the app link in the Purchases list to navigate to the app's
+      # main page, and return the Application instance whose state was just
+      # altered
+      #
+      # @return [AX::Application]
+      #
+      def app_page
+        press(row.link)
+        # TODO: Icky hardcoded sleep is icky
+        sleep 3
+        app_store
       end
 
       #
@@ -103,6 +116,12 @@ class Chef
         purchases.main_window.row(link: { title: new_resource.name })
       end
 
+      #
+      # Set focus to the App Store, navigate to the Purchases list, and return
+      # the Application object whose state was just altered
+      #
+      # @return [AX::Application]
+      #
       def purchases
         set_focus_to(app_store)
         unless wait_for(:menu_item, ancestor: app_store, title: 'Purchases')
