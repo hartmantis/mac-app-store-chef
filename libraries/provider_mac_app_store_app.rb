@@ -85,6 +85,17 @@ class Chef
       private
 
       #
+      # Find the latest version of a package available, via the "Information"
+      # sidebar in the app's store page
+      #
+      # @return [String]
+      #
+      def latest_version
+        app_page.main_window.static_text(value: 'Version: ').parent
+          .static_text(value: /^[0-9]/).value
+      end
+
+      #
       # Find the install button in the app row
       #
       # @return [AX::Button]
