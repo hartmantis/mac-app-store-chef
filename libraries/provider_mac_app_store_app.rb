@@ -96,6 +96,15 @@ class Chef
       end
 
       #
+      # Use pkgutil to determine whether an app is installed
+      #
+      # @return [TrueClass, FalseClass]
+      #
+      def installed?
+        !shell_out("pkgutil --pkg-info #{new_resource.app_id}").error?
+      end
+
+      #
       # Find the install button in the app row
       #
       # @return [AX::Button]
@@ -116,6 +125,20 @@ class Chef
         # TODO: Icky hardcoded sleep is icky
         sleep 3
         app_store
+      end
+
+      #
+      # Check whether an app is purchased or not
+      #
+      # @return [TrueClass, FalseClass]
+      #
+      def purchased?
+        begin
+          row
+          true
+        rescue Accessibility::SearchFailure
+          false
+        end
       end
 
       #
@@ -158,29 +181,6 @@ class Chef
       #
       def app_store
         @app_store ||= AX::Application.new('com.apple.appstore')
-      end
-
-      #
-      # Use pkgutil to determine whether an app is installed
-      #
-      # @return [TrueClass, FalseClass]
-      #
-      def installed?
-        !shell_out("pkgutil --pkg-info #{new_resource.app_id}").error?
-      end
-
-      #
-      # Check whether an app is purchased or not
-      #
-      # @return [TrueClass, FalseClass]
-      #
-      def purchased?
-        begin
-          row
-          true
-        rescue Accessibility::SearchFailure
-          false
-        end
       end
 
       #
