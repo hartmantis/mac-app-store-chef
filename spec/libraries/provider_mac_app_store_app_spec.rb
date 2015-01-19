@@ -258,6 +258,7 @@ describe Chef::Provider::MacAppStoreApp do
       [:press, :row, :app_store].each do |m|
         allow_any_instance_of(described_class).to receive(m).and_return(send(m))
       end
+      allow_any_instance_of(described_class).to receive(:sleep).and_return(true)
     end
 
     it 'presses the app link' do
@@ -267,6 +268,115 @@ describe Chef::Provider::MacAppStoreApp do
 
     it 'returns the app store object' do
       expect(provider.send(:app_page)).to eq(app_store)
+    end
+  end
+
+  describe '#purchased?' do
+    let(:app_store) { double(ancestry: []) }
+
+    context 'app present in Purchases menu' do
+      before(:each) do
+        allow_any_instance_of(described_class).to receive(:row)
+          .and_return(true)
+      end
+
+      it 'returns true' do
+        expect(provider.send(:purchased?)).to eq(true)
+      end
+    end
+
+    context 'app not present in Purchases menu' do
+      before(:each) do
+        allow_any_instance_of(described_class).to receive(:row)
+          .and_raise(Accessibility::SearchFailure.new(app_store, :th, :ing))
+      end
+
+      it 'returns false' do
+        expect(provider.send(:purchased?)).to eq(false)
+      end
+    end
+  end
+
+  describe '#row' do
+    let(:main_window) { double }
+    let(:purchases) { double(main_window: main_window) }
+
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:purchases)
+        .and_return(purchases)
+      allow(main_window).to receive(:row)
+        .with(link: { title: app_name }).and_return('some row')
+    end
+
+    it 'returns the app row' do
+      expect(provider.send(:row)).to eq('some row')
+    end
+  end
+
+  describe '#purchases' do
+    let(:main_window) { double }
+    let(:app_store) { double(main_window: main_window, ancestry: []) }
+
+    before(:each) do
+      [:set_focus_to, :wait_for, :select_menu_item, :sleep].each do |m|
+        allow_any_instance_of(described_class).to receive(m).and_return(m)
+      end
+      allow_any_instance_of(described_class).to receive(:app_store)
+        .and_return(app_store)
+      allow(main_window).to receive(:link).with(title: 'sign in')
+        .and_raise(Accessibility::SearchFailure.new(app_store, :th, :ing))
+    end
+
+    context 'Purchases menu loading timeout' do
+      before(:each) do
+        allow_any_instance_of(described_class).to receive(:wait_for)
+          .with(:menu_item, ancestor: app_store, title: 'Purchases')
+          .and_return(nil)
+      end
+
+      it 'raises an exception' do
+        expected = Chef::Exceptions::CommandTimeout
+        expect { provider.send(:purchases) }.to raise_error(expected)
+      end
+    end
+
+    context 'user not signed in' do
+      before(:each) do
+        allow(main_window).to receive(:link).with(title: 'sign in')
+          .and_return(true)
+      end
+
+      it 'raises an exception' do
+        expected = Chef::Exceptions::ConfigurationError
+        expect { provider.send(:purchases) }.to raise_error(expected)
+      end
+    end
+
+    context 'user signed in' do
+      it 'sets focus to the app store' do
+        expect_any_instance_of(described_class).to receive(:set_focus_to)
+          .with(app_store).and_return(true)
+        provider.send(:purchases)
+      end
+
+      it 'waits for the Purchases menu to load' do
+        expect_any_instance_of(described_class).to receive(:wait_for)
+          .with(:menu_item, ancestor: app_store, title: 'Purchases')
+          .and_return(true)
+        provider.send(:purchases)
+      end
+
+      it 'returns the App Store object' do
+        expect(provider.send(:purchases)).to eq(app_store)
+      end
+    end
+  end
+
+  describe '#app_store' do
+    it 'returns an AX::Application object' do
+      expect(AX::Application).to receive(:new).with('com.apple.appstore')
+        .and_return('some object')
+      expect(provider.send(:app_store)).to eq('some object')
     end
   end
 
@@ -283,7 +393,7 @@ describe Chef::Provider::MacAppStoreApp do
       p = provider
       allow_any_instance_of(described_class).to receive(:axe_gem)
         .and_call_original
-      expect(provider.send(:axe_gem).version).to eq('~> 6.0')
+      expect(p.send(:axe_gem).version).to eq('~> 6.0')
     end
   end
 end
