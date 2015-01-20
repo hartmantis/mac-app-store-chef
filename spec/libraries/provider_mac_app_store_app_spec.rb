@@ -21,12 +21,12 @@ describe Chef::Provider::MacAppStoreApp do
 
   before(:each) do
     allow_any_instance_of(described_class).to receive(:node).and_return(node)
-      allow_any_instance_of(described_class).to receive(:axe_gem)
-        .and_return(axe_gem)
-      allow(AX::SystemWide).to receive(:new).and_return(system_wide)
-      allow(NSRunningApplication)
-        .to receive(:runningApplicationsWithBundleIdentifier)
-        .with('com.apple.appstore').and_return(running_applications)
+    allow_any_instance_of(described_class).to receive(:axe_gem)
+      .and_return(axe_gem)
+    allow(AX::SystemWide).to receive(:new).and_return(system_wide)
+    allow(NSRunningApplication)
+      .to receive(:runningApplicationsWithBundleIdentifier)
+      .with('com.apple.appstore').and_return(running_applications)
   end
 
   describe 'AXE_VERSION' do

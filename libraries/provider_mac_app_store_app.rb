@@ -43,8 +43,9 @@ class Chef
         require 'ax_elements'
         @original_focus = AX::SystemWide.new.focused_application
         @quit_when_done = NSRunningApplication
-          .runningApplicationsWithBundleIdentifier('com.apple.appstore')
-          .empty?
+                          .runningApplicationsWithBundleIdentifier(
+                            'com.apple.appstore'
+                          ).empty?
       end
 
       #
@@ -133,12 +134,10 @@ class Chef
       # @return [TrueClass, FalseClass]
       #
       def purchased?
-        begin
-          row
-          true
-        rescue Accessibility::SearchFailure
-          false
-        end
+        row
+        true
+      rescue Accessibility::SearchFailure
+        false
       end
 
       #
@@ -170,8 +169,8 @@ class Chef
           fail(Chef::Exceptions::ConfigurationError,
                'User must be signed into App Store to install apps')
         rescue Accessibility::SearchFailure
+          app_store
         end
-        app_store
       end
 
       #
