@@ -100,7 +100,8 @@ describe Chef::Provider::MacAppStoreApp do
     end
     let(:installed?) { false }
     let(:current_resource) { double(installed?: installed?) }
-    let(:app_store) { double(terminate: true) }
+    let(:main_window) { double }
+    let(:app_store) { double(main_window: main_window, terminate: true) }
 
     before(:each) do
       [
@@ -141,6 +142,12 @@ describe Chef::Provider::MacAppStoreApp do
       let(:installed?) { false }
 
       it_behaves_like 'any installed state'
+
+      it 'sets focus to the app store' do
+        expect_any_instance_of(described_class).to receive(:set_focus_to)
+          .with(app_store).and_return(true)
+        provider.action_install
+      end
 
       it 'presses the install button' do
         expect_any_instance_of(described_class).to receive(:press)
@@ -353,12 +360,6 @@ describe Chef::Provider::MacAppStoreApp do
     end
 
     context 'user signed in' do
-      it 'sets focus to the app store' do
-        expect_any_instance_of(described_class).to receive(:set_focus_to)
-          .with(app_store).and_return(true)
-        provider.send(:purchases)
-      end
-
       it 'waits for the Purchases menu to load' do
         expect_any_instance_of(described_class).to receive(:wait_for)
           .with(:menu_item, ancestor: app_store, title: 'Purchases')

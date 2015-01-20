@@ -73,6 +73,7 @@ class Chef
       #
       def action_install
         unless current_resource.installed?
+          set_focus_to(app_store)
           press(install_button)
           # TODO: Icky hardcoded sleep is icky
           sleep 5
@@ -156,7 +157,6 @@ class Chef
       # @return [AX::Application]
       #
       def purchases
-        set_focus_to(app_store)
         unless wait_for(:menu_item, ancestor: app_store, title: 'Purchases')
           fail(Chef::Exceptions::CommandTimeout,
                'Timed out waiting for App Store to load')
