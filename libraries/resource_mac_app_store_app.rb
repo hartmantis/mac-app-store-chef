@@ -43,11 +43,21 @@ class Chef
       #
       # Require a pkgutil-style app ID to use for install status checks
       #
-      # @param [String] arg
+      # @param [String, NilClass] arg
       # @return [String]
       #
       def app_id(arg = nil)
         set_or_return(:app_id, arg, kind_of: [String], required: true)
+      end
+
+      #
+      # Timeout value for app download + install
+      #
+      # @param [Fixnum, NilClass] arg
+      # @return [Fixnum]
+      #
+      def timeout(arg = nil)
+        set_or_return(:timeout, arg, kind_of: [Fixnum], default: 600)
       end
     end
   end

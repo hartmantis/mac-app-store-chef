@@ -68,6 +68,7 @@ Syntax:
 
     mac_app_store_app 'Some App' do
         app_id 'com.example.someapp'
+        timeout 1200
         action :install
     end
 
@@ -82,6 +83,7 @@ Attributes:
 | Attribute  | Default        | Description                                  |
 |------------|----------------|----------------------------------------------|
 | app\_id    | `nil`          | Required; the app ID as displayed by pkgutil |
+| timeout    | `600`          | Time to wait on a download + install         |
 | action     | `:install`     | Action(s) to perform                         |
 
 Providers

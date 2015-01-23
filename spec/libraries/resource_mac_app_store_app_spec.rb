@@ -8,10 +8,11 @@ describe Chef::Resource::MacAppStoreApp do
   let(:node) { Fauxhai.mock(platform).data }
   let(:app_name) { 'Some App' }
   let(:app_id) { 'com.example.someapp' }
-  let(:package_url) { nil }
+  let(:timeout) { nil }
   let(:resource) do
     r = described_class.new(app_name, nil)
     r.app_id(app_id)
+    r.timeout(timeout)
     r
   end
 
@@ -81,6 +82,28 @@ describe Chef::Resource::MacAppStoreApp do
 
     context 'an invalid override' do
       let(:app_id) { :something }
+
+      it_behaves_like 'an invalid configuration'
+    end
+  end
+
+  describe '#timeout' do
+    context 'no override' do
+      it 'returns the default' do
+        expect(resource.timeout).to eq(600)
+      end
+    end
+
+    context 'a valid override' do
+      let(:timeout) { 1 }
+
+      it 'returns the override' do
+        expect(resource.timeout).to eq(1)
+      end
+    end
+
+    context 'an invalid override' do
+      let(:timeout) { :thing }
 
       it_behaves_like 'an invalid configuration'
     end
