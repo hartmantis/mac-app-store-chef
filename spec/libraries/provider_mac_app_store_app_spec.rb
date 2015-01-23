@@ -330,8 +330,74 @@ describe Chef::Provider::MacAppStoreApp do
       end
       allow_any_instance_of(described_class).to receive(:app_store)
         .and_return(app_store)
-      allow(main_window).to receive(:link).with(title: 'sign in')
-        .and_raise(Accessibility::SearchFailure.new(app_store, :th, :ing))
+      allow(main_window).to receive(:search).with(:link, title: 'sign in')
+        .and_return(nil)
+    end
+
+    context 'user not signed in' do
+      before(:each) do
+        allow(main_window).to receive(:search).with(:link, title: 'sign in')
+          .and_return(true)
+      end
+
+      it 'raises an exception' do
+        expected = Chef::Exceptions::ConfigurationError
+        expect { provider.send(:purchases) }.to raise_error(expected)
+      end
+    end
+
+    context 'user signed in' do
+      it 'selects Purchases from the dropdown menu'do
+        expect_any_instance_of(described_class).to receive(:select_menu_item)
+          .with(app_store, 'Store', 'Purchases')
+        provider.send(:purchases)
+      end
+
+      it 'waits for the window group to load' do
+        expect_any_instance_of(described_class).to receive(:wait_for)
+          .with(:group, ancestor: app_store, id: 'primary')
+          .and_return(true)
+        provider.send(:purchases)
+      end
+
+      it 'returns the App Store object' do
+        expect(provider.send(:purchases)).to eq(app_store)
+      end
+    end
+
+    context 'purchases list loading timeout' do
+      before(:each) do
+        allow_any_instance_of(described_class).to receive(:wait_for)
+          .with(:group, ancestor: app_store, id: 'primary')
+          .and_return(nil)
+      end
+
+      it 'raises an exception' do
+        expected = Chef::Exceptions::CommandTimeout
+        expect { provider.send(:purchases) }.to raise_error(expected)
+      end
+    end
+  end
+
+  describe '#app_store' do
+    let(:app_store) { 'some object' }
+
+    before(:each) do
+      allow(AX::Application).to receive(:new).with('com.apple.appstore')
+        .and_return(app_store)
+      allow_any_instance_of(described_class).to receive(:wait_for)
+        .and_return(true)
+    end
+
+    it 'returns an AX::Application object' do
+      expect(provider.send(:app_store)).to eq('some object')
+    end
+
+    it 'waits for the Purchases menu to load' do
+      expect_any_instance_of(described_class).to receive(:wait_for)
+        .with(:menu_item, ancestor: app_store, title: 'Purchases')
+        .and_return(true)
+      provider.send(:app_store)
     end
 
     context 'Purchases menu loading timeout' do
@@ -343,41 +409,8 @@ describe Chef::Provider::MacAppStoreApp do
 
       it 'raises an exception' do
         expected = Chef::Exceptions::CommandTimeout
-        expect { provider.send(:purchases) }.to raise_error(expected)
+        expect { provider.send(:app_store) }.to raise_error(expected)
       end
-    end
-
-    context 'user not signed in' do
-      before(:each) do
-        allow(main_window).to receive(:link).with(title: 'sign in')
-          .and_return(true)
-      end
-
-      it 'raises an exception' do
-        expected = Chef::Exceptions::ConfigurationError
-        expect { provider.send(:purchases) }.to raise_error(expected)
-      end
-    end
-
-    context 'user signed in' do
-      it 'waits for the Purchases menu to load' do
-        expect_any_instance_of(described_class).to receive(:wait_for)
-          .with(:menu_item, ancestor: app_store, title: 'Purchases')
-          .and_return(true)
-        provider.send(:purchases)
-      end
-
-      it 'returns the App Store object' do
-        expect(provider.send(:purchases)).to eq(app_store)
-      end
-    end
-  end
-
-  describe '#app_store' do
-    it 'returns an AX::Application object' do
-      expect(AX::Application).to receive(:new).with('com.apple.appstore')
-        .and_return('some object')
-      expect(provider.send(:app_store)).to eq('some object')
     end
   end
 

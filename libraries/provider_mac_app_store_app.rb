@@ -77,7 +77,7 @@ class Chef
           press(install_button)
           # TODO: Icky hardcoded sleep is icky
           sleep 5
-
+          @new_resource.updated_by_last_action(true)
           quit_when_done? && app_store.terminate
           set_focus_to(original_focus)
         end
@@ -157,20 +157,16 @@ class Chef
       # @return [AX::Application]
       #
       def purchases
-        unless wait_for(:menu_item, ancestor: app_store, title: 'Purchases')
-          fail(Chef::Exceptions::CommandTimeout,
-               'Timed out waiting for App Store to load')
-        end
         select_menu_item(app_store, 'Store', 'Purchases')
-        # TODO: Icky hardcoded sleep is icky
-        sleep 5
-        begin
-          app_store.main_window.link(title: 'sign in')
+        unless wait_for(:group, ancestor: app_store, id: 'primary')
+          fail(Chef::Exceptions::CommandTimeout,
+               'Timed out waiting for Purchases page to load')
+        end
+        if app_store.main_window.search(:link, title: 'sign in')
           fail(Chef::Exceptions::ConfigurationError,
                'User must be signed into App Store to install apps')
-        rescue Accessibility::SearchFailure
-          app_store
         end
+        app_store
       end
 
       #
@@ -179,7 +175,14 @@ class Chef
       # @return [AX::Application]
       #
       def app_store
-        @app_store ||= AX::Application.new('com.apple.appstore')
+        unless @app_store
+          @app_store = AX::Application.new('com.apple.appstore')
+          unless wait_for(:menu_item, ancestor: app_store, title: 'Purchases')
+            fail(Chef::Exceptions::CommandTimeout,
+                 'Timed out waiting for the App Store to load')
+          end
+        end
+        @app_store
       end
 
       #
