@@ -75,8 +75,7 @@ class Chef
         unless current_resource.installed?
           set_focus_to(app_store)
           press(install_button)
-          # TODO: Icky hardcoded sleep is icky
-          sleep 5
+          wait_for_install
           @new_resource.updated_by_last_action(true)
           quit_when_done? && app_store.terminate
           set_focus_to(original_focus)
@@ -85,6 +84,21 @@ class Chef
       end
 
       private
+
+      #
+      # Wait up to the resource's timeout attribute for the app to download and
+      # install
+      #
+      def wait_for_install
+        (0..new_resource.timeout).each do
+          if app_page.main_window.search(:button, description: /^Open,/)
+            return true
+          end
+          sleep 1
+        end
+        fail(Chef::Exceptions::CommandTimeout,
+             "Timed out waiting for '#{new_resource.name}' to install")
+      end
 
       #
       # Find the latest version of a package available, via the "Information"

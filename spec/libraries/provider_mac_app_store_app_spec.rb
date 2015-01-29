@@ -9,17 +9,20 @@ describe Chef::Provider::MacAppStoreApp do
   let(:node) { Fauxhai.mock(platform).data }
   let(:app_name) { 'Some App' }
   let(:app_id) { 'com.example.someapp' }
+  let(:timeout) { nil }
   let(:axe_gem) { double(run_action: true) }
   let(:system_wide) { double(focused_application: 'something') }
   let(:running_applications) { [] }
   let(:new_resource) do
     r = Chef::Resource::MacAppStoreApp.new(app_name, nil)
     r.app_id(app_id)
+    r.timeout(timeout)
     r
   end
   let(:provider) { described_class.new(new_resource, nil) }
 
   before(:each) do
+    allow_any_instance_of(described_class).to receive(:sleep).and_return(true)
     allow_any_instance_of(described_class).to receive(:node).and_return(node)
     allow_any_instance_of(described_class).to receive(:axe_gem)
       .and_return(axe_gem)
@@ -94,7 +97,12 @@ describe Chef::Provider::MacAppStoreApp do
 
   describe '#action_install' do
     [
-      :press, :install_button, :quit_when_done?, :set_focus_to, :original_focus
+      :press,
+      :install_button,
+      :wait_for_install,
+      :quit_when_done?,
+      :set_focus_to,
+      :original_focus
     ].each do |i|
       let(i) { i }
     end
@@ -109,6 +117,7 @@ describe Chef::Provider::MacAppStoreApp do
         :app_store,
         :press,
         :install_button,
+        :wait_for_install,
         :quit_when_done?,
         :set_focus_to,
         :original_focus
@@ -155,6 +164,11 @@ describe Chef::Provider::MacAppStoreApp do
         provider.action_install
       end
 
+      it 'waits for the install to finish' do
+        expect_any_instance_of(described_class).to receive(:wait_for_install)
+        provider.action_install
+      end
+
       context 'App Store not already running' do
         let(:quit_when_done?) { true }
 
@@ -188,6 +202,33 @@ describe Chef::Provider::MacAppStoreApp do
           expect_any_instance_of(described_class).not_to receive(m)
         end
         provider.action_install
+      end
+    end
+  end
+
+  describe '#wait_for_install' do
+    let(:search) { nil }
+    let(:app_page) { double(main_window: double(search: search)) }
+
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:app_page)
+        .and_return(app_page)
+    end
+
+    context 'a successful install' do
+      let(:search) { true }
+
+      it 'returns true' do
+        expect(provider.send(:wait_for_install)).to eq(true)
+      end
+    end
+
+    context 'an install timeout' do
+      let(:search) { nil }
+
+      it 'raises an error' do
+        expected = Chef::Exceptions::CommandTimeout
+        expect { provider.send(:wait_for_install) }.to raise_error(expected)
       end
     end
   end
@@ -265,7 +306,6 @@ describe Chef::Provider::MacAppStoreApp do
       [:press, :row, :app_store].each do |m|
         allow_any_instance_of(described_class).to receive(m).and_return(send(m))
       end
-      allow_any_instance_of(described_class).to receive(:sleep).and_return(true)
     end
 
     it 'presses the app link' do
@@ -325,7 +365,7 @@ describe Chef::Provider::MacAppStoreApp do
     let(:app_store) { double(main_window: main_window, ancestry: []) }
 
     before(:each) do
-      [:set_focus_to, :wait_for, :select_menu_item, :sleep].each do |m|
+      [:set_focus_to, :wait_for, :select_menu_item].each do |m|
         allow_any_instance_of(described_class).to receive(m).and_return(m)
       end
       allow_any_instance_of(described_class).to receive(:app_store)
