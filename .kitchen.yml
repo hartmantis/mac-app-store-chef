@@ -6,13 +6,17 @@ provisioner:
   name: chef_zero
 
 platforms:
-  - name: ubuntu-14.04
-  - name: ubuntu-12.04
-  - name: centos-6.5
-  - name: centos-5.11
+  - name: macosx-10.9
+    driver:
+      ssh:
+        insert_key: false
 
 suites:
   - name: default
     run_list:
       - recipe[mac-app-store]
     attributes:
+      mac_app_store:
+        apps:
+          - Microsoft Remote Desktop
+          - White Noise Lite
