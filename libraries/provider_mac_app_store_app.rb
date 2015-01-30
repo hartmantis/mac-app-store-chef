@@ -160,7 +160,7 @@ class Chef
       # @return [AX::Row, NilClass]
       #
       def row
-        purchases.main_window.search(:link, title: new_resource.name)
+        purchases.main_window.search(:row, link: { title: new_resource.name })
       end
 
       #

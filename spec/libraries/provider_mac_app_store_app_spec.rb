@@ -366,8 +366,8 @@ describe Chef::Provider::MacAppStoreApp do
     before(:each) do
       allow_any_instance_of(described_class).to receive(:purchases)
         .and_return(purchases)
-      allow(main_window).to receive(:search).with(:link, title: app_name)
-        .and_return(search)
+      allow(main_window).to receive(:search)
+        .with(:row, link: { title: app_name }).and_return(search)
     end
 
     context 'a purchased app' do
