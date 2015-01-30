@@ -18,5 +18,5 @@ suites:
     attributes:
       mac_app_store:
         apps:
-          - Microsoft Remote Desktop
-          - White Noise Lite
+          Microsoft Remote Desktop: com.microsoft.rdc.mac
+          White Noise Lite: com.tmsoft.mac.WhiteNoiseLite
