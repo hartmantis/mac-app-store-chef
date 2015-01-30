@@ -72,7 +72,7 @@ class Chef
       # Install the app from the Mac App Store
       #
       def action_install
-        unless current_resource.installed?
+        unless installed?
           set_focus_to(app_store)
           press(install_button)
           wait_for_install
@@ -137,6 +137,8 @@ class Chef
       # @return [AX::Application]
       #
       def app_page
+        purchased? || fail(Chef::Exceptions::Application,
+                           "App '#{new_resource.name}' has not been purchased")
         press(row.link)
         # TODO: Icky hardcoded sleep is icky
         sleep 3
@@ -149,19 +151,16 @@ class Chef
       # @return [TrueClass, FalseClass]
       #
       def purchased?
-        row
-        true
-      rescue Accessibility::SearchFailure
-        false
+        !row.nil?
       end
 
       #
       # Find the row for the app in question in the App Store window
       #
-      # @return [AX::Row]
+      # @return [AX::Row, NilClass]
       #
       def row
-        purchases.main_window.row(link: { title: new_resource.name })
+        purchases.main_window.search(:link, title: new_resource.name)
       end
 
       #

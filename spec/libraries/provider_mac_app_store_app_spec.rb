@@ -107,13 +107,12 @@ describe Chef::Provider::MacAppStoreApp do
       let(i) { i }
     end
     let(:installed?) { false }
-    let(:current_resource) { double(installed?: installed?) }
     let(:main_window) { double }
     let(:app_store) { double(main_window: main_window, terminate: true) }
 
     before(:each) do
       [
-        :current_resource,
+        :installed?,
         :app_store,
         :press,
         :install_button,
@@ -196,6 +195,8 @@ describe Chef::Provider::MacAppStoreApp do
 
     context 'already installed' do
       let(:installed?) { true }
+
+      it_behaves_like 'any installed state'
 
       it 'does not do anything' do
         [:press, :sleep, :set_focus_to].each do |m|
@@ -298,34 +299,50 @@ describe Chef::Provider::MacAppStoreApp do
   end
 
   describe '#app_page' do
+    let(:purchased?) { true }
     let(:press) { true }
     let(:row) { double(link: 'link') }
     let(:app_store) { 'the app store' }
 
     before(:each) do
-      [:press, :row, :app_store].each do |m|
+      [:purchased?, :press, :row, :app_store].each do |m|
         allow_any_instance_of(described_class).to receive(m).and_return(send(m))
       end
     end
 
-    it 'presses the app link' do
-      expect_any_instance_of(described_class).to receive(:press).with('link')
-      provider.send(:app_page)
+    context 'purchased app' do
+      let(:purchased?) { true }
+
+      it 'presses the app link' do
+        expect_any_instance_of(described_class).to receive(:press).with('link')
+        provider.send(:app_page)
+      end
+
+      it 'returns the app store object' do
+        expect(provider.send(:app_page)).to eq(app_store)
+      end
     end
 
-    it 'returns the app store object' do
-      expect(provider.send(:app_page)).to eq(app_store)
+    context 'not purchased app' do
+      let(:purchased?) { false }
+
+      it 'raises an error' do
+        expected = Chef::Exceptions::Application
+        expect { provider.send(:app_page) }.to raise_error(expected)
+      end
     end
   end
 
   describe '#purchased?' do
-    let(:app_store) { double(ancestry: []) }
+    let(:row) { nil }
+
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:row)
+        .and_return(row)
+    end
 
     context 'app present in Purchases menu' do
-      before(:each) do
-        allow_any_instance_of(described_class).to receive(:row)
-          .and_return(true)
-      end
+      let(:row) { 'a row' }
 
       it 'returns true' do
         expect(provider.send(:purchased?)).to eq(true)
@@ -333,10 +350,7 @@ describe Chef::Provider::MacAppStoreApp do
     end
 
     context 'app not present in Purchases menu' do
-      before(:each) do
-        allow_any_instance_of(described_class).to receive(:row)
-          .and_raise(Accessibility::SearchFailure.new(app_store, :th, :ing))
-      end
+      let(:row) { nil }
 
       it 'returns false' do
         expect(provider.send(:purchased?)).to eq(false)
@@ -345,18 +359,31 @@ describe Chef::Provider::MacAppStoreApp do
   end
 
   describe '#row' do
+    let(:search) { nil }
     let(:main_window) { double }
     let(:purchases) { double(main_window: main_window) }
 
     before(:each) do
       allow_any_instance_of(described_class).to receive(:purchases)
         .and_return(purchases)
-      allow(main_window).to receive(:row)
-        .with(link: { title: app_name }).and_return('some row')
+      allow(main_window).to receive(:search).with(:link, title: app_name)
+        .and_return(search)
     end
 
-    it 'returns the app row' do
-      expect(provider.send(:row)).to eq('some row')
+    context 'a purchased app' do
+      let(:search) { 'some row' }
+
+      it 'returns the app row' do
+        expect(provider.send(:row)).to eq('some row')
+      end
+    end
+
+    context 'a non-purchased app' do
+      let(:search) { nil }
+
+      it 'returns nil' do
+        expect(provider.send(:row)).to eq(nil)
+      end
     end
   end
 
