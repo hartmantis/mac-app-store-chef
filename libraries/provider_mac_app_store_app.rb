@@ -172,7 +172,7 @@ class Chef
       #
       def purchases
         select_menu_item(app_store, 'Store', 'Purchases')
-        unless wait_for(:group, ancestor: app_store, id: 'primary')
+        unless wait_for(:group, ancestor: app_store, id: 'purchased')
           fail(Chef::Exceptions::CommandTimeout,
                'Timed out waiting for Purchases page to load')
         end

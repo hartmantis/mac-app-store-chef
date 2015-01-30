@@ -395,7 +395,7 @@ describe Chef::Provider::MacAppStoreApp do
 
       it 'waits for the window group to load' do
         expect_any_instance_of(described_class).to receive(:wait_for)
-          .with(:group, ancestor: app_store, id: 'primary')
+          .with(:group, ancestor: app_store, id: 'purchased')
           .and_return(true)
         provider.send(:purchases)
       end
@@ -408,7 +408,7 @@ describe Chef::Provider::MacAppStoreApp do
     context 'purchases list loading timeout' do
       before(:each) do
         allow_any_instance_of(described_class).to receive(:wait_for)
-          .with(:group, ancestor: app_store, id: 'primary')
+          .with(:group, ancestor: app_store, id: 'purchased')
           .and_return(nil)
       end
 
