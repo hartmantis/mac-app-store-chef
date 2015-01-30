@@ -91,7 +91,9 @@ class Chef
       #
       def wait_for_install
         (0..new_resource.timeout).each do
-          if app_page.main_window.search(:button, description: /^Open,/)
+          # Button might be 'Installed' or 'Open' depending on OS X version
+          term = /^(Installed,|Open,)/
+          if app_page.main_window.search(:button, description: term)
             return true
           end
           sleep 1
