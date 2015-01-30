@@ -20,3 +20,6 @@ suites:
         apps:
           Microsoft Remote Desktop: com.microsoft.rdc.mac
           White Noise Lite: com.tmsoft.mac.WhiteNoiseLite
+# TODO:
+# - name: app_not_purchased
+# - name: user_not_signed_in
