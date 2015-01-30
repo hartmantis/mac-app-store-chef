@@ -22,6 +22,8 @@ unless node['platform'] == 'mac_os_x'
   fail(Chef::Exceptions::UnsupportedPlatform, node['platform'])
 end
 
+include_recipe 'build-essential'
+
 apps = node['mac_app_store'] && node['mac_app_store']['apps'] || {}
 
 apps.each do |k, v|

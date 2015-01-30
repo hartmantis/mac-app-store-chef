@@ -15,7 +15,15 @@ describe 'mac-app-store::default' do
   context 'OS X platform' do
     let(:platform) { { platform: 'mac_os_x', version: '10.9.2' } }
 
+    shared_examples_for 'any attribute set' do
+      it 'installs the required dev tools' do
+        expect(chef_run).to include_recipe('build-essential')
+      end
+    end
+
     context 'default attributes' do
+      it_behaves_like 'any attribute set'
+
       it 'does nothing' do
         expect(chef_run.find_resources(:mac_app_store_app)).to be_empty
       end
@@ -32,6 +40,8 @@ describe 'mac-app-store::default' do
           }
         }
       end
+
+      it_behaves_like 'any attribute set'
 
       it 'installs the apps' do
         r = chef_run

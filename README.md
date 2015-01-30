@@ -37,6 +37,10 @@ Usage
 A new resource is defined as well as an attribute-driven default recipe, either
 of which can be used.
 
+The default recipe also installs the OS X dev tools required via the
+`build-essential` cookbook. If you are calling the resource directly, you'll
+need to ensure XCode is installed separately.
+
 Recipes
 =======
 
