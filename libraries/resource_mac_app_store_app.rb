@@ -18,47 +18,37 @@
 # limitations under the License.
 #
 
-require 'chef/resource'
+require 'chef/resource/lwrp_base'
 require_relative 'provider_mac_app_store_app'
+require_relative 'provider_mapping'
 
 class Chef
   class Resource
     # A Chef resource for Mac App Store applications
     #
     # @author Jonathan Hartman <j@p4nt5.com>
-    class MacAppStoreApp < Resource
-      attr_accessor :installed
+    class MacAppStoreApp < Resource::LWRPBase
+      self.resource_name = :mac_app_store_app
+      actions :install
+      default_action :install
+
+      #
+      # Attribute for the app's installed status
+      #
+      attribute :installed,
+                kind_of: [NilClass, TrueClass, FalseClass],
+                default: nil
       alias_method :installed?, :installed
-
-      def initialize(name, run_context = nil)
-        super
-        @resource_name = :mac_app_store_app
-        @provider = Provider::MacAppStoreApp
-        @action = :install
-        @allowed_actions = [:install]
-
-        @installed = false
-      end
 
       #
       # Require a pkgutil-style app ID to use for install status checks
       #
-      # @param [String, NilClass] arg
-      # @return [String]
-      #
-      def app_id(arg = nil)
-        set_or_return(:app_id, arg, kind_of: [String], required: true)
-      end
+      attribute :app_id, kind_of: String, required: true
 
       #
       # Timeout value for app download + install
       #
-      # @param [Fixnum, NilClass] arg
-      # @return [Fixnum]
-      #
-      def timeout(arg = nil)
-        set_or_return(:timeout, arg, kind_of: [Fixnum], default: 600)
-      end
+      attribute :timeout, kind_of: Fixnum, default: 600
     end
   end
 end

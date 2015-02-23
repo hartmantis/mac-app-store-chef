@@ -32,23 +32,24 @@ describe Chef::Resource::MacAppStoreApp do
       expect(resource.instance_variable_get(:@resource_name)).to eq(exp)
     end
 
-    it 'sets the correct provider' do
-      exp = Chef::Provider::MacAppStoreApp
-      expect(resource.instance_variable_get(:@provider)).to eq(exp)
-    end
-
     it 'sets the correct supported actions' do
-      expected = [:install]
+      expected = [:nothing, :install]
       expect(resource.instance_variable_get(:@allowed_actions)).to eq(expected)
     end
 
-    it 'defaults the state to uninstalled' do
-      expect(resource.instance_variable_get(:@installed)).to eq(false)
+    it 'defaults the installed state to nil' do
+      expect(resource.instance_variable_get(:@installed)).to eq(nil)
     end
   end
 
   [:installed, :installed?].each do |m|
     describe "##{m}" do
+      context 'default unknown installed status' do
+        it 'returns nil' do
+          expect(resource.send(m)).to eq(nil)
+        end
+      end
+
       context 'app installed' do
         it 'returns true' do
           r = resource
@@ -59,6 +60,8 @@ describe Chef::Resource::MacAppStoreApp do
 
       context 'app not installed' do
         it 'returns false' do
+          r = resource
+          r.instance_variable_set(:@installed, false)
           expect(resource.send(m)).to eq(false)
         end
       end
