@@ -127,7 +127,7 @@ describe Chef::Provider::MacAppStoreApp do
 
     shared_examples_for 'any installed state' do
       it 'sets installed state to true' do
-        expect(new_resource).to receive(:'installed=').with(true)
+        expect(new_resource).to receive(:installed).with(true)
         provider.action_install
       end
     end

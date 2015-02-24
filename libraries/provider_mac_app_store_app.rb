@@ -18,7 +18,7 @@
 # limitations under the License.
 #
 
-require 'chef/provider'
+require 'chef/provider/lwrp_base'
 require 'chef/mixin/shell_out'
 require 'chef/resource/chef_gem'
 require_relative 'resource_mac_app_store_app'
@@ -28,10 +28,21 @@ class Chef
     # A Chef provider for Mac App Store apps
     #
     # @author Jonathan Hartman <j@p4nt5.com>
-    class MacAppStoreApp < Provider
+    class MacAppStoreApp < Provider::LWRPBase
       include Chef::Mixin::ShellOut
+      use_inline_resources
 
       AXE_VERSION ||= '~> 6.0'
+
+
+      #
+      # WhyRun is supported by this provider
+      #
+      # @return [TrueClass, FalseClass]
+      #
+      def whyrun_supported?
+        true
+      end
 
       attr_reader :original_focus
       attr_reader :quit_when_done
@@ -49,29 +60,20 @@ class Chef
       end
 
       #
-      # WhyRun is supported by this provider
-      #
-      # @return [TrueClass, FalseClass]
-      #
-      def whyrun_supported?
-        true
-      end
-
-      #
       # Load and return the current resource
       #
       # @return [Chef::Resource::MacAppStoreApp]
       #
       def load_current_resource
         @current_resource ||= Resource::MacAppStoreApp.new(new_resource.name)
-        @current_resource.installed = installed?
+        @current_resource.installed(installed?)
         @current_resource
       end
 
       #
       # Install the app from the Mac App Store
       #
-      def action_install
+      action :install do
         unless installed?
           set_focus_to(app_store)
           press(install_button)
@@ -80,7 +82,7 @@ class Chef
           quit_when_done? && app_store.terminate
           set_focus_to(original_focus)
         end
-        new_resource.installed = true
+        new_resource.installed(true)
       end
 
       private

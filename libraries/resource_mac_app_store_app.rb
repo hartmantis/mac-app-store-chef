@@ -19,8 +19,6 @@
 #
 
 require 'chef/resource/lwrp_base'
-require_relative 'provider_mac_app_store_app'
-require_relative 'provider_mapping'
 
 class Chef
   class Resource
