@@ -24,6 +24,3 @@ require_relative 'provider_mac_app_store_app'
 Chef::Platform.set(platform: :mac_os_x,
                    resource: :mac_app_store_app,
                    provider: Chef::Provider::MacAppStoreApp)
-Chef::Platform.set(platform: :mac_os_x_server,
-                   resource: :mac_app_store_app,
-                   provider: Chef::Provider::MacAppStoreApp)
