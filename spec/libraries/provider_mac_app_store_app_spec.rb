@@ -10,7 +10,6 @@ describe Chef::Provider::MacAppStoreApp do
   let(:app_name) { 'Some App' }
   let(:app_id) { 'com.example.someapp' }
   let(:timeout) { nil }
-  let(:axe_gem) { double(run_action: true) }
   let(:system_wide) { double(focused_application: 'something') }
   let(:running_applications) { [] }
   let(:new_resource) do
@@ -24,8 +23,8 @@ describe Chef::Provider::MacAppStoreApp do
   before(:each) do
     allow_any_instance_of(described_class).to receive(:sleep).and_return(true)
     allow_any_instance_of(described_class).to receive(:node).and_return(node)
-    allow_any_instance_of(described_class).to receive(:axe_gem)
-      .and_return(axe_gem)
+    allow_any_instance_of(described_class).to receive(:install_axe_gem)
+      .and_return(true)
     allow(AX::SystemWide).to receive(:new).and_return(system_wide)
     allow(NSRunningApplication)
       .to receive(:runningApplicationsWithBundleIdentifier)
@@ -41,7 +40,7 @@ describe Chef::Provider::MacAppStoreApp do
   describe '#initialize' do
     shared_examples_for 'any initial state' do
       it 'installs the AXE gem' do
-        expect(axe_gem).to receive(:run_action).with(:install)
+        expect_any_instance_of(described_class).to receive(:install_axe_gem)
         provider
       end
 
@@ -481,20 +480,20 @@ describe Chef::Provider::MacAppStoreApp do
     end
   end
 
-  describe '#axe_gem' do
-    it 'returns a chef_gem resource' do
-      expected = Chef::Resource::ChefGem
-      p = provider
-      allow_any_instance_of(described_class).to receive(:axe_gem)
-        .and_call_original
-      expect(p.send(:axe_gem)).to be_an_instance_of(expected)
+  describe '#install_axe_gem' do
+    let(:chef_gem) { double(version: true, action: true) }
+
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:chef_gem)
+        .with('AXElements').and_yield
     end
 
-    it 'uses AXE 6' do
+    it 'installs the AXElements gem' do
       p = provider
-      allow_any_instance_of(described_class).to receive(:axe_gem)
-        .and_call_original
-      expect(p.send(:axe_gem).version).to eq('~> 6.0')
+      allow(p).to receive(:install_axe_gem).and_call_original
+      expect(p).to receive(:version).with('~> 6.0')
+      expect(p).to receive(:action).with(:install)
+      p.send(:install_axe_gem)
     end
   end
 end

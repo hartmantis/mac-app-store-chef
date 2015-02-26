@@ -50,7 +50,7 @@ class Chef
 
       def initialize(new_resource, run_context)
         super
-        axe_gem.run_action(:install)
+        install_axe_gem
         require 'ax_elements'
         @original_focus = AX::SystemWide.new.focused_application
         @quit_when_done = NSRunningApplication
@@ -203,16 +203,13 @@ class Chef
       end
 
       #
-      # A resource for the AXElements gem dep
+      # Install the AXElements gem
       #
-      # @return [Chef::Resource::ChefGem]
-      #
-      def axe_gem
-        unless @axe_gem
-          @axe_gem = Resource::ChefGem.new('AXElements', run_context)
-          @axe_gem.version(AXE_VERSION)
+      def install_axe_gem
+        chef_gem 'AXElements' do
+          version AXE_VERSION
+          action :install
         end
-        @axe_gem
       end
     end
   end
