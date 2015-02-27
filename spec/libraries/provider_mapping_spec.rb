@@ -17,14 +17,6 @@ describe :provider_mapping do
     end
   end
 
-  context 'Mac OS X Server' do
-    let(:platform) { :mac_os_x_server }
-
-    it 'returns the MacAppStoreApp provider' do
-      expect(provider).to eq(Chef::Provider::MacAppStoreApp)
-    end
-  end
-
   context 'Ubuntu' do
     let(:platform) { :ubuntu }
 

@@ -18,6 +18,7 @@
 # limitations under the License.
 #
 
+require 'chef/dsl' # TODO: Chef bug(?)
 require 'chef/platform/provider_mapping'
 require_relative 'provider_mac_app_store_app'
 
