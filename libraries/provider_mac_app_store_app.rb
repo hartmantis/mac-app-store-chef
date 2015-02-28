@@ -35,7 +35,6 @@ class Chef
 
       AXE_VERSION ||= '~> 6.0'
 
-
       #
       # WhyRun is supported by this provider
       #

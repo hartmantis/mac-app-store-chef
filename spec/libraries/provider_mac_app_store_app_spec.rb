@@ -180,7 +180,7 @@ describe Chef::Provider::MacAppStoreApp do
 
       context 'App Store not already running' do
         let(:quit_when_done?) { true }
-        
+
         it_behaves_like 'quit when done'
       end
 

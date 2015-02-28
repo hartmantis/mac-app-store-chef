@@ -161,23 +161,23 @@ describe MacAppStoreCookbook::Helpers do
   end
 
   describe '#purchases' do
+    let(:signed_in?) { true }
     let(:main_window) { double }
     let(:app_store) { double(main_window: main_window, ancestry: []) }
 
     before(:each) do
-      [:set_focus_to, :wait_for, :select_menu_item].each do |m|
+      %i(set_focus_to wait_for select_menu_item).each do |m|
         allow(described_class).to receive(m).and_return(m)
       end
-      allow(described_class).to receive(:app_store).and_return(app_store)
+      %i(signed_in? app_store).each do |m|
+        allow(described_class).to receive(m).and_return(send(m))
+      end
       allow(main_window).to receive(:search).with(:link, title: 'sign in')
         .and_return(nil)
     end
 
     context 'user not signed in' do
-      before(:each) do
-        allow(main_window).to receive(:search).with(:link, title: 'sign in')
-          .and_return(true)
-      end
+      let(:signed_in?) { false }
 
       it 'raises an exception' do
         expected = Chef::Exceptions::ConfigurationError
@@ -186,6 +186,8 @@ describe MacAppStoreCookbook::Helpers do
     end
 
     context 'user signed in' do
+      let(:signed_in?) { true }
+
       it 'selects Purchases from the dropdown menu'do
         expect(described_class).to receive(:select_menu_item)
           .with(app_store, 'Store', 'Purchases')
@@ -218,6 +220,37 @@ describe MacAppStoreCookbook::Helpers do
     end
   end
 
+  describe '#signed_in?' do
+    let(:signed_in?) { false }
+    let(:search) { signed_in? ? 'some data' : nil }
+    let(:menu_bar_item) { double }
+    let(:app_store) { double }
+
+    before(:each) do
+      allow(menu_bar_item).to receive(:search)
+        .with(:menu_item, title: 'Sign Out').and_return(search)
+      allow(app_store).to receive(:menu_bar_item).with(title: 'Store')
+        .and_return(menu_bar_item)
+      allow(described_class).to receive(:app_store).and_return(app_store)
+    end
+
+    context 'user not signed in' do
+      let(:signed_in?) { false }
+
+      it 'returns false' do
+        expect(described_class.signed_in?).to eq(false)
+      end
+    end
+
+    context 'user signed in' do
+      let(:signed_in?) { true }
+
+      it 'returns true' do
+        expect(described_class.signed_in?).to eq(true)
+      end
+    end
+  end
+
   describe '#quit!' do
     let(:app_store) { double(terminate: true) }
     let(:running?) { false }
@@ -228,7 +261,7 @@ describe MacAppStoreCookbook::Helpers do
     end
 
     context 'App Store not running' do
-      let(:running?) { false}
+      let(:running?) { false }
 
       it 'does not try to quit' do
         expect(app_store).not_to receive(:terminate)

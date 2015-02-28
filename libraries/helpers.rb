@@ -35,15 +35,13 @@ module MacAppStoreCookbook
     # @return [TrueClass]
     #
     # @raise [Chef::Exceptions::CommandTimeout]
-    # 
+    #
     #
     def self.wait_for_install(app_name, timeout = 600)
       (0..timeout).each do
         # Button might be 'Installed' or 'Open' depending on OS X version
         term = /^(Installed,|Open,)/
-        if app_page.main_window.search(:button, description: term)
-          return true
-        end
+        return true if app_page.main_window.search(:button, description: term)
         sleep 1
       end
       fail(Chef::Exceptions::CommandTimeout,
@@ -82,7 +80,7 @@ module MacAppStoreCookbook
     #
     def self.app_page(app_name)
       purchased?(app_name) || fail(Chef::Exceptions::Application,
-                         "App '#{app_name}' has not been purchased")
+                                   "App '#{app_name}' has not been purchased")
       press(row.link)
       # TODO: Icky hardcoded sleep is icky
       sleep 3
@@ -118,16 +116,26 @@ module MacAppStoreCookbook
     # @raise [Chef::Exceptions::ConfigurationError]
     #
     def self.purchases
+      unless signed_in?
+        fail(Chef::Exceptions::ConfigurationError,
+             'User must be signed into App Store to install apps')
+      end
       select_menu_item(app_store, 'Store', 'Purchases')
       unless wait_for(:group, ancestor: app_store, id: 'purchased')
         fail(Chef::Exceptions::CommandTimeout,
              'Timed out waiting for Purchases page to load')
       end
-      if app_store.main_window.search(:link, title: 'sign in')
-        fail(Chef::Exceptions::ConfigurationError,
-             'User must be signed into App Store to install apps')
-      end
       app_store
+    end
+
+    #
+    # Check whether a user is currently signed into the App Store or not
+    #
+    # @return [TrueClass, FalseClass]
+    #
+    def self.signed_in?
+      !app_store.menu_bar_item(title: 'Store').search(:menu_item,
+                                                      title: 'Sign Out').nil?
     end
 
     #
