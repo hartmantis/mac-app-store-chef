@@ -129,6 +129,62 @@ module MacAppStoreCookbook
     end
 
     #
+    # Go to the Sign In menu and sign in as a user.
+    # Will return immediately if any user is signed in, whether or not it's
+    # the same user as provided to this function.
+    #
+    # @param [String] username
+    # @param [String] password
+    #
+    def self.sign_in(username, password)
+      return if signed_in?
+      select_menu_item(app_store, 'Store', 'Sign In…')
+      sleep 1
+      set(username_field, username)
+      set(password_field, password)
+      press(sign_in_button)
+      sleep 5
+    end
+
+    #
+    # Find and return the 'Sign In' button from the popup menu.
+    # This requires that the sign in menu has already been selected.
+    #
+    # @return [AX::Button]
+    #
+    def self.sign_in_button
+      app_store.main_window.sheet.button(title: 'Sign In')
+    end
+
+    #
+    # Find and return the 'Apple ID' text field from the sign in popup.
+    # This requires that the sign in menu has already been selected.
+    #
+    # @return[AX::TextField]
+    #
+    def self.username_field
+      app_store.main_window.sheet.text_field(
+        title_ui_element: app_store.main_window.sheet.static_text(
+          value: 'Apple ID '
+        )
+      )
+    end
+
+    #
+    # Find and return the 'Password' text field from the sign in popup.
+    # This requires that the sign in menu has already been selected.
+    #
+    # @return [AX::SecureTextField]
+    #
+    def self.password_field
+      app_store.main_window.sheet.secure_text_field(
+        title_ui_element: app_store.main_window.sheet.static_text(
+          value: 'Password'
+        )
+      )
+    end
+
+    #
     # Check whether a user is currently signed into the App Store or not
     #
     # @return [TrueClass, FalseClass]
