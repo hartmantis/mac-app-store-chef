@@ -129,6 +129,14 @@ module MacAppStoreCookbook
     end
 
     #
+    # Sign out of the App Store if a user is currently signed in
+    #
+    def self.sign_out!
+      return unless signed_in?
+      select_menu_item(app_store, 'Store', 'Sign Out')
+    end
+
+    #
     # Go to the Sign In menu and sign in as a user.
     # Will return immediately if any user is signed in, whether or not it's
     # the same user as provided to this function.

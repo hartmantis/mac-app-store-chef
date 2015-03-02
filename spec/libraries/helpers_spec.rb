@@ -220,6 +220,37 @@ describe MacAppStoreCookbook::Helpers do
     end
   end
 
+  describe '#sign_out!' do
+    let(:signed_in?) { true }
+    let(:app_store) { 'fake app store' }
+
+    before(:each) do
+      %i(signed_in? app_store).each do |m|
+        allow(described_class).to receive(m).and_return(send(m))
+      end
+      allow(described_class).to receive(:select_menu_item).and_return(true)
+    end
+
+    context 'user not signed in' do
+      let(:signed_in?) { false }
+
+      it 'returns without doing anything' do
+        expect(described_class).not_to receive(:select_menu_item)
+        described_class.sign_out!
+      end
+    end
+
+    context 'user signed in' do
+      let(:signed_in?) { true }
+
+      it 'signs the user out' do
+        expect(described_class).to receive(:select_menu_item)
+          .with(app_store, 'Store', 'Sign Out')
+        described_class.sign_out!
+      end
+    end
+  end
+
   describe '#sign_in' do
     let(:username) { 'some_user' }
     let(:password) { 'some_password' }
