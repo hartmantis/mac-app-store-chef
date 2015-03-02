@@ -185,6 +185,19 @@ module MacAppStoreCookbook
     end
 
     #
+    # Find and return the user currently signed in, or nil if nobody is signed
+    # in
+    #
+    # @return [NilClass, String]
+    #
+    def self.current_user?
+      return nil unless signed_in?
+      app_store.menu_bar_item(title: 'Store')
+        .menu_item(title: /^View My Account /)
+        .title[/^View My Account \((.*)\)/, 1]
+    end
+
+    #
     # Check whether a user is currently signed into the App Store or not
     #
     # @return [TrueClass, FalseClass]

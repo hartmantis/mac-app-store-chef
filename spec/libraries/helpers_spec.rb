@@ -335,6 +335,39 @@ describe MacAppStoreCookbook::Helpers do
     end
   end
 
+  describe '#current_user?' do
+    let(:signed_in?) { true }
+    let(:user) { 'example@example.com' }
+    let(:menu_item) { double(title: "View My Account (#{user})") }
+    let(:menu_bar_item) { double }
+    let(:app_store) { double }
+
+    before(:each) do
+      allow(described_class).to receive(:signed_in?).and_return(signed_in?)
+      allow(menu_bar_item).to receive(:menu_item)
+        .with(title: /^View My Account /).and_return(menu_item)
+      allow(app_store).to receive(:menu_bar_item).with(title: 'Store')
+        .and_return(menu_bar_item)
+      allow(described_class).to receive(:app_store).and_return(app_store)
+    end
+
+    context 'user not signed in' do
+      let(:signed_in?) { false }
+
+      it 'returns nil' do
+        expect(described_class.current_user?).to eq(nil)
+      end
+    end
+
+    context 'user signed in' do
+      let(:signed_in?) { true }
+
+      it 'returns the username' do
+        expect(described_class.current_user?).to eq(user)
+      end
+    end
+  end
+
   describe '#signed_in?' do
     let(:signed_in?) { false }
     let(:search) { signed_in? ? 'some data' : nil }
