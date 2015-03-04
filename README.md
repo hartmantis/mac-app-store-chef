@@ -53,13 +53,20 @@ Attributes
 
 ***default***
 
+An attribute is supplied to represent a set of apps to install:
+
     default['mac_app_store']['apps'] = nil
 
-A set of apps to install is empty by default and can be overridden with a hash
-of app names (as displayed in the App Store) and app IDs (as displayed in the
-output of `pkgutil --pkgs`.
+It can be overridden with a hash of app names (as displayed in the App Store)
+and app IDs (as displayed in the output of `pkgutil --pkgs`.
 
     default['mac_app_store']['apps']['Tweetbot for Twitter'] = 'com.tapbots.TweetbotMac'
+
+By default, the main recipe assumes an Apple ID is already signed into the App
+Store, but a set of credentials can be provided:
+
+    default['mac_app_store']['username'] = nil
+    default['mac_app_store']['password'] = nil
 
 Resources
 =========
@@ -73,6 +80,8 @@ Syntax:
     mac_app_store_app 'Some App' do
         app_id 'com.example.someapp'
         timeout 1200
+        username 'example@example.com'
+        password 'abc123'
         action :install
     end
 
@@ -88,6 +97,8 @@ Attributes:
 |------------|----------------|----------------------------------------------|
 | app\_id    | `nil`          | Required; the app ID as displayed by pkgutil |
 | timeout    | `600`          | Time to wait on a download + install         |
+| username   | `nil`          | An Apple ID username                         |
+| password   | `nil`          | An Apple ID password                         |
 | action     | `:install`     | Action(s) to perform                         |
 
 Providers

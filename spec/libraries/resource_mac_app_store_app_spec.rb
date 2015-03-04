@@ -8,11 +8,13 @@ describe Chef::Resource::MacAppStoreApp do
   let(:node) { Fauxhai.mock(platform).data }
   let(:app_name) { 'Some App' }
   let(:app_id) { 'com.example.someapp' }
+  %i(timeout username password).each { |i| let(i) { nil } }
   let(:timeout) { nil }
   let(:resource) do
     r = described_class.new(app_name, nil)
-    r.app_id(app_id)
-    r.timeout(timeout)
+    %i(app_id timeout username password).each do |a|
+      r.send(a, send(a))
+    end
     r
   end
 
@@ -39,6 +41,11 @@ describe Chef::Resource::MacAppStoreApp do
 
     it 'defaults the installed state to nil' do
       expect(resource.instance_variable_get(:@installed)).to eq(nil)
+    end
+
+    it 'defaults the Apple ID to nil' do
+      expect(resource.instance_variable_get(:@username)).to eq(nil)
+      expect(resource.instance_variable_get(:@password)).to eq(nil)
     end
   end
 
@@ -107,6 +114,50 @@ describe Chef::Resource::MacAppStoreApp do
 
     context 'an invalid override' do
       let(:timeout) { :thing }
+
+      it_behaves_like 'an invalid configuration'
+    end
+  end
+
+  describe '#username' do
+    context 'no override' do
+      it 'returns the default' do
+        expect(resource.username).to eq(nil)
+      end
+    end
+
+    context 'a valid override' do
+      let(:username) { 'example' }
+
+      it 'returns the override' do
+        expect(resource.username).to eq('example')
+      end
+    end
+
+    context 'an invalid override' do
+      let(:username) { [1, 2, 3] }
+
+      it_behaves_like 'an invalid configuration'
+    end
+  end
+
+  describe '#password' do
+    context 'no override' do
+      it 'returns the default' do
+        expect(resource.password).to eq(nil)
+      end
+    end
+
+    context 'a valid override' do
+      let(:password) { 'example' }
+
+      it 'returns the override' do
+        expect(resource.password).to eq('example')
+      end
+    end
+
+    context 'an invalid override' do
+      let(:password) { [1, 2, 3] }
 
       it_behaves_like 'an invalid configuration'
     end

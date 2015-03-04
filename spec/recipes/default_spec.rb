@@ -21,6 +21,15 @@ describe 'mac-app-store::default' do
       end
     end
 
+    shared_examples_for 'given a set of apps to install' do
+      it 'installs the specified apps' do
+        r = chef_run
+        overrides[:mac_app_store][:apps].each do |k, v|
+          expect(r).to install_mac_app_store_app(k).with(app_id: v)
+        end
+      end
+    end
+
     context 'default attributes' do
       it_behaves_like 'any attribute set'
 
@@ -41,13 +50,29 @@ describe 'mac-app-store::default' do
         }
       end
 
-      it_behaves_like 'any attribute set'
+      context 'no Apple ID given' do
+        it_behaves_like 'any attribute set'
+        it_behaves_like 'given a set of apps to install'
+      end
 
-      it 'installs the apps' do
-        r = chef_run
-        %w(app1 app2).each do |a|
-          expect(r).to install_mac_app_store_app(a)
-            .with(app_id: "com.example.#{a}")
+      context 'an Apple ID given' do
+        let(:overrides) do
+          o = super()
+          o[:mac_app_store][:username] = 'e@example.com'
+          o[:mac_app_store][:password] = 'abc123'
+          o
+        end
+
+        it_behaves_like 'any attribute set'
+        it_behaves_like 'given a set of apps to install'
+
+        it 'uses the provided Apple ID' do
+          r = chef_run
+          overrides[:mac_app_store][:apps].each do |k, v|
+            expect(r).to install_mac_app_store_app(k)
+              .with(username: overrides[:mac_app_store][:username])
+              .with(password: overrides[:mac_app_store][:password])
+          end
         end
       end
     end

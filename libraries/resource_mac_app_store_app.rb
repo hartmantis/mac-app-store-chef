@@ -47,6 +47,16 @@ class Chef
       # Timeout value for app download + install
       #
       attribute :timeout, kind_of: Fixnum, default: 600
+
+      #
+      # An optional Apple ID username
+      #
+      attribute :username, kind_of: String, default: nil
+
+      #
+      # An optional Apple ID password
+      #
+      attribute :password, kind_of: String, default: nil
     end
   end
 end

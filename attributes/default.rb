@@ -18,4 +18,6 @@
 # limitations under the License.
 #
 
+default['mac_app_store']['username'] = nil
+default['mac_app_store']['password'] = nil
 default['mac_app_store']['apps'] = nil

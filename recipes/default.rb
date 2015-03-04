@@ -29,5 +29,7 @@ apps = node['mac_app_store'] && node['mac_app_store']['apps'] || {}
 apps.each do |k, v|
   mac_app_store_app k do
     app_id v
+    username node['mac_app_store']['username']
+    password node['mac_app_store']['password']
   end
 end
