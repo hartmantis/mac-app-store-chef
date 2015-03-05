@@ -7,6 +7,8 @@ require_relative '../../libraries/provider_mac_app_store_app'
 describe Chef::Provider::MacAppStoreApp do
   let(:platform) { { platform: 'mac_os_x', version: '10.9.2' } }
   let(:node) { Fauxhai.mock(platform).data }
+  let(:username) { 'auser' }
+  let(:password) { 'apassword' }
   let(:app_name) { 'Some App' }
   let(:app_id) { 'com.example.someapp' }
   let(:timeout) { nil }
@@ -14,8 +16,9 @@ describe Chef::Provider::MacAppStoreApp do
   let(:running?) { false }
   let(:new_resource) do
     r = Chef::Resource::MacAppStoreApp.new(app_name, nil)
-    r.app_id(app_id)
-    r.timeout(timeout)
+    %i(username password app_id timeout).each do |m|
+      r.send(m, send(m))
+    end
     r
   end
   let(:provider) { described_class.new(new_resource, nil) }
@@ -94,40 +97,25 @@ describe Chef::Provider::MacAppStoreApp do
   end
 
   describe '#action_install' do
-    [
-      :set_focus_to,
-      :press,
-      :quit_when_done?,
-      :original_focus,
-
-      :app_store,
-      :install_button,
-      :wait_for_install,
-      :'quit!'
-    ].each do |i|
+    %i(
+      installed?
+      set_focus_to
+      app_store
+      sign_in!
+      install!
+      quit_when_done?
+      original_focus
+      quit!
+    ).each do |i|
       let(i) { i }
     end
-    let(:installed?) { false }
-    let(:main_window) { double }
-    let(:app_store) { double(main_window: main_window, terminate: true) }
 
     before(:each) do
-      [
-        :set_focus_to,
-        :press,
-        :quit_when_done?,
-        :original_focus
-      ].each do |r|
+      %i(set_focus_to quit_when_done? original_focus).each do |r|
         allow_any_instance_of(described_class).to receive(r).and_return(send(r))
       end
 
-      [
-        :installed?,
-        :app_store,
-        :install_button,
-        :wait_for_install,
-        :'quit!'
-      ].each do |r|
+      %i(installed? app_store sign_in! install! quit!).each do |r|
         allow(MacAppStoreCookbook::Helpers).to receive(r).and_return(send(r))
       end
     end
@@ -141,14 +129,14 @@ describe Chef::Provider::MacAppStoreApp do
 
     shared_examples_for 'quit when done' do
       it 'quits the App Store' do
-        expect(MacAppStoreCookbook::Helpers).to receive(:'quit!')
+        expect(MacAppStoreCookbook::Helpers).to receive(:quit!)
         provider.action_install
       end
     end
 
     shared_examples_for 'do not quit when done' do
       it 'does not quit the App Store' do
-        expect(MacAppStoreCookbook::Helpers).not_to receive(:'quit!')
+        expect(MacAppStoreCookbook::Helpers).not_to receive(:quit!)
         provider.action_install
       end
     end
@@ -160,21 +148,19 @@ describe Chef::Provider::MacAppStoreApp do
 
       it 'sets focus to the app store' do
         expect_any_instance_of(described_class).to receive(:set_focus_to)
-          .with(app_store).and_return(true)
+          .with(app_store)
         provider.action_install
       end
 
-      it 'presses the install button' do
-        expect(MacAppStoreCookbook::Helpers).to receive(:install_button)
-          .with(app_name).and_return(install_button)
-        expect_any_instance_of(described_class).to receive(:press)
-          .with(install_button)
+      it 'signs the user in' do
+        expect(MacAppStoreCookbook::Helpers).to receive(:sign_in!)
+          .with(username, password)
         provider.action_install
       end
 
-      it 'waits for the install to finish' do
-        expect(MacAppStoreCookbook::Helpers).to receive(:wait_for_install)
-          .with(app_name)
+      it 'installs the app' do
+        expect(MacAppStoreCookbook::Helpers).to receive(:install!)
+          .with(app_name, 600)
         provider.action_install
       end
 

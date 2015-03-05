@@ -25,6 +25,12 @@ module MacAppStoreCookbook
   #
   # @author Jonathan Hartman <j@p4nt5.com>
   module Helpers
+    def self.install!(app_name, timeout)
+      return nil if installed?(app_name)
+      press(install_button(app_name))
+      wait_for_install(app_name, timeout)
+    end
+
     #
     # Wait up to the resource's timeout attribute for the app to download and
     # install
@@ -37,7 +43,7 @@ module MacAppStoreCookbook
     # @raise [Chef::Exceptions::CommandTimeout]
     #
     #
-    def self.wait_for_install(app_name, timeout = 600)
+    def self.wait_for_install(app_name, timeout)
       (0..timeout).each do
         # Button might be 'Installed' or 'Open' depending on OS X version
         term = /^(Installed,|Open,)/
@@ -144,8 +150,9 @@ module MacAppStoreCookbook
     # @param [String] username
     # @param [String] password
     #
-    def self.sign_in(username, password)
-      return if signed_in?
+    def self.sign_in!(username, password)
+      return if signed_in? && current_user? == username
+      sign_out! if current_user? != username
       select_menu_item(app_store, 'Store', 'Sign In…')
       sleep 1
       set(username_field, username)

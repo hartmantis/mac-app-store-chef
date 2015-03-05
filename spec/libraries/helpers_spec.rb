@@ -11,6 +11,48 @@ describe MacAppStoreCookbook::Helpers do
     allow(described_class).to receive(:sleep).and_return(true)
   end
 
+  describe '#install!' do
+    let(:installed?) { false }
+    let(:press) { 'a button press' }
+    let(:install_button) { 'an install button' }
+    let(:wait_for_install) { 'a wait' }
+
+    before(:each) do
+      %i(installed? press install_button wait_for_install).each do |m|
+        allow(described_class).to receive(m).and_return(send(m))
+      end
+    end
+
+    context 'app not installed' do
+      let(:installed?) { false }
+
+      it 'presses the install button' do
+        expect(described_class).to receive(:install_button).with(app_name)
+        expect(described_class).to receive(:press).with(install_button)
+        described_class.install!(app_name, 10)
+      end
+
+      it 'waits for the install to finish' do
+        expect(described_class).to receive(:wait_for_install)
+          .with(app_name, 10)
+        described_class.install!(app_name, 10)
+      end
+    end
+
+    context 'app already installed' do
+      let(:installed?) { true }
+
+      it 'returns nil' do
+        expect(described_class.install!(app_name, 10)).to eq(nil)
+      end
+
+      it 'presses no buttons' do
+        expect(described_class).not_to receive(:press)
+        described_class.install!(app_name, 10)
+      end
+    end
+  end
+
   describe '#wait_for_install' do
     let(:timeout) { 10 }
     let(:search) { nil }
@@ -251,18 +293,24 @@ describe MacAppStoreCookbook::Helpers do
     end
   end
 
-  describe '#sign_in' do
+  describe '#sign_in!' do
     let(:username) { 'some_user' }
     let(:password) { 'some_password' }
     let(:username_field) { 'a username text box' }
     let(:password_field) { 'a password text box' }
     let(:sign_in_button) { 'a sign in button' }
     let(:signed_in?) { true }
+    let(:current_user?) { username }
     let(:app_store) { 'dummy data' }
 
     before(:each) do
       %i(
-        username_field password_field sign_in_button signed_in? app_store
+        username_field
+        password_field
+        sign_in_button
+        signed_in?
+        current_user?
+        app_store
       ).each do |m|
         allow(described_class).to receive(m).and_return(send(m))
       end
@@ -276,38 +324,52 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'returns immediately' do
         expect(described_class).not_to receive(:select_menu_item)
-        described_class.sign_in(username, password)
+        described_class.sign_in!(username, password)
       end
     end
 
     context 'user not signed in' do
       let(:signed_in?) { false }
 
+      it 'does not sign out' do
+        expect(described_class).not_to receive(:sign_out!)
+        described_class.sign_in!(username, password)
+      end
+
       it 'selects the Sign In menu' do
         expect(described_class).to receive(:select_menu_item)
           .with(app_store, 'Store', 'Sign In…')
-        described_class.sign_in(username, password)
+        described_class.sign_in!(username, password)
       end
 
       it 'waits for the Sign In menu to load' do
         pending
         expect(described_class).to receive(:wait_for)
-        described_class.sign_in(username, password)
+        described_class.sign_in!(username, password)
       end
 
       it 'enters Apple ID information' do
         expect(described_class).to receive(:set).with(username_field, username)
-        described_class.sign_in(username, password)
+        described_class.sign_in!(username, password)
       end
 
       it 'enters Password information' do
         expect(described_class).to receive(:set).with(password_field, password)
-        described_class.sign_in(username, password)
+        described_class.sign_in!(username, password)
       end
 
       it 'presses the Sign In button' do
         expect(described_class).to receive(:press).with(sign_in_button)
-        described_class.sign_in(username, password)
+        described_class.sign_in!(username, password)
+      end
+    end
+
+    context 'a different user signed in' do
+      let(:current_user?) { 'anotheruser' }
+
+      it 'signs out' do
+        expect(described_class).to receive(:sign_out!)
+        described_class.sign_in!(username, password)
       end
     end
   end

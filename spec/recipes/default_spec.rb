@@ -68,7 +68,7 @@ describe 'mac-app-store::default' do
 
         it 'uses the provided Apple ID' do
           r = chef_run
-          overrides[:mac_app_store][:apps].each do |k, v|
+          overrides[:mac_app_store][:apps].each do |k, _|
             expect(r).to install_mac_app_store_app(k)
               .with(username: overrides[:mac_app_store][:username])
               .with(password: overrides[:mac_app_store][:password])

@@ -73,8 +73,10 @@ class Chef
       action :install do
         unless MacAppStoreCookbook::Helpers.installed?(new_resource.name)
           set_focus_to(MacAppStoreCookbook::Helpers.app_store)
-          press(MacAppStoreCookbook::Helpers.install_button(new_resource.name))
-          MacAppStoreCookbook::Helpers.wait_for_install(new_resource.name)
+          MacAppStoreCookbook::Helpers.sign_in!(new_resource.username,
+                                                new_resource.password)
+          MacAppStoreCookbook::Helpers.install!(new_resource.name,
+                                                new_resource.timeout)
           @new_resource.updated_by_last_action(true)
           quit_when_done? && MacAppStoreCookbook::Helpers.quit!
           set_focus_to(original_focus)
