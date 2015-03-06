@@ -88,8 +88,10 @@ module MacAppStoreCookbook
       purchased?(app_name) || fail(Chef::Exceptions::Application,
                                    "App '#{app_name}' has not been purchased")
       press(row.link)
-      # TODO: Icky hardcoded sleep is icky
-      sleep 3
+      unless wait_for(:web_area, ancestor: app_store.main_window, description: app_name)
+        fail(Chef::Exceptions::CommandTimeout,
+             "Timed out waiting for '#{app_name}' app page to load")
+      end
       app_store
     end
 
@@ -152,13 +154,19 @@ module MacAppStoreCookbook
     #
     def self.sign_in!(username, password)
       return if signed_in? && current_user? == username
-      sign_out! if current_user? != username
+      sign_out! if signed_in?
       select_menu_item(app_store, 'Store', 'Sign In…')
-      sleep 1
+      unless wait_for(:button, ancestor: app_store.main_window, title: 'Sign In')
+        fail(Chef::Exceptions::CommandTimeout,
+             'Timed out waiting for Sign In window to load')
+      end
       set(username_field, username)
       set(password_field, password)
       press(sign_in_button)
-      sleep 5
+      unless wait_for(:menu_item, ancestor: app_store.menu_bar_item(title: 'Store'), title: 'Sign Out')
+        fail(Chef::Exceptions::CommandTimeout,
+             'Timed out waiting for App Store to finish signing in')
+      end
     end
 
     #

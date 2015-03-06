@@ -9,6 +9,7 @@ describe MacAppStoreCookbook::Helpers do
 
   before(:each) do
     allow(described_class).to receive(:sleep).and_return(true)
+    allow(described_class).to receive(:wait_for).and_return(true)
   end
 
   describe '#install!' do
@@ -121,7 +122,7 @@ describe MacAppStoreCookbook::Helpers do
     let(:purchased?) { true }
     let(:press) { true }
     let(:row) { double(link: 'link') }
-    let(:app_store) { 'the app store' }
+    let(:app_store) { double(main_window: true) }
 
     before(:each) do
       [:purchased?, :press, :row, :app_store].each do |m|
@@ -147,6 +148,19 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'raises an error' do
         expected = Chef::Exceptions::Application
+        expect { described_class.app_page(app_name) }.to raise_error(expected)
+      end
+    end
+
+    context 'app page loading timeout' do
+      before(:each) do
+        expect(described_class).to receive(:wait_for).with(
+          :web_area, ancestor: app_store.main_window, description: app_name
+        ).and_return(nil)
+      end
+
+      it 'raises an error' do
+        expected = Chef::Exceptions::CommandTimeout
         expect { described_class.app_page(app_name) }.to raise_error(expected)
       end
     end
@@ -208,7 +222,7 @@ describe MacAppStoreCookbook::Helpers do
     let(:app_store) { double(main_window: main_window, ancestry: []) }
 
     before(:each) do
-      %i(set_focus_to wait_for select_menu_item).each do |m|
+      %i(set_focus_to select_menu_item).each do |m|
         allow(described_class).to receive(m).and_return(m)
       end
       %i(signed_in? app_store).each do |m|
@@ -250,7 +264,7 @@ describe MacAppStoreCookbook::Helpers do
 
     context 'purchases list loading timeout' do
       before(:each) do
-        allow(described_class).to receive(:wait_for)
+        expect(described_class).to receive(:wait_for)
           .with(:group, ancestor: app_store, id: 'purchased')
           .and_return(nil)
       end
@@ -299,9 +313,9 @@ describe MacAppStoreCookbook::Helpers do
     let(:username_field) { 'a username text box' }
     let(:password_field) { 'a password text box' }
     let(:sign_in_button) { 'a sign in button' }
-    let(:signed_in?) { true }
-    let(:current_user?) { username }
-    let(:app_store) { 'dummy data' }
+    let(:signed_in?) { false }
+    let(:current_user?) { nil }
+    let(:app_store) { double(main_window: true, menu_bar_item: true) }
 
     before(:each) do
       %i(
@@ -314,13 +328,14 @@ describe MacAppStoreCookbook::Helpers do
       ).each do |m|
         allow(described_class).to receive(m).and_return(send(m))
       end
-      %i(select_menu_item sleep set press).each do |m|
+      %i(select_menu_item set press).each do |m|
         allow(described_class).to receive(m).and_return(true)
       end
     end
 
     context 'user already signed in' do
       let(:signed_in?) { true }
+      let(:current_user?) { username }
 
       it 'returns immediately' do
         expect(described_class).not_to receive(:select_menu_item)
@@ -343,8 +358,8 @@ describe MacAppStoreCookbook::Helpers do
       end
 
       it 'waits for the Sign In menu to load' do
-        pending
         expect(described_class).to receive(:wait_for)
+          .with(:button, ancestor: app_store.main_window, title: 'Sign In')
         described_class.sign_in!(username, password)
       end
 
@@ -365,11 +380,40 @@ describe MacAppStoreCookbook::Helpers do
     end
 
     context 'a different user signed in' do
+      let(:signed_in?) { true }
       let(:current_user?) { 'anotheruser' }
 
       it 'signs out' do
         expect(described_class).to receive(:sign_out!)
         described_class.sign_in!(username, password)
+      end
+    end
+
+    context 'sign in menu loading timeout' do
+      before(:each) do
+        expect(described_class).to receive(:wait_for)
+          .with(:button, ancestor: app_store.main_window, title: 'Sign In')
+          .and_return(nil)
+      end
+
+      it 'raises an error' do
+        expect { described_class.sign_in!(username, password) }
+          .to raise_error(Chef::Exceptions::CommandTimeout)
+      end
+    end
+
+    context 'sign in timeout' do
+      before(:each) do
+        expect(app_store).to receive(:menu_bar_item).with(title: 'Store')
+          .and_return('mbi')
+        expect(described_class).to receive(:wait_for)
+          .with(:menu_item, ancestor: 'mbi', title: 'Sign Out')
+          .and_return(nil)
+      end
+
+      it 'raises an error' do
+        expect { described_class.sign_in!(username, password) }
+          .to raise_error(Chef::Exceptions::CommandTimeout)
       end
     end
   end
