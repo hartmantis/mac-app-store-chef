@@ -25,6 +25,14 @@ module MacAppStoreCookbook
   #
   # @author Jonathan Hartman <j@p4nt5.com>
   module Helpers
+    #
+    # Perform the installation of an App Store app
+    #
+    # @param [String] app_name
+    # @param [Fixnum] timeout
+    #
+    # @raise [MacAppStoreCookbook::Exceptions::Timeout]
+    #
     def self.install!(app_name, timeout)
       return nil if installed?(app_name)
       press(install_button(app_name))
@@ -40,7 +48,7 @@ module MacAppStoreCookbook
     #
     # @return [TrueClass]
     #
-    # @raise [Chef::Exceptions::CommandTimeout]
+    # @raise [MacAppStoreCookbook::Exceptions::Timeout]
     #
     #
     def self.wait_for_install(app_name, timeout)
@@ -50,8 +58,7 @@ module MacAppStoreCookbook
         return true if app_page.main_window.search(:button, description: term)
         sleep 1
       end
-      fail(Chef::Exceptions::CommandTimeout,
-           "Timed out waiting for '#{app_name}' to install")
+      fail(Exceptions::Timeout, "'#{app_name}' installation")
     end
 
     #
@@ -88,9 +95,10 @@ module MacAppStoreCookbook
       purchased?(app_name) || fail(Chef::Exceptions::Application,
                                    "App '#{app_name}' has not been purchased")
       press(row.link)
-      unless wait_for(:web_area, ancestor: app_store.main_window, description: app_name)
-        fail(Chef::Exceptions::CommandTimeout,
-             "Timed out waiting for '#{app_name}' app page to load")
+      unless wait_for(:web_area,
+                      ancestor: app_store.main_window,
+                      description: app_name)
+        fail(Exceptions::Timeout, "'#{app_name}' app page")
       end
       app_store
     end
@@ -120,7 +128,7 @@ module MacAppStoreCookbook
     # the Application object whose state was just altered
     #
     # @return [AX::Application]
-    # @raise [Chef::Exceptions::CommandTimeout]
+    # @raise [MacAppStoreCookbook::Exceptions::Timeout]
     # @raise [Chef::Exceptions::ConfigurationError]
     #
     def self.purchases
@@ -130,8 +138,7 @@ module MacAppStoreCookbook
       end
       select_menu_item(app_store, 'Store', 'Purchases')
       unless wait_for(:group, ancestor: app_store, id: 'purchased')
-        fail(Chef::Exceptions::CommandTimeout,
-             'Timed out waiting for Purchases page to load')
+        fail(Exceptions::Timeout, 'Purchases page')
       end
       app_store
     end
@@ -156,16 +163,18 @@ module MacAppStoreCookbook
       return if signed_in? && current_user? == username
       sign_out! if signed_in?
       select_menu_item(app_store, 'Store', 'Sign In…')
-      unless wait_for(:button, ancestor: app_store.main_window, title: 'Sign In')
-        fail(Chef::Exceptions::CommandTimeout,
-             'Timed out waiting for Sign In window to load')
+      unless wait_for(:button,
+                      ancestor: app_store.main_window,
+                      title: 'Sign In')
+        fail(Exceptions::Timeout, 'Sign In window')
       end
       set(username_field, username)
       set(password_field, password)
       press(sign_in_button)
-      unless wait_for(:menu_item, ancestor: app_store.menu_bar_item(title: 'Store'), title: 'Sign Out')
-        fail(Chef::Exceptions::CommandTimeout,
-             'Timed out waiting for App Store to finish signing in')
+      unless wait_for(:menu_item,
+                      ancestor: app_store.menu_bar_item(title: 'Store'),
+                      title: 'Sign Out')
+        fail(Exceptions::Timeout, 'sign in')
       end
     end
 
@@ -241,14 +250,13 @@ module MacAppStoreCookbook
     # Find the App Store application running or launch it
     #
     # @return [AX::Application]
-    # @raise [Chef::Exceptions::CommandTimeout]
+    # @raise [MacAppStoreCookbook::Exceptions::Timeout]
     #
     def self.app_store
       require 'ax_elements'
       app_store = AX::Application.new('com.apple.appstore')
       unless wait_for(:menu_item, ancestor: app_store, title: 'Purchases')
-        fail(Chef::Exceptions::CommandTimeout,
-             'Timed out waiting for the App Store to load')
+        fail(Exceptions::Timeout, 'App Store')
       end
       app_store
     end
@@ -263,6 +271,17 @@ module MacAppStoreCookbook
       !NSRunningApplication.runningApplicationsWithBundleIdentifier(
         'com.apple.appstore'
       ).empty?
+    end
+  end
+
+  class Exceptions
+    # A custom exception class for App Store task timeouts
+    #
+    # @author Jonathan Hartman <j@p4nt5.com>
+    class Timeout < StandardError
+      def initialize(task)
+        super("Timed out waiting for #{task} to load")
+      end
     end
   end
 end

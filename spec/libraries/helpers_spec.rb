@@ -75,7 +75,7 @@ describe MacAppStoreCookbook::Helpers do
       let(:search) { nil }
 
       it 'raises an error' do
-        expected = Chef::Exceptions::CommandTimeout
+        expected = MacAppStoreCookbook::Exceptions::Timeout
         expect { described_class.wait_for_install(app_name, timeout) }
           .to raise_error(expected)
       end
@@ -160,7 +160,7 @@ describe MacAppStoreCookbook::Helpers do
       end
 
       it 'raises an error' do
-        expected = Chef::Exceptions::CommandTimeout
+        expected = MacAppStoreCookbook::Exceptions::Timeout
         expect { described_class.app_page(app_name) }.to raise_error(expected)
       end
     end
@@ -270,7 +270,7 @@ describe MacAppStoreCookbook::Helpers do
       end
 
       it 'raises an exception' do
-        expected = Chef::Exceptions::CommandTimeout
+        expected = MacAppStoreCookbook::Exceptions::Timeout
         expect { described_class.purchases }.to raise_error(expected)
       end
     end
@@ -398,7 +398,7 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'raises an error' do
         expect { described_class.sign_in!(username, password) }
-          .to raise_error(Chef::Exceptions::CommandTimeout)
+          .to raise_error(MacAppStoreCookbook::Exceptions::Timeout)
       end
     end
 
@@ -413,7 +413,7 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'raises an error' do
         expect { described_class.sign_in!(username, password) }
-          .to raise_error(Chef::Exceptions::CommandTimeout)
+          .to raise_error(MacAppStoreCookbook::Exceptions::Timeout)
       end
     end
   end
@@ -592,7 +592,7 @@ describe MacAppStoreCookbook::Helpers do
       end
 
       it 'raises an exception' do
-        expected = Chef::Exceptions::CommandTimeout
+        expected = MacAppStoreCookbook::Exceptions::Timeout
         expect { described_class.app_store }.to raise_error(expected)
       end
     end
