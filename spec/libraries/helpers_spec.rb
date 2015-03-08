@@ -328,7 +328,7 @@ describe MacAppStoreCookbook::Helpers do
       ).each do |m|
         allow(described_class).to receive(m).and_return(send(m))
       end
-      %i(select_menu_item set press).each do |m|
+      %i(sign_in_menu set press).each do |m|
         allow(described_class).to receive(m).and_return(true)
       end
     end
@@ -338,7 +338,7 @@ describe MacAppStoreCookbook::Helpers do
       let(:current_user?) { username }
 
       it 'returns immediately' do
-        expect(described_class).not_to receive(:select_menu_item)
+        expect(described_class).not_to receive(:sign_in_menu)
         described_class.sign_in!(username, password)
       end
     end
@@ -352,14 +352,7 @@ describe MacAppStoreCookbook::Helpers do
       end
 
       it 'selects the Sign In menu' do
-        expect(described_class).to receive(:select_menu_item)
-          .with(app_store, 'Store', 'Sign In…')
-        described_class.sign_in!(username, password)
-      end
-
-      it 'waits for the Sign In menu to load' do
-        expect(described_class).to receive(:wait_for)
-          .with(:button, ancestor: app_store.main_window, title: 'Sign In')
+        expect(described_class).to receive(:sign_in_menu)
         described_class.sign_in!(username, password)
       end
 
@@ -389,19 +382,6 @@ describe MacAppStoreCookbook::Helpers do
       end
     end
 
-    context 'sign in menu loading timeout' do
-      before(:each) do
-        expect(described_class).to receive(:wait_for)
-          .with(:button, ancestor: app_store.main_window, title: 'Sign In')
-          .and_return(nil)
-      end
-
-      it 'raises an error' do
-        expect { described_class.sign_in!(username, password) }
-          .to raise_error(MacAppStoreCookbook::Exceptions::Timeout)
-      end
-    end
-
     context 'sign in timeout' do
       before(:each) do
         expect(app_store).to receive(:menu_bar_item).with(title: 'Store')
@@ -421,12 +401,12 @@ describe MacAppStoreCookbook::Helpers do
   describe '#sign_in_button' do
     let(:button) { 'a button' }
     let(:sheet) { double }
-    let(:app_store) { double(main_window: double(sheet: sheet)) }
+    let(:sign_in_menu) { double(main_window: double(sheet: sheet)) }
 
     before(:each) do
       allow(sheet).to receive(:button).with(title: 'Sign In')
         .and_return(button)
-      allow(described_class).to receive(:app_store).and_return(app_store)
+      allow(described_class).to receive(:sign_in_menu).and_return(sign_in_menu)
     end
 
     it 'returns the Sign In button' do
@@ -438,14 +418,14 @@ describe MacAppStoreCookbook::Helpers do
     let(:text_field) { 'text field' }
     let(:static_text) { 'static text' }
     let(:sheet) { double }
-    let(:app_store) { double(main_window: double(sheet: sheet)) }
+    let(:sign_in_menu) { double(main_window: double(sheet: sheet)) }
 
     before(:each) do
       allow(sheet).to receive(:static_text).with(value: 'Apple ID ')
         .and_return(static_text)
       allow(sheet).to receive(:text_field).with(title_ui_element: static_text)
         .and_return(text_field)
-      allow(described_class).to receive(:app_store).and_return(app_store)
+      allow(described_class).to receive(:sign_in_menu).and_return(sign_in_menu)
     end
 
     it 'returns the Apple ID text field' do
@@ -457,18 +437,82 @@ describe MacAppStoreCookbook::Helpers do
     let(:secure_text_field) { 'secure text field' }
     let(:static_text) { 'static text' }
     let(:sheet) { double }
-    let(:app_store) { double(main_window: double(sheet: sheet)) }
+    let(:sign_in_menu) { double(main_window: double(sheet: sheet)) }
 
     before(:each) do
       allow(sheet).to receive(:static_text).with(value: 'Password')
         .and_return(static_text)
       allow(sheet).to receive(:secure_text_field)
         .with(title_ui_element: static_text).and_return(secure_text_field)
-      allow(described_class).to receive(:app_store).and_return(app_store)
+      allow(described_class).to receive(:sign_in_menu).and_return(sign_in_menu)
     end
 
     it 'returns the Password text field' do
       expect(described_class.password_field).to eq(secure_text_field)
+    end
+  end
+
+  describe '#sign_in_menu' do
+    let(:signed_in) { false }
+    let(:main_window) { double }
+    let(:app_store) { double(main_window: main_window) }
+    let(:wait_for) { 'a button' }
+
+    before(:each) do
+      allow(main_window).to receive(:button).with(title: 'Sign In')
+        .and_return(signed_in)
+      allow(described_class).to receive(:app_store).and_return(app_store)
+      allow(described_class).to receive(:select_menu_item).and_return(true)
+      allow(described_class).to receive(:wait_for).and_return(wait_for)
+        .with(:button, ancestor: main_window, title: 'Sign In')
+        .and_return(wait_for)
+    end
+
+    context 'Sign In menu not loaded' do
+      let(:signed_in) { false }
+
+      it 'selects Sign In from the menu' do
+        expect(described_class).to receive(:select_menu_item)
+          .with(app_store, 'Store', 'Sign In…')
+        described_class.sign_in_menu
+      end
+
+      it 'waits for the Sign In menu to load' do
+        expect(described_class).to receive(:wait_for)
+          .with(:button, ancestor: app_store.main_window, title: 'Sign In')
+        described_class.sign_in_menu
+      end
+
+      it 'returns the App Store application' do
+        expect(described_class.sign_in_menu).to eq(app_store)
+      end
+    end
+
+    context 'Sign In menu already loaded' do
+      let(:signed_in) { true }
+
+      it 'does not select any menus' do
+        expect(described_class).not_to receive(:select_menu_item)
+        described_class.sign_in_menu
+      end
+
+      it 'does not wait for anything' do
+        expect(described_class).not_to receive(:wait_for)
+        described_class.sign_in_menu
+      end
+
+      it 'returns the App Store application' do
+        expect(described_class.sign_in_menu).to eq(app_store)
+      end
+    end
+
+    context 'timeout waiting for menu to load' do
+      let(:wait_for) { nil }
+
+      it 'raises an error' do
+        expected = MacAppStoreCookbook::Exceptions::Timeout
+        expect { described_class.sign_in_menu }.to raise_error(expected)
+      end
     end
   end
 

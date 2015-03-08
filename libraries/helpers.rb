@@ -162,12 +162,7 @@ module MacAppStoreCookbook
     def self.sign_in!(username, password)
       return if signed_in? && current_user? == username
       sign_out! if signed_in?
-      select_menu_item(app_store, 'Store', 'Sign In…')
-      unless wait_for(:button,
-                      ancestor: app_store.main_window,
-                      title: 'Sign In')
-        fail(Exceptions::Timeout, 'Sign In window')
-      end
+      sign_in_menu
       set(username_field, username)
       set(password_field, password)
       press(sign_in_button)
@@ -185,7 +180,7 @@ module MacAppStoreCookbook
     # @return [AX::Button]
     #
     def self.sign_in_button
-      app_store.main_window.sheet.button(title: 'Sign In')
+      sign_in_menu.main_window.sheet.button(title: 'Sign In')
     end
 
     #
@@ -195,8 +190,8 @@ module MacAppStoreCookbook
     # @return[AX::TextField]
     #
     def self.username_field
-      app_store.main_window.sheet.text_field(
-        title_ui_element: app_store.main_window.sheet.static_text(
+      sign_in_menu.main_window.sheet.text_field(
+        title_ui_element: sign_in_menu.main_window.sheet.static_text(
           value: 'Apple ID '
         )
       )
@@ -209,11 +204,29 @@ module MacAppStoreCookbook
     # @return [AX::SecureTextField]
     #
     def self.password_field
-      app_store.main_window.sheet.secure_text_field(
-        title_ui_element: app_store.main_window.sheet.static_text(
+      sign_in_menu.main_window.sheet.secure_text_field(
+        title_ui_element: sign_in_menu.main_window.sheet.static_text(
           value: 'Password'
         )
       )
+    end
+
+    #
+    # If not already displaying the 'Sign In' popup menu, select 'Store' ->
+    # 'Sign In...' from the menu bar and return the application instance.
+    #
+    # @return [AX::Application]
+    #
+    def self.sign_in_menu
+      unless app_store.main_window.button(title: 'Sign In')
+        select_menu_item(app_store, 'Store', 'Sign In…')
+        unless wait_for(
+          :button, ancestor: app_store.main_window, title: 'Sign In'
+        )
+          fail(Exceptions::Timeout, 'Sign In window')
+        end
+      end
+      app_store
     end
 
     #
