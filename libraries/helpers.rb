@@ -166,6 +166,15 @@ module MacAppStoreCookbook
       set(username_field, username)
       set(password_field, password)
       press(sign_in_button)
+      wait_for_sign_in
+    end
+
+    #
+    # Wait for the 'Store' -> 'Sign Out' menu to load (for after signing in)
+    #
+    # @raise [MacAppStoreCookbook::Exceptions::Timeout]
+    #
+    def self.wait_for_sign_in
       unless wait_for(:menu_item,
                       ancestor: app_store.menu_bar_item(title: 'Store'),
                       title: 'Sign Out')
