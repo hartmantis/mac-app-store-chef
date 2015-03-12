@@ -86,12 +86,13 @@ class Chef
       #
       def insert!
         return nil unless row.nil?
-        db.execute('INSERT INTO access VALUES(?, ?, ?, ?, ?)',
+        db.execute('INSERT INTO access VALUES(?, ?, ?, ?, ?, ?)',
                    'kTCCServiceAccessibility',
                    new_resource.name,
                    0,
                    1,
-                   0)
+                   0,
+                   nil)
       end
 
       #

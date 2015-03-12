@@ -122,7 +122,7 @@ describe Chef::Provider::MacAppStoreTrustedApp do
   describe '#insert!' do
     let(:row) { nil }
     let(:query) do
-      'INSERT INTO access VALUES(?, ?, ?, ?, ?)'
+      'INSERT INTO access VALUES(?, ?, ?, ?, ?, ?)'
     end
     let(:db) { double }
 
@@ -146,7 +146,7 @@ describe Chef::Provider::MacAppStoreTrustedApp do
 
       it 'runs an INSERT query' do
         expect(db).to receive(:execute)
-          .with(query, 'kTCCServiceAccessibility', name, 0, 1, 0)
+          .with(query, 'kTCCServiceAccessibility', name, 0, 1, 0, nil)
           .and_return(true)
         provider.send(:'insert!')
       end
