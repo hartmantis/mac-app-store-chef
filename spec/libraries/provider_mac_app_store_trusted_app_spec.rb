@@ -151,6 +151,17 @@ describe Chef::Provider::MacAppStoreTrustedApp do
         provider.send(:'insert!')
       end
     end
+
+    context 'path to file with no row' do
+      let(:name) { '/tmp/app' }
+
+      it 'runs an INSERT query' do
+        expect(db).to receive(:execute)
+          .with(query, 'kTCCServiceAccessibility', name, 1, 1, 0, nil)
+          .and_return(true)
+        provider.send(:'insert!')
+      end
+    end
   end
 
   describe '#update!' do

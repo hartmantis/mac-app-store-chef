@@ -89,7 +89,7 @@ class Chef
         db.execute('INSERT INTO access VALUES(?, ?, ?, ?, ?, ?)',
                    'kTCCServiceAccessibility',
                    new_resource.name,
-                   0,
+                   new_resource.name.start_with?('/') ? 1 : 0,
                    1,
                    0,
                    nil)
