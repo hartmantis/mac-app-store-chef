@@ -38,6 +38,21 @@ class Chef
                 kind_of: [NilClass, TrueClass, FalseClass],
                 default: nil
       alias_method :created?, :created
+
+      #
+      # Offer the option of creating the trust rule at compile time
+      #
+      attribute :compile_time,
+                kind_of: [NilClass, TrueClass, FalseClass],
+                default: false
+
+      #
+      # After resource creation, run actions during the compile phase if
+      # compile_time is set
+      #
+      def after_created
+        compile_time && Array(action).each { |a| run_action(a) }
+      end
     end
   end
 end
