@@ -51,6 +51,7 @@ class Chef
       def initialize(new_resource, run_context)
         super
         install_axe_gem
+        trust_app
         require 'ax_elements'
         @original_focus = AX::SystemWide.new.focused_application
         @quit_when_done = !MacAppStoreCookbook::Helpers.running?
@@ -96,10 +97,21 @@ class Chef
       end
 
       #
+      # Enable accessibility for running application
+      #
+      def trust_app
+        mac_app_store_trusted_app '/usr/libexec/sshd-keygen-wrapper' do
+          compile_time true
+          action :create
+        end
+      end
+
+      #
       # Install the AXElements gem
       #
       def install_axe_gem
         chef_gem 'AXElements' do
+          compile_time(true) if respond_to?(:compile_time)
           version AXE_VERSION
           action :install
         end

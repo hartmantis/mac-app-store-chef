@@ -24,10 +24,10 @@ describe Chef::Provider::MacAppStoreApp do
   let(:provider) { described_class.new(new_resource, nil) }
 
   before(:each) do
-    allow_any_instance_of(described_class).to receive(:sleep).and_return(true)
+    %i(sleep install_axe_gem trust_app).each do |m|
+      allow_any_instance_of(described_class).to receive(m).and_return(true)
+    end
     allow_any_instance_of(described_class).to receive(:node).and_return(node)
-    allow_any_instance_of(described_class).to receive(:install_axe_gem)
-      .and_return(true)
     allow(AX::SystemWide).to receive(:new).and_return(system_wide)
     allow(MacAppStoreCookbook::Helpers).to receive(:running?)
       .and_return(running?)
@@ -43,6 +43,11 @@ describe Chef::Provider::MacAppStoreApp do
     shared_examples_for 'any initial state' do
       it 'installs the AXE gem' do
         expect_any_instance_of(described_class).to receive(:install_axe_gem)
+        provider
+      end
+
+      it 'sets up accessibility for the app running Chef' do
+        expect_any_instance_of(described_class).to receive(:trust_app)
         provider
       end
 
@@ -223,6 +228,18 @@ describe Chef::Provider::MacAppStoreApp do
     end
   end
 
+  describe '#trust_app' do
+    it 'trusts sshd-keygen-wrapper' do
+      p = provider
+      allow(p).to receive(:trust_app).and_call_original
+      expect(p).to receive(:mac_app_store_trusted_app)
+        .with('/usr/libexec/sshd-keygen-wrapper').and_yield
+      expect(p).to receive(:compile_time).with(true)
+      expect(p).to receive(:action).with(:create)
+      p.send(:trust_app)
+    end
+  end
+
   describe '#install_axe_gem' do
     let(:chef_gem) { double(version: true, action: true) }
 
@@ -234,6 +251,7 @@ describe Chef::Provider::MacAppStoreApp do
     it 'installs the AXElements gem' do
       p = provider
       allow(p).to receive(:install_axe_gem).and_call_original
+      expect(p).to receive(:compile_time).with(true)
       expect(p).to receive(:version).with('~> 6.0')
       expect(p).to receive(:action).with(:install)
       p.send(:install_axe_gem)
