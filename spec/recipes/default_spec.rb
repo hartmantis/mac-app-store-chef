@@ -16,8 +16,10 @@ describe 'mac-app-store::default' do
     let(:platform) { { platform: 'mac_os_x', version: '10.9.2' } }
 
     shared_examples_for 'any attribute set' do
-      it 'installs the required dev tools' do
-        expect(chef_run).to include_recipe('build-essential')
+      it 'installs the required dev tools at compile time' do
+        cr = chef_run
+        expect(cr).to include_recipe('build-essential')
+        expect(cr.node['build-essential']['compile_time']).to eq(true)
       end
     end
 
