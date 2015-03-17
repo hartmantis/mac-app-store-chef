@@ -55,7 +55,8 @@ module MacAppStoreCookbook
       (0..timeout).each do
         # Button might be 'Installed' or 'Open' depending on OS X version
         term = /^(Installed,|Open,)/
-        return true if app_page.main_window.search(:button, description: term)
+        return true if app_page(app_name).main_window.search(:button,
+                                                             description: term)
         sleep 1
       end
       fail(Exceptions::Timeout, "'#{app_name}' installation")
@@ -94,7 +95,7 @@ module MacAppStoreCookbook
     def self.app_page(app_name)
       purchased?(app_name) || fail(Chef::Exceptions::Application,
                                    "App '#{app_name}' has not been purchased")
-      press(row.link)
+      press(row(app_name).link)
       unless wait_for(:web_area,
                       ancestor: app_store.main_window,
                       description: app_name)

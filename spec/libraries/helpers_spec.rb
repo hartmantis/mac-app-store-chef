@@ -60,7 +60,8 @@ describe MacAppStoreCookbook::Helpers do
     let(:app_page) { double(main_window: double(search: search)) }
 
     before(:each) do
-      allow(described_class).to receive(:app_page).and_return(app_page)
+      allow(described_class).to receive(:app_page).with(app_name)
+        .and_return(app_page)
     end
 
     context 'a successful install' do
@@ -125,9 +126,10 @@ describe MacAppStoreCookbook::Helpers do
     let(:app_store) { double(main_window: true) }
 
     before(:each) do
-      [:purchased?, :press, :row, :app_store].each do |m|
+      [:purchased?, :press, :app_store].each do |m|
         allow(described_class).to receive(m).and_return(send(m))
       end
+      allow(described_class).to receive(:row).with(app_name).and_return(row)
     end
 
     context 'purchased app' do
