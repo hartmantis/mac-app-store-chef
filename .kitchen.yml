@@ -17,6 +17,8 @@ suites:
       - recipe[mac-app-store]
     attributes:
       mac_app_store:
+        username: <%= ENV['APPLE_ID_USERNAME'] %>
+        password: <%= ENV['APPLE_ID_PASSWORD'] %>
         apps:
           Microsoft Remote Desktop: com.microsoft.rdc.mac
           White Noise Lite: com.tmsoft.mac.WhiteNoiseLite
