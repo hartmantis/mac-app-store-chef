@@ -473,13 +473,13 @@ describe MacAppStoreCookbook::Helpers do
   end
 
   describe '#sign_in_menu' do
-    let(:signed_in) { false }
+    let(:signed_in) { nil }
     let(:main_window) { double }
     let(:app_store) { double(main_window: main_window) }
     let(:wait_for) { 'a button' }
 
     before(:each) do
-      allow(main_window).to receive(:button).with(title: 'Sign In')
+      allow(main_window).to receive(:search).with(:button, title: 'Sign In')
         .and_return(signed_in)
       allow(described_class).to receive(:app_store).and_return(app_store)
       allow(described_class).to receive(:select_menu_item).and_return(true)
@@ -489,7 +489,7 @@ describe MacAppStoreCookbook::Helpers do
     end
 
     context 'Sign In menu not loaded' do
-      let(:signed_in) { false }
+      let(:signed_in) { nil }
 
       it 'selects Sign In from the menu' do
         expect(described_class).to receive(:select_menu_item)
