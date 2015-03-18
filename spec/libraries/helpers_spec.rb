@@ -83,6 +83,46 @@ describe MacAppStoreCookbook::Helpers do
     end
   end
 
+  describe '#installed?' do
+    let(:installed) { false }
+    let(:app_page) do
+      double(
+        main_window: double(
+          web_area: double(
+            group: double(
+              group: double(
+                button: double(
+                  description: installed ? 'Open, Thing' : 'Install, Thing'
+                )
+              )
+            )
+          )
+        )
+      )
+    end
+
+    before(:each) do
+      allow(described_class).to receive(:app_page).with(app_name)
+        .and_return(app_page)
+    end
+
+    context 'app not installed' do
+      let(:installed) { false }
+
+      it 'returns false' do
+        expect(described_class.installed?(app_name)).to eq(false)
+      end
+    end
+
+    context 'app installed' do
+      let(:installed) { true }
+
+      it 'returns true' do
+        expect(described_class.installed?(app_name)).to eq(true)
+      end
+    end
+  end
+
   describe '#latest_version' do
     let(:version) { '1.2.3' }
     let(:app_page) do

@@ -63,6 +63,21 @@ module MacAppStoreCookbook
     end
 
     #
+    # Check whether an app is currently installed or not based on the presence
+    # of an 'OPEN' button (rather than 'DOWNLOAD' or 'INSTALL') in the
+    # 'Purchases' list
+    #
+    # @param [String] app_name
+    #
+    # @return [TrueClass, FalseClass]
+    #
+    def self.installed?(app_name)
+      d = app_page(app_name).main_window.web_area.group.group.button
+        .description
+      d.match(/^Open,/) ? true : false
+    end
+
+    #
     # Find the latest version of a package available, via the "Information"
     # sidebar in the app's store page
     #
