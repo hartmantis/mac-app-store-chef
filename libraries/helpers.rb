@@ -73,7 +73,7 @@ module MacAppStoreCookbook
     #
     def self.installed?(app_name)
       d = app_page(app_name).main_window.web_area.group.group.button
-        .description
+            .description
       d.match(/^Open,/) ? true : false
     end
 
@@ -100,9 +100,9 @@ module MacAppStoreCookbook
     end
 
     #
-    # Follow the app link in the Purchases list to navigate to the app's
-    # main page, and return the Application instance whose state was just
-    # altered
+    # If not already at it, follow the app link in the Purchases list to
+    # navigate to the app's main page, and return the Application instance
+    # whose state was just altered
     #
     # @param [String] app_name
     # @return [AX::Application]
@@ -110,11 +110,13 @@ module MacAppStoreCookbook
     def self.app_page(app_name)
       purchased?(app_name) || fail(Chef::Exceptions::Application,
                                    "App '#{app_name}' has not been purchased")
-      press(row(app_name).link)
-      unless wait_for(:web_area,
-                      ancestor: app_store.main_window,
-                      description: app_name)
-        fail(Exceptions::Timeout, "'#{app_name}' app page")
+      unless app_store.main_window.web_area.description == app_name
+        press(row(app_name).link)
+        unless wait_for(:web_area,
+                        ancestor: app_store.main_window,
+                        description: app_name)
+          fail(Exceptions::Timeout, "'#{app_name}' app page")
+        end
       end
       app_store
     end
@@ -140,21 +142,21 @@ module MacAppStoreCookbook
     end
 
     #
-    # Set focus to the App Store, navigate to the Purchases list, and return
-    # the Application object whose state was just altered
+    # If not already at it, navigate to the 'Purchases' page and return the
+    # Application object whose state may have just been altered.
     #
     # @return [AX::Application]
     # @raise [MacAppStoreCookbook::Exceptions::Timeout]
     # @raise [Chef::Exceptions::ConfigurationError]
     #
     def self.purchases
-      unless signed_in?
-        fail(Chef::Exceptions::ConfigurationError,
-             'User must be signed into App Store to install apps')
-      end
-      select_menu_item(app_store, 'Store', 'Purchases')
-      unless wait_for(:group, ancestor: app_store, id: 'purchased')
-        fail(Exceptions::Timeout, 'Purchases page')
+      signed_in? || fail(Chef::Exceptions::ConfigurationError,
+                         'User must be signed into App Store to install apps')
+      unless app_store.main_window.web_area.description == 'Purchases'
+        select_menu_item(app_store, 'Store', 'Purchases')
+        unless wait_for(:group, ancestor: app_store, id: 'purchased')
+          fail(Exceptions::Timeout, 'Purchases page')
+        end
       end
       app_store
     end
