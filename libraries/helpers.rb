@@ -73,7 +73,7 @@ module MacAppStoreCookbook
     #
     def self.installed?(app_name)
       d = app_page(app_name).main_window.web_area.group.group.button
-            .description
+          .description
       d.match(/^Open,/) ? true : false
     end
 
@@ -82,6 +82,7 @@ module MacAppStoreCookbook
     # sidebar in the app's store page
     #
     # @param [String] app_name
+    #
     # @return [String]
     #
     def self.latest_version(app_name)
@@ -93,6 +94,7 @@ module MacAppStoreCookbook
     # Find the install button in the app row
     #
     # @param [String] app_name
+    #
     # @return [AX::Button]
     #
     def self.install_button(app_name)
@@ -105,11 +107,14 @@ module MacAppStoreCookbook
     # whose state was just altered
     #
     # @param [String] app_name
+    #
     # @return [AX::Application]
     #
+    # @raise [MacAppStoreCookbook::Exceptions::AppNotPurchased]
+    # @raise [MacAppStoreCookbook::Exceptions::Timeout]
+    #
     def self.app_page(app_name)
-      purchased?(app_name) || fail(Chef::Exceptions::Application,
-                                   "App '#{app_name}' has not been purchased")
+      fail_unless_purchased(app_name)
       unless app_store.main_window.web_area.description == app_name
         press(row(app_name).link)
         unless wait_for(:web_area,
@@ -122,9 +127,19 @@ module MacAppStoreCookbook
     end
 
     #
+    # Check whether an app is purchased and raise an exception if not
+    #
+    # @raise [MacAppStoreCookbook::Exceptions::AppNotPurchased]
+    #
+    def self.fail_unless_purchased(app_name)
+      purchased?(app_name) || fail(Exceptions::AppNotPurchased, app_name)
+    end
+
+    #
     # Check whether an app is purchased or not
     #
     # @param [String] app_name
+    #
     # @return [TrueClass, FalseClass]
     #
     def self.purchased?(app_name)
@@ -135,6 +150,7 @@ module MacAppStoreCookbook
     # Find the row for the app in question in the App Store window
     #
     # @param [String] app_name
+    #
     # @return [AX::Row, NilClass]
     #
     def self.row(app_name)
@@ -146,12 +162,12 @@ module MacAppStoreCookbook
     # Application object whose state may have just been altered.
     #
     # @return [AX::Application]
+    #
     # @raise [MacAppStoreCookbook::Exceptions::Timeout]
-    # @raise [Chef::Exceptions::ConfigurationError]
+    # @raise [MacAppStoreCookbook::Exceptions::UserNotSignedIn]
     #
     def self.purchases
-      signed_in? || fail(Chef::Exceptions::ConfigurationError,
-                         'User must be signed into App Store to install apps')
+      signed_in? || fail(Exceptions::UserNotSignedIn)
       unless app_store.main_window.web_area.description == 'Purchases'
         select_menu_item(app_store, 'Store', 'Purchases')
         unless wait_for(:group, ancestor: app_store, id: 'purchased')
@@ -244,6 +260,8 @@ module MacAppStoreCookbook
     #
     # @return [AX::Application]
     #
+    # @raise [MacAppStoreCookbook::Exceptions::Timeout]
+    #
     def self.sign_in_menu
       unless app_store.main_window.search(:button, title: 'Sign In')
         select_menu_item(app_store, 'Store', 'Sign In…')
@@ -290,6 +308,7 @@ module MacAppStoreCookbook
     # Find the App Store application running or launch it
     #
     # @return [AX::Application]
+    #
     # @raise [MacAppStoreCookbook::Exceptions::Timeout]
     #
     def self.app_store
@@ -321,6 +340,26 @@ module MacAppStoreCookbook
     class Timeout < StandardError
       def initialize(task)
         super("Timed out waiting for #{task} to load")
+      end
+    end
+
+    # A custom exception class for cases where one attempts to perform
+    # operations on an app that hasn't been purchased
+    #
+    # @author Jonathan Hartman <j@p4nt5.com>
+    class AppNotPurchased < StandardError
+      def initialize(name)
+        super("App '#{name}' is not in the Purchases list")
+      end
+    end
+
+    # A custom exception class for where one attempts an action that can't
+    # be completed due to the user not being signed in
+    #
+    # @author Jonathan Hartman <j@p4nt5.com>
+    class UserNotSignedIn < StandardError
+      def initialize
+        super('User must be signed in to perform this action')
       end
     end
   end

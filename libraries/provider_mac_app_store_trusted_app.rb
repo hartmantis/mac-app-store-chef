@@ -63,7 +63,7 @@ class Chef
       #
       def load_current_resource
         @current_resource ||= Resource::MacAppStoreTrustedApp
-          .new(new_resource.name)
+                              .new(new_resource.name)
         @current_resource.created(created?)
         @current_resource
       end

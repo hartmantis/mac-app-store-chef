@@ -94,7 +94,7 @@ describe Chef::Provider::MacAppStoreTrustedApp do
       let(:created?) { false }
       let(:'update!') { true }
       let(:'insert!') { nil }
-      
+
       it_behaves_like 'any created state'
 
       it 'does a DB UPDATE' do

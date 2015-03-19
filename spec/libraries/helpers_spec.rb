@@ -161,7 +161,6 @@ describe MacAppStoreCookbook::Helpers do
 
   describe '#app_page' do
     let(:already_there?) { false }
-    let(:purchased?) { true }
     let(:press) { true }
     let(:row) { double(link: 'link') }
     let(:app_store) do
@@ -175,14 +174,20 @@ describe MacAppStoreCookbook::Helpers do
     end
 
     before(:each) do
-      [:purchased?, :press, :app_store].each do |m|
+      [:press, :app_store].each do |m|
         allow(described_class).to receive(m).and_return(send(m))
       end
+      allow(described_class).to receive(:fail_unless_purchased)
+        .with(app_name).and_return(true)
       allow(described_class).to receive(:row).with(app_name).and_return(row)
     end
 
-    context 'purchased app' do
-      let(:purchased?) { true }
+    context 'normal conditions' do
+      it 'bails out if the app is not purchased' do
+        expect(described_class).to receive(:fail_unless_purchased)
+          .with(app_name)
+        described_class.app_page(app_name)
+      end
 
       it 'presses the app link' do
         expect(described_class).to receive(:press).with('link')
@@ -191,15 +196,6 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'returns the app store object' do
         expect(described_class.app_page(app_name)).to eq(app_store)
-      end
-    end
-
-    context 'not purchased app' do
-      let(:purchased?) { false }
-
-      it 'raises an error' do
-        expected = Chef::Exceptions::Application
-        expect { described_class.app_page(app_name) }.to raise_error(expected)
       end
     end
 
@@ -223,6 +219,32 @@ describe MacAppStoreCookbook::Helpers do
         expect(described_class).not_to receive(:press)
         expect(described_class).not_to receive(:wait_for)
         described_class.app_page(app_name)
+      end
+    end
+  end
+
+  describe '#fail_unless_purchased' do
+    let(:purchased?) { true }
+
+    before(:each) do
+      allow(described_class).to receive(:purchased?).and_return(purchased?)
+    end
+
+    context 'purchased app' do
+      let(:purchased?) { true }
+
+      it 'returns true' do
+        expect(described_class.fail_unless_purchased(app_name)).to eq(true)
+      end
+    end
+
+    context 'not purchased app' do
+      let(:purchased?) { false }
+
+      it 'raises an error' do
+        expected = MacAppStoreCookbook::Exceptions::AppNotPurchased
+        expect { described_class.fail_unless_purchased(app_name) }
+          .to raise_error(expected)
       end
     end
   end
@@ -304,7 +326,7 @@ describe MacAppStoreCookbook::Helpers do
       let(:signed_in?) { false }
 
       it 'raises an exception' do
-        expected = Chef::Exceptions::ConfigurationError
+        expected = MacAppStoreCookbook::Exceptions::UserNotSignedIn
         expect { described_class.purchases }.to raise_error(expected)
       end
     end
