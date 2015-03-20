@@ -52,14 +52,13 @@ module MacAppStoreCookbook
     #
     #
     def self.wait_for_install(app_name, timeout)
-      (0..timeout).each do
-        # Button might be 'Installed' or 'Open' depending on OS X version
-        term = /^(Installed,|Open,)/
-        return true if app_page(app_name).main_window.search(:button,
-                                                             description: term)
-        sleep 1
+      # Button might be 'Installed' or 'Open' depending on OS X version
+      unless wait_for(:button,
+                      app_page(app_name),
+                      description: /^(Installed,|Open,)/,
+                      timeout: timeout)
+        fail(Exceptions::Timeout, "'#{app_name}' installation")
       end
-      fail(Exceptions::Timeout, "'#{app_name}' installation")
     end
 
     #
@@ -117,9 +116,7 @@ module MacAppStoreCookbook
       fail_unless_purchased(app_name)
       unless app_store.main_window.web_area.description == app_name
         press(row(app_name).link)
-        unless wait_for(:web_area,
-                        ancestor: app_store.main_window,
-                        description: app_name)
+        unless wait_for(:web_area, app_store.main_window, description: app_name)
           fail(Exceptions::Timeout, "'#{app_name}' app page")
         end
       end
@@ -170,7 +167,9 @@ module MacAppStoreCookbook
       signed_in? || fail(Exceptions::UserNotSignedIn)
       unless app_store.main_window.web_area.description == 'Purchases'
         select_menu_item(app_store, 'Store', 'Purchases')
-        unless wait_for(:group, ancestor: app_store, id: 'purchased')
+        unless wait_for(:web_area,
+                        app_store.main_window,
+                        description: 'Purchases')
           fail(Exceptions::Timeout, 'Purchases page')
         end
       end
@@ -210,7 +209,7 @@ module MacAppStoreCookbook
     #
     def self.wait_for_sign_in
       unless wait_for(:menu_item,
-                      ancestor: app_store.menu_bar_item(title: 'Store'),
+                      app_store.menu_bar_item(title: 'Store'),
                       title: 'Sign Out')
         fail(Exceptions::Timeout, 'sign in')
       end
@@ -314,7 +313,7 @@ module MacAppStoreCookbook
     def self.app_store
       require 'ax_elements'
       app_store = AX::Application.new('com.apple.appstore')
-      unless wait_for(:menu_item, ancestor: app_store, title: 'Purchases')
+      unless wait_for(:menu_item, app_store, title: 'Purchases')
         fail(Exceptions::Timeout, 'App Store')
       end
       app_store
@@ -330,6 +329,20 @@ module MacAppStoreCookbook
       !NSRunningApplication.runningApplicationsWithBundleIdentifier(
         'com.apple.appstore'
       ).empty?
+    end
+
+    #
+    # Override AXE's wait_for method with one that calls it with a set of
+    # common parameters
+    #
+    # @param [Symbol] element
+    # @param [AX::Application, AX::StandardWindow, AX::MenuBarItem] ancestor
+    # @param [Hash] search_params
+    #
+    def self.wait_for(element, ancestor, search_params)
+      require 'ax_elements'
+      AX.wait_for(element,
+                  { ancestor: ancestor, timeout: 30 }.merge(search_params))
     end
   end
 

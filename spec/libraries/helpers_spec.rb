@@ -9,7 +9,6 @@ describe MacAppStoreCookbook::Helpers do
 
   before(:each) do
     allow(described_class).to receive(:sleep).and_return(true)
-    allow(described_class).to receive(:wait_for).and_return(true)
   end
 
   describe '#install!' do
@@ -56,24 +55,29 @@ describe MacAppStoreCookbook::Helpers do
 
   describe '#wait_for_install' do
     let(:timeout) { 10 }
-    let(:search) { nil }
-    let(:app_page) { double(main_window: double(search: search)) }
+    let(:app_page) { 'an app page' }
+    let(:wait_for) { nil }
 
     before(:each) do
       allow(described_class).to receive(:app_page).with(app_name)
         .and_return(app_page)
+      allow(described_class).to receive(:wait_for)
+        .with(:button,
+              app_page,
+              description: /^(Installed,|Open,)/,
+              timeout: timeout).and_return(wait_for)
     end
 
     context 'a successful install' do
-      let(:search) { true }
+      let(:wait_for) { true }
 
-      it 'returns true' do
-        expect(described_class.wait_for_install(app_name, timeout)).to eq(true)
+      it 'returns nil' do
+        expect(described_class.wait_for_install(app_name, timeout)).to eq(nil)
       end
     end
 
     context 'an install timeout' do
-      let(:search) { nil }
+      let(:wait_for) { nil }
 
       it 'raises an error' do
         expected = MacAppStoreCookbook::Exceptions::Timeout
@@ -163,6 +167,7 @@ describe MacAppStoreCookbook::Helpers do
     let(:already_there?) { false }
     let(:press) { true }
     let(:row) { double(link: 'link') }
+    let(:wait_for) { nil }
     let(:app_store) do
       double(
         main_window: double(
@@ -180,9 +185,14 @@ describe MacAppStoreCookbook::Helpers do
       allow(described_class).to receive(:fail_unless_purchased)
         .with(app_name).and_return(true)
       allow(described_class).to receive(:row).with(app_name).and_return(row)
+      allow(described_class).to receive(:wait_for)
+        .with(:web_area, app_store.main_window, description: app_name)
+        .and_return(wait_for)
     end
 
-    context 'normal conditions' do
+    context 'normal conditions, no timeouts' do
+      let(:wait_for) { true }
+
       it 'bails out if the app is not purchased' do
         expect(described_class).to receive(:fail_unless_purchased)
           .with(app_name)
@@ -200,11 +210,7 @@ describe MacAppStoreCookbook::Helpers do
     end
 
     context 'app page loading timeout' do
-      before(:each) do
-        expect(described_class).to receive(:wait_for).with(
-          :web_area, ancestor: app_store.main_window, description: app_name
-        ).and_return(nil)
-      end
+      let(:wait_for) { nil }
 
       it 'raises an error' do
         expected = MacAppStoreCookbook::Exceptions::Timeout
@@ -302,6 +308,7 @@ describe MacAppStoreCookbook::Helpers do
   describe '#purchases' do
     let(:already_there?) { false }
     let(:signed_in?) { true }
+    let(:wait_for) { nil }
     let(:main_window) do
       double(
         web_area: double(
@@ -318,8 +325,9 @@ describe MacAppStoreCookbook::Helpers do
       %i(signed_in? app_store).each do |m|
         allow(described_class).to receive(m).and_return(send(m))
       end
-      allow(main_window).to receive(:search).with(:link, title: 'sign in')
-        .and_return(nil)
+      allow(described_class).to receive(:wait_for)
+        .with(:web_area, main_window, description: 'Purchases')
+        .and_return(wait_for)
     end
 
     context 'user not signed in' do
@@ -331,7 +339,8 @@ describe MacAppStoreCookbook::Helpers do
       end
     end
 
-    context 'user signed in' do
+    context 'user signed in, no timeout' do
+      let(:wait_for) { true }
       let(:signed_in?) { true }
 
       it 'selects Purchases from the dropdown menu'do
@@ -342,7 +351,7 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'waits for the window group to load' do
         expect(described_class).to receive(:wait_for)
-          .with(:group, ancestor: app_store, id: 'purchased')
+          .with(:web_area, app_store.main_window, description: 'Purchases')
           .and_return(true)
         described_class.purchases
       end
@@ -353,11 +362,7 @@ describe MacAppStoreCookbook::Helpers do
     end
 
     context 'purchases list loading timeout' do
-      before(:each) do
-        expect(described_class).to receive(:wait_for)
-          .with(:group, ancestor: app_store, id: 'purchased')
-          .and_return(nil)
-      end
+      let(:wait_for) { nil }
 
       it 'raises an exception' do
         expected = MacAppStoreCookbook::Exceptions::Timeout
@@ -496,8 +501,9 @@ describe MacAppStoreCookbook::Helpers do
         .and_return(menu_bar_item)
       expect(described_class).to receive(:app_store).and_return(app_store)
       expect(described_class).to receive(:wait_for)
-        .with(:menu_item, ancestor: menu_bar_item, title: 'Sign Out')
-        .and_return(wait_for)
+        .with(:menu_item,
+              menu_bar_item,
+              title: 'Sign Out').and_return(wait_for)
     end
 
     context 'successful sign in' do
@@ -576,20 +582,21 @@ describe MacAppStoreCookbook::Helpers do
     let(:signed_in) { nil }
     let(:main_window) { double }
     let(:app_store) { double(main_window: main_window) }
-    let(:wait_for) { 'a button' }
+    let(:wait_for) { nil }
 
     before(:each) do
       allow(main_window).to receive(:search).with(:button, title: 'Sign In')
         .and_return(signed_in)
       allow(described_class).to receive(:app_store).and_return(app_store)
       allow(described_class).to receive(:select_menu_item).and_return(true)
-      allow(described_class).to receive(:wait_for).and_return(wait_for)
+      allow(described_class).to receive(:wait_for)
         .with(:button, ancestor: main_window, title: 'Sign In')
         .and_return(wait_for)
     end
 
-    context 'Sign In menu not loaded' do
+    context 'Signed in menu not loaded, no timeouts' do
       let(:signed_in) { nil }
+      let(:wait_for) { true }
 
       it 'selects Sign In from the menu' do
         expect(described_class).to receive(:select_menu_item)
@@ -610,6 +617,7 @@ describe MacAppStoreCookbook::Helpers do
 
     context 'Sign In menu already loaded' do
       let(:signed_in) { true }
+      let(:wait_for) { true }
 
       it 'does not select any menus' do
         expect(described_class).not_to receive(:select_menu_item)
@@ -730,30 +738,31 @@ describe MacAppStoreCookbook::Helpers do
 
   describe '#app_store' do
     let(:app_store) { 'some object' }
+    let(:wait_for) { nil }
 
     before(:each) do
       allow(AX::Application).to receive(:new).with('com.apple.appstore')
         .and_return(app_store)
-      allow(described_class).to receive(:wait_for).and_return(true)
+      allow(described_class).to receive(:wait_for)
+        .with(:menu_item, app_store, title: 'Purchases').and_return(wait_for)
     end
 
-    it 'returns an AX::Application object' do
-      expect(described_class.app_store).to eq('some object')
-    end
+    context 'normal circumstances, no timeout' do
+      let(:wait_for) { true }
 
-    it 'waits for the Purchases menu to load' do
-      expect(described_class).to receive(:wait_for)
-        .with(:menu_item, ancestor: app_store, title: 'Purchases')
-        .and_return(true)
-      described_class.app_store
+      it 'returns an AX::Application object' do
+        expect(described_class.app_store).to eq('some object')
+      end
+
+      it 'waits for the Purchases menu to load' do
+        expect(described_class).to receive(:wait_for)
+          .with(:menu_item, app_store, title: 'Purchases').and_return(true)
+        described_class.app_store
+      end
     end
 
     context 'Purchases menu loading timeout' do
-      before(:each) do
-        allow(described_class).to receive(:wait_for)
-          .with(:menu_item, ancestor: app_store, title: 'Purchases')
-          .and_return(nil)
-      end
+      let(:wait_for) { nil }
 
       it 'raises an exception' do
         expected = MacAppStoreCookbook::Exceptions::Timeout
@@ -784,6 +793,37 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'returns true' do
         expect(described_class.running?).to eq(true)
+      end
+    end
+  end
+
+  describe '#wait_for' do
+    let(:element) { :element }
+    let(:ancestor) { :grandparent }
+    let(:search_params) { nil }
+    let(:res) do
+      described_class.send(:wait_for, element, ancestor, search_params)
+    end
+
+    context 'a description search' do
+      let(:search_params) { { description: 'thing' } }
+
+      it 'translates it into a call to AXE wait_for' do
+        expect(AX).to receive(:wait_for)
+          .with(element, ancestor: ancestor, timeout: 30, description: 'thing')
+          .and_return(true)
+        described_class.wait_for(element, ancestor, search_params)
+      end
+    end
+
+    context 'a timeout override' do
+      let(:search_params) { { description: 'thing', timeout: 10 } }
+
+      it 'translates it into a call to AXE wait_for' do
+        expect(AX).to receive(:wait_for)
+          .with(element, ancestor: ancestor, timeout: 10, description: 'thing')
+          .and_return(true)
+        described_class.wait_for(element, ancestor, search_params)
       end
     end
   end
