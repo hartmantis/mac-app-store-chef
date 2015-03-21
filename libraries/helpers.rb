@@ -313,7 +313,7 @@ module MacAppStoreCookbook
     def self.app_store
       require 'ax_elements'
       app_store = AX::Application.new('com.apple.appstore')
-      unless wait_for(:menu_item, app_store, title: 'Purchases')
+      unless wait_for(:web_area, app_store.main_window)
         fail(Exceptions::Timeout, 'App Store')
       end
       app_store
@@ -339,7 +339,7 @@ module MacAppStoreCookbook
     # @param [AX::Application, AX::StandardWindow, AX::MenuBarItem] ancestor
     # @param [Hash] search_params
     #
-    def self.wait_for(element, ancestor, search_params)
+    def self.wait_for(element, ancestor, search_params = {})
       require 'ax_elements'
       AX.wait_for(element,
                   { ancestor: ancestor, timeout: 30 }.merge(search_params))

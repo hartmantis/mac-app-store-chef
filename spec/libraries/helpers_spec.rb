@@ -737,26 +737,26 @@ describe MacAppStoreCookbook::Helpers do
   end
 
   describe '#app_store' do
-    let(:app_store) { 'some object' }
+    let(:app_store) { double(main_window: 'a main window') }
     let(:wait_for) { nil }
 
     before(:each) do
       allow(AX::Application).to receive(:new).with('com.apple.appstore')
         .and_return(app_store)
       allow(described_class).to receive(:wait_for)
-        .with(:menu_item, app_store, title: 'Purchases').and_return(wait_for)
+        .with(:web_area, app_store.main_window).and_return(wait_for)
     end
 
     context 'normal circumstances, no timeout' do
       let(:wait_for) { true }
 
       it 'returns an AX::Application object' do
-        expect(described_class.app_store).to eq('some object')
+        expect(described_class.app_store).to eq(app_store)
       end
 
       it 'waits for the Purchases menu to load' do
         expect(described_class).to receive(:wait_for)
-          .with(:menu_item, app_store, title: 'Purchases').and_return(true)
+          .with(:web_area, app_store.main_window).and_return(true)
         described_class.app_store
       end
     end
@@ -801,8 +801,13 @@ describe MacAppStoreCookbook::Helpers do
     let(:element) { :element }
     let(:ancestor) { :grandparent }
     let(:search_params) { nil }
-    let(:res) do
-      described_class.send(:wait_for, element, ancestor, search_params)
+
+    context 'no search params' do
+      it 'translates it into a call for AXE wait_for' do
+        expect(AX).to receive(:wait_for)
+          .with(element, ancestor: ancestor, timeout: 30).and_return(true)
+        described_class.wait_for(element, ancestor)
+      end
     end
 
     context 'a description search' do
