@@ -39,11 +39,6 @@ class Chef
       alias_method :installed?, :installed
 
       #
-      # Require a pkgutil-style app ID to use for install status checks
-      #
-      attribute :app_id, kind_of: String, required: true
-
-      #
       # Timeout value for app download + install
       #
       attribute :timeout, kind_of: Fixnum, default: 600

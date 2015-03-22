@@ -79,22 +79,13 @@ class Chef
           MacAppStoreCookbook::Helpers.install!(new_resource.name,
                                                 new_resource.timeout)
           @new_resource.updated_by_last_action(true)
-          quit_when_done? && MacAppStoreCookbook::Helpers.quit!
-          set_focus_to(original_focus)
         end
+        quit_when_done? && MacAppStoreCookbook::Helpers.quit!
+        set_focus_to(original_focus)
         new_resource.installed(true)
       end
 
       private
-
-      #
-      # Use pkgutil to determine whether an app is installed
-      #
-      # @return [TrueClass, FalseClass]
-      #
-      def installed?
-        !shell_out("pkgutil --pkg-info #{new_resource.app_id}").error?
-      end
 
       #
       # Enable accessibility for running application

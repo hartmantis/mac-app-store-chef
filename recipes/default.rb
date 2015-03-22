@@ -24,11 +24,10 @@ end
 
 include_recipe 'build-essential'
 
-apps = node['mac_app_store'] && node['mac_app_store']['apps'] || {}
+apps = node['mac_app_store'] && node['mac_app_store']['apps'] || []
 
-apps.each do |k, v|
-  mac_app_store_app k do
-    app_id v
+apps.each do |a|
+  mac_app_store_app a do
     username node['mac_app_store']['username']
     password node['mac_app_store']['password']
   end

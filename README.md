@@ -17,16 +17,7 @@ Requirements
 
 Obviously, OS X is required. Some tempered expectations are as well--there is
 no documented public API for installing App Store apps, so this cookbook works
-by attempting to automating GUI window switches and button clicks. It remains to
-be seen what might result from, for example, a user performing certain mouse
-actions at the same time Chef is trying to do the same.
-
-To allow it to take over mouse navigation, the app running Chef (e.g. Terminal
-or iTerm) needs to be allowed in System Preferences under Security & Privacy ->
-Privacy -> Accessibility.
-
-To use this cookbook, you must be signed into the App Store. If you open the App
-Store and click the "Purchases" header button, you should see a list of apps.
+by automating GUI window switches and button clicks.
 
 Nothing in this cookbook will attempt to purchase an app for you--it can only
 install ones that are already in your purchase history.
@@ -36,6 +27,14 @@ Usage
 
 A new resource is defined as well as an attribute-driven default recipe, either
 of which can be used.
+
+_DO NOT_ switch between windows in OS X while Chef is running--it is important
+for the UI interaction that Chef have full control. If you Cmd+Tab during a run,
+unexpected and probably undesirable behavior will occur.
+
+For an application (e.g. the Terminal instance you might run Chef in) to
+control mouse and keyboard interaction, it must be given access in OS X's
+Accessibility settings. This cookbook _WILL_ modify those settings when run.
 
 The default recipe also installs the OS X dev tools required via the
 `build-essential` cookbook. If you are calling the resource directly, you'll
@@ -57,10 +56,9 @@ An attribute is supplied to represent a set of apps to install:
 
     default['mac_app_store']['apps'] = nil
 
-It can be overridden with a hash of app names (as displayed in the App Store)
-and app IDs (as displayed in the output of `pkgutil --pkgs`.
+It can be overridden with an array of app names (as displayed in the App Store):
 
-    default['mac_app_store']['apps']['Tweetbot for Twitter'] = 'com.tapbots.TweetbotMac'
+    default['mac_app_store']['apps'] = %w(Tweetbot for Twitter)
 
 By default, the main recipe assumes an Apple ID is already signed into the App
 Store, but a set of credentials can be provided:
@@ -78,7 +76,6 @@ Used to install a single app from the App Store.
 Syntax:
 
     mac_app_store_app 'Some App' do
-        app_id 'com.example.someapp'
         timeout 1200
         username 'example@example.com'
         password 'abc123'
@@ -95,7 +92,6 @@ Attributes:
 
 | Attribute  | Default        | Description                                  |
 |------------|----------------|----------------------------------------------|
-| app\_id    | `nil`          | Required; the app ID as displayed by pkgutil |
 | timeout    | `600`          | Time to wait on a download + install         |
 | username   | `nil`          | An Apple ID username                         |
 | password   | `nil`          | An Apple ID password                         |

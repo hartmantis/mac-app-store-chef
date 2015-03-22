@@ -20,8 +20,8 @@ suites:
         username: <%= ENV['APPLE_ID_USERNAME'] %>
         password: <%= ENV['APPLE_ID_PASSWORD'] %>
         apps:
-          Microsoft Remote Desktop: com.microsoft.rdc.mac
-          White Noise Lite: com.tmsoft.mac.WhiteNoiseLite
+          - Microsoft Remote Desktop
+          - White Noise Lite
 # TODO:
 # - name: app_not_purchased
 # - name: user_not_signed_in

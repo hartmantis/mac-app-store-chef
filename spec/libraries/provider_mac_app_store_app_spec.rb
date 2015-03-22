@@ -10,13 +10,12 @@ describe Chef::Provider::MacAppStoreApp do
   let(:username) { 'auser' }
   let(:password) { 'apassword' }
   let(:app_name) { 'Some App' }
-  let(:app_id) { 'com.example.someapp' }
   let(:timeout) { nil }
   let(:system_wide) { double(focused_application: 'something') }
   let(:running?) { false }
   let(:new_resource) do
     r = Chef::Resource::MacAppStoreApp.new(app_name, nil)
-    %i(username password app_id timeout).each do |m|
+    %i(username password timeout).each do |m|
       r.send(m, send(m))
     end
     r
@@ -130,19 +129,29 @@ describe Chef::Provider::MacAppStoreApp do
         expect(new_resource).to receive(:installed).with(true)
         provider.action_install
       end
-    end
 
-    shared_examples_for 'quit when done' do
-      it 'quits the App Store' do
-        expect(MacAppStoreCookbook::Helpers).to receive(:quit!)
+      it 'sets focus back on the original app' do
+        expect_any_instance_of(described_class).to receive(:set_focus_to)
+          .with(original_focus)
         provider.action_install
       end
-    end
 
-    shared_examples_for 'do not quit when done' do
-      it 'does not quit the App Store' do
-        expect(MacAppStoreCookbook::Helpers).not_to receive(:quit!)
-        provider.action_install
+      context 'App Store not already running' do
+        let(:quit_when_done?) { true }
+
+        it 'quits the App Store' do
+          expect(MacAppStoreCookbook::Helpers).to receive(:quit!)
+          provider.action_install
+        end
+      end
+
+      context 'App Store already running' do
+        let(:quit_when_done?) { false }
+
+        it 'does not quit the App Store' do
+          expect(MacAppStoreCookbook::Helpers).not_to receive(:quit!)
+          provider.action_install
+        end
       end
     end
 
@@ -168,24 +177,6 @@ describe Chef::Provider::MacAppStoreApp do
           .with(app_name, 600)
         provider.action_install
       end
-
-      context 'App Store not already running' do
-        let(:quit_when_done?) { true }
-
-        it_behaves_like 'quit when done'
-      end
-
-      context 'App Store already running' do
-        let(:quit_when_done?) { false }
-
-        it_behaves_like 'do not quit when done'
-      end
-
-      it 'sets focus back on the original app' do
-        expect_any_instance_of(described_class).to receive(:set_focus_to)
-          .with(original_focus)
-        provider.action_install
-      end
     end
 
     context 'already installed' do
@@ -194,36 +185,10 @@ describe Chef::Provider::MacAppStoreApp do
       it_behaves_like 'any installed state'
 
       it 'does not do anything' do
-        [:press, :sleep, :set_focus_to].each do |m|
+        [:press, :sleep].each do |m|
           expect_any_instance_of(described_class).not_to receive(m)
         end
         provider.action_install
-      end
-    end
-  end
-
-  describe '#installed?' do
-    let(:installed) { nil }
-    let(:shell_out) { double(error?: !installed) }
-
-    before(:each) do
-      allow_any_instance_of(described_class).to receive(:shell_out)
-        .with("pkgutil --pkg-info #{app_id}").and_return(shell_out)
-    end
-
-    context 'app installed' do
-      let(:installed) { true }
-
-      it 'returns true' do
-        expect(provider.send(:installed?)).to eq(true)
-      end
-    end
-
-    context 'app not installed' do
-      let(:installed) { false }
-
-      it 'returns false' do
-        expect(provider.send(:installed?)).to eq(false)
       end
     end
   end
