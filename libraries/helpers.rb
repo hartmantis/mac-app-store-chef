@@ -35,7 +35,7 @@ module MacAppStoreCookbook
     #
     def self.install!(app_name, timeout)
       return nil if installed?(app_name)
-      press(install_button(app_name))
+      press(app_page_button(app_name))
       wait_for_install(app_name, timeout)
     end
 
@@ -71,9 +71,7 @@ module MacAppStoreCookbook
     # @return [TrueClass, FalseClass]
     #
     def self.installed?(app_name)
-      d = app_page(app_name).main_window.web_area.group.group.button
-          .description
-      d.match(/^Open,/) ? true : false
+      app_page_button(app_name).description.match(/^Open,/) ? true : false
     end
 
     #
@@ -90,13 +88,13 @@ module MacAppStoreCookbook
     end
 
     #
-    # Find the install button in the app row
+    # Find and return the button (Open, Install, etc.) in the app page
     #
     # @param [String] app_name
     #
     # @return [AX::Button]
     #
-    def self.install_button(app_name)
+    def self.app_page_button(app_name)
       app_page(app_name).main_window.web_area.group.group.button
     end
 
@@ -140,7 +138,12 @@ module MacAppStoreCookbook
     # @return [TrueClass, FalseClass]
     #
     def self.purchased?(app_name)
-      !row(app_name).nil?
+      if app_store.main_window.web_area.description == app_name
+        r = /^(Open,|Install,|Download,)/
+        app_page_button(app_name).description.match(r) ? true : false
+      else
+        !row(app_name).nil?
+      end
     end
 
     #

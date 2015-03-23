@@ -14,11 +14,11 @@ describe MacAppStoreCookbook::Helpers do
   describe '#install!' do
     let(:installed?) { false }
     let(:press) { 'a button press' }
-    let(:install_button) { 'an install button' }
+    let(:app_page_button) { 'an install button' }
     let(:wait_for_install) { 'a wait' }
 
     before(:each) do
-      %i(installed? press install_button wait_for_install).each do |m|
+      %i(installed? press app_page_button wait_for_install).each do |m|
         allow(described_class).to receive(m).and_return(send(m))
       end
     end
@@ -27,8 +27,8 @@ describe MacAppStoreCookbook::Helpers do
       let(:installed?) { false }
 
       it 'presses the install button' do
-        expect(described_class).to receive(:install_button).with(app_name)
-        expect(described_class).to receive(:press).with(install_button)
+        expect(described_class).to receive(:app_page_button).with(app_name)
+        expect(described_class).to receive(:press).with(app_page_button)
         described_class.install!(app_name, 10)
       end
 
@@ -89,25 +89,13 @@ describe MacAppStoreCookbook::Helpers do
 
   describe '#installed?' do
     let(:installed) { false }
-    let(:app_page) do
-      double(
-        main_window: double(
-          web_area: double(
-            group: double(
-              group: double(
-                button: double(
-                  description: installed ? 'Open, Thing' : 'Install, Thing'
-                )
-              )
-            )
-          )
-        )
-      )
+    let(:app_page_button) do
+      double(description: installed ? 'Open, Thing' : 'Install, Thing')
     end
 
     before(:each) do
-      allow(described_class).to receive(:app_page).with(app_name)
-        .and_return(app_page)
+      allow(described_class).to receive(:app_page_button).with(app_name)
+        .and_return(app_page_button)
     end
 
     context 'app not installed' do
@@ -146,7 +134,7 @@ describe MacAppStoreCookbook::Helpers do
     end
   end
 
-  describe '#install_button' do
+  describe '#app_page_button' do
     let(:button) { 'i am a button' }
     let(:app_page) do
       double(main_window: double(web_area: double(group: double(group: double(
@@ -159,7 +147,7 @@ describe MacAppStoreCookbook::Helpers do
     end
 
     it 'returns the install button' do
-      expect(described_class.install_button(app_name)).to eq(button)
+      expect(described_class.app_page_button(app_name)).to eq(button)
     end
   end
 
@@ -256,23 +244,98 @@ describe MacAppStoreCookbook::Helpers do
   end
 
   describe '#purchased?' do
-    let(:row) { nil }
+    let(:purchased) { false }
+    let(:on_app_page) { false }
+    let(:installed) { false }
+    let(:app_store) do
+      double(
+        main_window: double(
+          web_area: double(
+            description: on_app_page ? app_name : 'other'
+          )
+        )
+      )
+    end
+    let(:button_description) do
+      if on_app_page
+        if purchased
+          installed ? "Open, #{app_name}" : "Install, #{app_name}"
+        else
+          "Buy, #{app_name}, $3.99"
+        end
+      end
+    end
+    let(:app_page_button) do
+      double(description: button_description)
+    end
+    let(:row) { purchased ? 'a row' : nil }
 
-    before(:each) { allow(described_class).to receive(:row).and_return(row) }
+    before(:each) do
+      allow(described_class).to receive(:app_store).and_return(app_store)
+      allow(described_class).to receive(:app_page_button).with(app_name)
+        .and_return(app_page_button)
+      allow(described_class).to receive(:row).with(app_name).and_return(row)
+    end
 
-    context 'app present in Purchases menu' do
-      let(:row) { 'a row' }
+    context 'already on the app page, past the Purchases list' do
+      let(:on_app_page) { true }
 
-      it 'returns true' do
-        expect(described_class.purchased?(app_name)).to eq(true)
+      context 'app already installed' do
+        let(:purchased) { true }
+        let(:installed) { true }
+
+        it 'returns true' do
+          expect(described_class.purchased?(app_name)).to eq(true)
+        end
+      end
+
+      context 'app not installed' do
+        let(:purchased) { true }
+        let(:installed) { false }
+
+        it 'returns true' do
+          expect(described_class.purchased?(app_name)).to eq(true)
+        end
+      end
+
+      context 'app not purchased' do
+        let(:purchased) { false }
+        let(:installed) { false }
+
+        it 'returns false' do
+          expect(described_class.purchased?(app_name)).to eq(false)
+        end
       end
     end
 
-    context 'app not present in Purchases menu' do
-      let(:row) { nil }
+    context 'on the Purchases list page' do
+      let(:on_app_page) { false }
 
-      it 'returns false' do
-        expect(described_class.purchased?(app_name)).to eq(false)
+      context 'app already installed' do
+        let(:purchased) { true }
+        let(:installed) { true }
+
+        it 'returns true' do
+          expect(described_class.purchased?(app_name)).to eq(true)
+        end
+      end
+
+      context 'app not installed' do
+        let(:purchased) { true }
+        let(:installed) { false }
+
+        it 'returns true' do
+          expect(described_class.purchased?(app_name)).to eq(true)
+        end
+      end
+
+      context 'app not purchased' do
+        let(:purchased) { false }
+        let(:installed) { false }
+
+        it 'returns false' do
+          expect(described_class.purchased?(app_name)).to eq(false)
+        end
       end
     end
   end
