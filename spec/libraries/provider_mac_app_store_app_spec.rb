@@ -86,8 +86,8 @@ describe Chef::Provider::MacAppStoreApp do
     let(:installed) { true }
 
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:installed?)
-        .and_return(installed)
+      allow(MacAppStoreCookbook::Helpers).to receive(:installed?)
+        .with(app_name).and_return(installed)
     end
 
     it 'returns a MacAppStoreApp resource instance' do
