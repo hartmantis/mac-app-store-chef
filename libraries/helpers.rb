@@ -34,6 +34,7 @@ module MacAppStoreCookbook
     # @raise [MacAppStoreCookbook::Exceptions::Timeout]
     #
     def self.install!(app_name, timeout)
+      fail_unless_purchased(app_name)
       return nil if installed?(app_name)
       press(app_page_button(app_name))
       wait_for_install(app_name, timeout)
@@ -111,7 +112,6 @@ module MacAppStoreCookbook
     # @raise [MacAppStoreCookbook::Exceptions::Timeout]
     #
     def self.app_page(app_name)
-      fail_unless_purchased(app_name)
       unless app_store.main_window.web_area.description == app_name
         press(row(app_name).link)
         unless wait_for(:web_area, app_store.main_window, description: app_name)

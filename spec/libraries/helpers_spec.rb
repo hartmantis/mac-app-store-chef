@@ -21,10 +21,22 @@ describe MacAppStoreCookbook::Helpers do
       %i(installed? press app_page_button wait_for_install).each do |m|
         allow(described_class).to receive(m).and_return(send(m))
       end
+      allow(described_class).to receive(:fail_unless_purchased)
+        .with(app_name).and_return(true)
+    end
+
+    shared_examples_for 'any circumstances' do
+      it 'bails out if the app is not purchased' do
+        expect(described_class).to receive(:fail_unless_purchased)
+          .with(app_name)
+        described_class.app_page(app_name)
+      end
     end
 
     context 'app not installed' do
       let(:installed?) { false }
+
+      it_behaves_like 'any circumstances'
 
       it 'presses the install button' do
         expect(described_class).to receive(:app_page_button).with(app_name)
@@ -41,6 +53,8 @@ describe MacAppStoreCookbook::Helpers do
 
     context 'app already installed' do
       let(:installed?) { true }
+
+      it_behaves_like 'any circumstances'
 
       it 'returns nil' do
         expect(described_class.install!(app_name, 10)).to eq(nil)
@@ -170,8 +184,6 @@ describe MacAppStoreCookbook::Helpers do
       [:press, :app_store].each do |m|
         allow(described_class).to receive(m).and_return(send(m))
       end
-      allow(described_class).to receive(:fail_unless_purchased)
-        .with(app_name).and_return(true)
       allow(described_class).to receive(:row).with(app_name).and_return(row)
       allow(described_class).to receive(:wait_for)
         .with(:web_area, app_store.main_window, description: app_name)
@@ -180,12 +192,6 @@ describe MacAppStoreCookbook::Helpers do
 
     context 'normal conditions, no timeouts' do
       let(:wait_for) { true }
-
-      it 'bails out if the app is not purchased' do
-        expect(described_class).to receive(:fail_unless_purchased)
-          .with(app_name)
-        described_class.app_page(app_name)
-      end
 
       it 'presses the app link' do
         expect(described_class).to receive(:press).with('link')
