@@ -139,7 +139,7 @@ module MacAppStoreCookbook
     #
     def self.purchased?(app_name)
       if app_store.main_window.web_area.description == app_name
-        r = /^(Open,|Install,|Download,)/
+        r = /^(Open,|Install,|Installed,|Download,)/
         app_page_button(app_name).description.match(r) ? true : false
       else
         !row(app_name).nil?
@@ -315,11 +315,11 @@ module MacAppStoreCookbook
     #
     def self.app_store
       require 'ax_elements'
-      app_store = AX::Application.new('com.apple.appstore')
-      unless wait_for(:web_area, app_store.main_window)
+      as = AX::Application.new('com.apple.appstore')
+      unless wait_for(:web_area, as.main_window)
         fail(Exceptions::Timeout, 'App Store')
       end
-      app_store
+      as
     end
 
     #
