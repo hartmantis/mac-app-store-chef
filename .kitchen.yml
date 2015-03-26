@@ -12,7 +12,7 @@ platforms:
         insert_key: false
 
 suites:
-  - name: default
+  - name: two-sample-apps
     run_list:
       - recipe[mac-app-store]
     attributes:
