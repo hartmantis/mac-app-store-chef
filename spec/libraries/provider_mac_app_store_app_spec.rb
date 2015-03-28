@@ -13,6 +13,8 @@ describe Chef::Provider::MacAppStoreApp do
   let(:timeout) { nil }
   let(:system_wide) { double(focused_application: 'something') }
   let(:running?) { false }
+  let(:app_store) { double }
+  let(:'sign_in!') { true }
   let(:new_resource) do
     r = Chef::Resource::MacAppStoreApp.new(app_name, nil)
     %i(username password timeout).each do |m|
@@ -23,8 +25,11 @@ describe Chef::Provider::MacAppStoreApp do
   let(:provider) { described_class.new(new_resource, nil) }
 
   before(:each) do
-    %i(sleep install_axe_gem trust_app).each do |m|
+    %i(sleep install_axe_gem trust_app set_focus_to).each do |m|
       allow_any_instance_of(described_class).to receive(m).and_return(true)
+    end
+    %i(app_store sign_in!).each do |r|
+      allow(MacAppStoreCookbook::Helpers).to receive(r).and_return(send(r))
     end
     allow_any_instance_of(described_class).to receive(:node).and_return(node)
     allow(AX::SystemWide).to receive(:new).and_return(system_wide)
@@ -52,6 +57,18 @@ describe Chef::Provider::MacAppStoreApp do
 
       it 'saves the original focused app for later' do
         expect(provider.original_focus).to eq('something')
+      end
+
+      it 'sets focus to the app store' do
+        expect_any_instance_of(described_class).to receive(:set_focus_to)
+          .with(app_store)
+        provider
+      end
+
+      it 'signs the user in' do
+        expect(MacAppStoreCookbook::Helpers).to receive(:sign_in!)
+          .with(username, password)
+        provider
       end
     end
 
@@ -103,13 +120,11 @@ describe Chef::Provider::MacAppStoreApp do
   describe '#action_install' do
     %i(
       installed?
-      set_focus_to
-      app_store
-      sign_in!
       install!
       quit_when_done?
-      original_focus
       quit!
+      set_focus_to
+      original_focus
     ).each do |i|
       let(i) { i }
     end
@@ -119,7 +134,7 @@ describe Chef::Provider::MacAppStoreApp do
         allow_any_instance_of(described_class).to receive(r).and_return(send(r))
       end
 
-      %i(installed? app_store sign_in! install! quit!).each do |r|
+      %i(installed? install! quit!).each do |r|
         allow(MacAppStoreCookbook::Helpers).to receive(r).and_return(send(r))
       end
     end
@@ -159,18 +174,6 @@ describe Chef::Provider::MacAppStoreApp do
       let(:installed?) { false }
 
       it_behaves_like 'any installed state'
-
-      it 'sets focus to the app store' do
-        expect_any_instance_of(described_class).to receive(:set_focus_to)
-          .with(app_store)
-        provider.action_install
-      end
-
-      it 'signs the user in' do
-        expect(MacAppStoreCookbook::Helpers).to receive(:sign_in!)
-          .with(username, password)
-        provider.action_install
-      end
 
       it 'installs the app' do
         expect(MacAppStoreCookbook::Helpers).to receive(:install!)

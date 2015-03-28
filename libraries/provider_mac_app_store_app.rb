@@ -55,6 +55,9 @@ class Chef
         require 'ax_elements'
         @original_focus = AX::SystemWide.new.focused_application
         @quit_when_done = !MacAppStoreCookbook::Helpers.running?
+        set_focus_to(MacAppStoreCookbook::Helpers.app_store)
+        MacAppStoreCookbook::Helpers.sign_in!(new_resource.username,
+                                              new_resource.password)
       end
 
       #
@@ -75,9 +78,6 @@ class Chef
       #
       action :install do
         unless MacAppStoreCookbook::Helpers.installed?(new_resource.name)
-          set_focus_to(MacAppStoreCookbook::Helpers.app_store)
-          MacAppStoreCookbook::Helpers.sign_in!(new_resource.username,
-                                                new_resource.password)
           MacAppStoreCookbook::Helpers.install!(new_resource.name,
                                                 new_resource.timeout)
           @new_resource.updated_by_last_action(true)
