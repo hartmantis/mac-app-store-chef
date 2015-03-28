@@ -197,6 +197,8 @@ module MacAppStoreCookbook
     #
     def self.sign_in!(username, password)
       return if signed_in? && current_user? == username
+      fail(Exceptions::AppleIDInfoMissing, 'username') if username.nil?
+      fail(Exceptions::AppleIDInfoMissing, 'password') if password.nil?
       sign_out! if signed_in?
       sign_in_menu
       set(username_field, username)
@@ -376,6 +378,16 @@ module MacAppStoreCookbook
     class UserNotSignedIn < StandardError
       def initialize
         super('User must be signed in to perform this action')
+      end
+    end
+
+    # A custom exception class for missing Apple ID information
+    #
+    # @author Jonathan Hartman <j@p4nt5.com>
+    class AppleIDInfoMissing < StandardError
+      def initialize(param)
+        super("An Apple ID '#{param}' *must* be provided or a user already " <<
+              'signed into the App Store')
       end
     end
   end

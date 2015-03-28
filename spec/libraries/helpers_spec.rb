@@ -518,34 +518,59 @@ describe MacAppStoreCookbook::Helpers do
     context 'user not signed in' do
       let(:signed_in?) { false }
 
-      it 'does not sign out' do
-        expect(described_class).not_to receive(:sign_out!)
-        described_class.sign_in!(username, password)
+      context 'an Apple ID username and password provided' do
+        let(:username) { 'some_user' }
+        let(:password) { 'some_password' }
+
+        it 'does not sign out' do
+          expect(described_class).not_to receive(:sign_out!)
+          described_class.sign_in!(username, password)
+        end
+
+        it 'selects the Sign In menu' do
+          expect(described_class).to receive(:sign_in_menu)
+          described_class.sign_in!(username, password)
+        end
+
+        it 'enters Apple ID information' do
+          expect(described_class).to receive(:set).with(username_field, username)
+          described_class.sign_in!(username, password)
+        end
+
+        it 'enters Password information' do
+          expect(described_class).to receive(:set).with(password_field, password)
+          described_class.sign_in!(username, password)
+        end
+
+        it 'presses the Sign In button' do
+          expect(described_class).to receive(:press).with(sign_in_button)
+          described_class.sign_in!(username, password)
+        end
+
+        it 'waits for sign in to finish' do
+          expect(described_class).to receive(:wait_for_sign_in)
+          described_class.sign_in!(username, password)
+        end
       end
 
-      it 'selects the Sign In menu' do
-        expect(described_class).to receive(:sign_in_menu)
-        described_class.sign_in!(username, password)
+      context 'Apple ID username missing' do
+        let(:username) { nil }
+        let(:password) { 'some_password' }
+
+        it 'raises an error' do
+          expect { described_class.sign_in!(username, password) }
+            .to raise_error(MacAppStoreCookbook::Exceptions::AppleIDInfoMissing)
+        end
       end
 
-      it 'enters Apple ID information' do
-        expect(described_class).to receive(:set).with(username_field, username)
-        described_class.sign_in!(username, password)
-      end
+      context 'Apple ID password missing' do
+        let(:username) { 'some_user' }
+        let(:password) { nil }
 
-      it 'enters Password information' do
-        expect(described_class).to receive(:set).with(password_field, password)
-        described_class.sign_in!(username, password)
-      end
-
-      it 'presses the Sign In button' do
-        expect(described_class).to receive(:press).with(sign_in_button)
-        described_class.sign_in!(username, password)
-      end
-
-      it 'waits for sign in to finish' do
-        expect(described_class).to receive(:wait_for_sign_in)
-        described_class.sign_in!(username, password)
+        it 'raises an error' do
+          expect { described_class.sign_in!(username, password) }
+            .to raise_error(MacAppStoreCookbook::Exceptions::AppleIDInfoMissing)
+        end
       end
     end
 

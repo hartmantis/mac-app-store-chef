@@ -46,12 +46,12 @@ class Chef
       #
       # An optional Apple ID username
       #
-      attribute :username, kind_of: String, default: nil
+      attribute :username, kind_of: [NilClass, String], default: nil
 
       #
       # An optional Apple ID password
       #
-      attribute :password, kind_of: String, default: nil
+      attribute :password, kind_of: [NilClass, String], default: nil
     end
   end
 end
