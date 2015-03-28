@@ -29,7 +29,7 @@ describe MacAppStoreCookbook::Helpers do
       it 'bails out if the app is not purchased' do
         expect(described_class).to receive(:fail_unless_purchased)
           .with(app_name)
-        described_class.app_page(app_name)
+        described_class.install!(app_name, 10)
       end
     end
 
@@ -659,7 +659,7 @@ describe MacAppStoreCookbook::Helpers do
       allow(described_class).to receive(:app_store).and_return(app_store)
       allow(described_class).to receive(:select_menu_item).and_return(true)
       allow(described_class).to receive(:wait_for)
-        .with(:button, ancestor: main_window, title: 'Sign In')
+        .with(:button, main_window, title: 'Sign In')
         .and_return(wait_for)
     end
 
@@ -675,7 +675,7 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'waits for the Sign In menu to load' do
         expect(described_class).to receive(:wait_for)
-          .with(:button, ancestor: app_store.main_window, title: 'Sign In')
+          .with(:button, app_store.main_window, title: 'Sign In')
         described_class.sign_in_menu
       end
 

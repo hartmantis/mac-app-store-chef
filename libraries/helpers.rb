@@ -268,7 +268,7 @@ module MacAppStoreCookbook
       unless app_store.main_window.search(:button, title: 'Sign In')
         select_menu_item(app_store, 'Store', 'Sign In…')
         unless wait_for(:button,
-                        ancestor: app_store.main_window,
+                        app_store.main_window,
                         title: 'Sign In')
           fail(Exceptions::Timeout, 'Sign In window')
         end
