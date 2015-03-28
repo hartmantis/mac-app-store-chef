@@ -24,9 +24,7 @@ group :test do
   gem 'fauxhai'
   gem 'test-kitchen'
   gem 'kitchen-digitalocean', '>= 0.8.0'
-  # TODO: Depends on https://github.com/test-kitchen/kitchen-vagrant/pull/121
-  # (merged on 11/10/2014 but not yet released as of 01/29/2015)
-  gem 'kitchen-vagrant', github: 'test-kitchen/kitchen-vagrant'
+  gem 'kitchen-vagrant', '>= 0.16.0'
 end
 
 group :integration do
