@@ -8,29 +8,10 @@ describe Chef::Provider::MacAppStoreTrustedApp do
   let(:new_resource) { Chef::Resource::MacAppStoreTrustedApp.new(name, nil) }
   let(:provider) { described_class.new(new_resource, nil) }
 
-  before(:each) do
-    allow_any_instance_of(described_class).to receive(:install_sqlite3_gem)
-      .and_return(true)
-  end
-
-  describe 'SQLITE_VERSION' do
-    it 'pins SQLite to 1.x' do
-      res = Chef::Provider::MacAppStoreTrustedApp::SQLITE3_VERSION
-      expect(res).to eq('~> 1.3')
-    end
-  end
-
   describe 'DB_PATH' do
     it 'points to the TCC SQLite file' do
-      expected = '/Library/Application Support/com.apple.TCC/TCC.db'
+      expected = '/Library/Application\ Support/com.apple.TCC/TCC.db'
       expect(Chef::Provider::MacAppStoreTrustedApp::DB_PATH).to eq(expected)
-    end
-  end
-
-  describe '#initialize' do
-    it 'installs the SQLite gem' do
-      expect_any_instance_of(described_class).to receive(:install_sqlite3_gem)
-      provider
     end
   end
 
@@ -121,44 +102,54 @@ describe Chef::Provider::MacAppStoreTrustedApp do
 
   describe '#insert!' do
     let(:row) { nil }
+    let(:type) { 0 }
     let(:query) do
-      'INSERT INTO access VALUES(?, ?, ?, ?, ?, ?)'
+      'INSERT INTO access VALUES("kTCCServiceAccessibility", ' <<
+        "\"#{name}\", #{type}, 1, 0, NULL)"
     end
-    let(:db) { double }
 
     before(:each) do
-      allow(db).to receive(:execute).and_return(true)
-      allow_any_instance_of(described_class).to receive(:db).and_return(db)
+      allow_any_instance_of(described_class).to receive(:db_query)
+        .with(query).and_return(true)
       allow_any_instance_of(described_class).to receive(:row).and_return(row)
     end
 
-    context 'app already with its own row' do
-      let(:row) { { 'allowed' => 0 } }
+    context 'app already authorized' do
+      let(:row) { %w(col1 col2 0 1 0 NULL) }
 
-      it 'returns nil' do
-        expect(db).not_to receive(:execute)
+      it 'runs no queries and returns nil' do
+        expect_any_instance_of(described_class).not_to receive(:db_query)
         expect(provider.send(:'insert!')).to eq(nil)
       end
     end
 
-    context 'app with no row' do
+    context 'app in database but not authorized' do
+      let(:row) { %w(col1 col2 0 0 0 NULL) }
+
+      it 'runs no queries and returns nil' do
+        expect_any_instance_of(described_class).not_to receive(:db_query)
+        expect(provider.send(:'insert!')).to eq(nil)
+      end
+    end
+
+    context 'app not in database' do
       let(:row) { nil }
 
       it 'runs an INSERT query' do
-        expect(db).to receive(:execute)
-          .with(query, 'kTCCServiceAccessibility', name, 0, 1, 0, nil)
-          .and_return(true)
+        expect_any_instance_of(described_class).to receive(:db_query)
+          .with(query).and_return(true)
         provider.send(:'insert!')
       end
     end
 
-    context 'path to file with no row' do
-      let(:name) { '/tmp/app' }
+    context 'app named with a file path and not in database' do
+      let(:name) { '/tmp/db.db' }
+      let(:type) { 1 }
+      let(:row) { nil }
 
       it 'runs an INSERT query' do
-        expect(db).to receive(:execute)
-          .with(query, 'kTCCServiceAccessibility', name, 1, 1, 0, nil)
-          .and_return(true)
+        expect_any_instance_of(described_class).to receive(:db_query)
+          .with(query).and_return(true)
         provider.send(:'insert!')
       end
     end
@@ -166,32 +157,46 @@ describe Chef::Provider::MacAppStoreTrustedApp do
 
   describe '#update!' do
     let(:row) { nil }
+    let(:created?) { false }
     let(:query) do
-      'UPDATE access SET allowed = 1 WHERE service = ? AND client = ?'
+      'UPDATE access SET allowed = 1 WHERE ' <<
+        "service = \"kTCCServiceAccessibility\" AND client = \"#{name}\""
     end
-    let(:db) { double }
 
     before(:each) do
-      allow(db).to receive(:execute).and_return(true)
-      allow_any_instance_of(described_class).to receive(:db).and_return(db)
-      allow_any_instance_of(described_class).to receive(:row).and_return(row)
+      allow_any_instance_of(described_class).to receive(:row)
+        .and_return(row)
+      allow_any_instance_of(described_class).to receive(:created?)
+        .and_return(created?)
+      allow_any_instance_of(described_class).to receive(:db_query).with(query)
+        .and_return(true)
     end
 
-    context 'app already with its own row' do
-      let(:row) { { 'allowed' => 0 } }
+    context 'app already authorized' do
+      let(:created?) { true }
+
+      it 'runs no queries and returns nil' do
+        expect_any_instance_of(described_class).not_to receive(:db_query)
+        expect(provider.send(:'update!')).to eq(nil)
+      end
+    end
+
+    context 'app in database but not authorized' do
+      let(:row) { %w(col1 col2 0 0 0 nil) }
+      let(:created?) { false }
 
       it 'runs an UPDATE query' do
-        expect(db).to receive(:execute)
-          .with(query, 'kTCCServiceAccessibility', name).and_return(true)
+        expect_any_instance_of(described_class).to receive(:db_query)
+          .with(query).and_return(true)
         provider.send(:'update!')
       end
     end
 
-    context 'app with no row' do
+    context 'app not in database' do
       let(:row) { nil }
 
-      it 'returns nil' do
-        expect(db).not_to receive(:execute)
+      it 'runs no queries and returns nil' do
+        expect_any_instance_of(described_class).not_to receive(:db_query)
         expect(provider.send(:'update!')).to eq(nil)
       end
     end
@@ -205,7 +210,7 @@ describe Chef::Provider::MacAppStoreTrustedApp do
     end
 
     context 'app already allowed' do
-      let(:row) { { 'allowed' => 1 } }
+      let(:row) { %w(service client 0 1 0 nil) }
 
       it 'returns true' do
         expect(provider.send(:created?)).to eq(true)
@@ -224,14 +229,13 @@ describe Chef::Provider::MacAppStoreTrustedApp do
   describe '#row' do
     let(:query_res) { [] }
     let(:query) do
-      'SELECT * FROM access WHERE service = ? AND client = ?'
+      'SELECT * FROM access WHERE service = "kTCCServiceAccessibility" ' <<
+        'AND client = "thing"'
     end
-    let(:db) { double }
 
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:db).and_return(db)
-      allow(db).to receive(:execute)
-        .with(query, 'kTCCServiceAccessibility', name).and_return(query_res)
+      allow_any_instance_of(described_class).to receive(:db_query)
+        .and_return(query_res)
     end
 
     context 'no row for the given app' do
@@ -243,43 +247,55 @@ describe Chef::Provider::MacAppStoreTrustedApp do
     end
 
     context 'a row for the given app' do
-      let(:query_res) { [{ 'key' => 'val' }] }
+      let(:query_res) { %w(col1 col2) }
 
       it 'returns the row' do
-        expect(provider.send(:row)).to eq('key' => 'val')
+        expect(provider.send(:row)).to eq(query_res)
       end
     end
   end
 
-  describe '#db' do
-    let(:db) { double }
+  describe '#db_query' do
+    let(:db_path) { '/Library/Application\ Support/com.apple.TCC/TCC.db' }
+    let(:query) { nil }
+    let(:query_res) { '' }
+    let(:shell_out) { double(stdout: query_res) }
 
     before(:each) do
-      expect(SQLite3::Database).to receive(:new)
-        .with(Chef::Provider::MacAppStoreTrustedApp::DB_PATH,
-              results_as_hash: true)
-        .and_return(db)
+      allow_any_instance_of(described_class).to receive(:'shell_out!')
+        .with("sqlite3 #{db_path} '#{query}'").and_return(shell_out)
     end
 
-    it 'returns a SQLite DB instance' do
-      expect(provider.send(:db)).to be_an_instance_of(RSpec::Mocks::Double)
-    end
-  end
+    context 'a successful query with a result' do
+      let(:query) { 'SELECT * FROM access LIMIT 1' }
+      let(:query_res) { 'thing1|thing2' }
 
-  describe '#install_sqlite3_gem' do
-    let(:chef_gem) { double(version: true, action: true) }
-
-    before(:each) do
-      allow_any_instance_of(described_class).to receive(:chef_gem)
-        .with('sqlite3').and_yield
+      it 'returns the query result' do
+        expect(provider.send(:db_query, query)).to eq(query_res.split('|'))
+      end
     end
 
-    it 'installs the SQLite gem' do
-      p = provider
-      allow(p).to receive(:install_sqlite3_gem).and_call_original
-      expect(p).to receive(:version).with('~> 1.3')
-      expect(p).to receive(:action).with(:install)
-      p.send(:install_sqlite3_gem)
+    context 'a successful query with no result' do
+      let(:query) { 'SELECT * FROM access LIMIT 1' }
+      let(:query_res) { '' }
+
+      it 'returns an empty array' do
+        expect(provider.send(:db_query, query)).to eq([])
+      end
+    end
+
+    context 'a query that results in an error' do
+      let(:query) { 'SELECT * FROM access LIMIT 1' }
+
+      before(:each) do
+        expect_any_instance_of(described_class).to receive(:'shell_out!')
+          .with("sqlite3 #{db_path} '#{query}'")
+          .and_raise(Mixlib::ShellOut::ShellCommandFailed)
+      end
+
+      it 'raises an error' do
+        expect { provider.send(:db_query, query) }.to raise_error
+      end
     end
   end
 end

@@ -40,5 +40,4 @@ group :production do
   gem 'chef', '>= 11'
   gem 'berkshelf', '>= 3'
   gem 'AXElements', '>= 6'
-  gem 'sqlite3'
 end

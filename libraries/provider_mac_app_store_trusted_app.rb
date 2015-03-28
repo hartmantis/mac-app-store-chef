@@ -32,8 +32,7 @@ class Chef
       include Chef::Mixin::ShellOut
       use_inline_resources
 
-      SQLITE3_VERSION ||= '~> 1.3'
-      DB_PATH ||= '/Library/Application Support/com.apple.TCC/TCC.db'
+      DB_PATH ||= '/Library/Application\ Support/com.apple.TCC/TCC.db'
 
       #
       # WhyRun is supported by this provider
@@ -42,18 +41,6 @@ class Chef
       #
       def whyrun_supported?
         true
-      end
-
-      #
-      # Create a new instance and, before allowing anything else to happen,
-      # install the sqlite3 gem
-      #
-      # @return [Chef::Provider::MacAppStoreTrustedApp]
-      #
-      def initialize(new_resource, run_context)
-        super
-        install_sqlite3_gem
-        require 'sqlite3'
       end
 
       #
@@ -86,25 +73,21 @@ class Chef
       #
       def insert!
         return nil unless row.nil?
-        db.execute('INSERT INTO access VALUES(?, ?, ?, ?, ?, ?)',
-                   'kTCCServiceAccessibility',
-                   new_resource.name,
-                   new_resource.name.start_with?('/') ? 1 : 0,
-                   1,
-                   0,
-                   nil)
+        db_query('INSERT INTO access VALUES(' <<
+                 '"kTCCServiceAccessibility", ' <<
+                 "\"#{new_resource.name}\", " <<
+                 "#{new_resource.name.start_with?('/') ? 1 : 0}, " <<
+                 '1, 0, NULL)')
       end
 
       #
       # Run an UPDATE query against the SQLite DB to enable access
       #
       def update!
-        return nil if row.nil?
-        db.execute(
-          'UPDATE access SET allowed = 1 WHERE service = ? AND client = ?',
-          'kTCCServiceAccessibility',
-          new_resource.name
-        )
+        return nil if row.nil? || created?
+        db_query('UPDATE access SET allowed = 1 WHERE ' <<
+                 'service = "kTCCServiceAccessibility" AND ' <<
+                 "client = \"#{new_resource.name}\"")
       end
 
       #
@@ -114,41 +97,37 @@ class Chef
       #
       def created?
         r = row
-        !r.nil? && r['allowed'] == 1
+        !r.nil? && r[3].to_i == 1
       end
 
       #
-      # Fetch and return the DB row for the app
+      # Fetch and return the DB row for the app as an array where the schema
+      # is:
       #
+      # | service | client | client_type | allowed | prompt_count | cs_req |
+      # | kTCC... | <NAME> | 0/1         | 0/1     | 0/1          | NULL   |
+      # | 
       #
       def row
-        res = db.execute(
-          'SELECT * FROM access WHERE service = ? AND client = ?',
-          'kTCCServiceAccessibility',
-          new_resource.name)
-        res.empty? ? nil : res[0]
+        res = db_query('SELECT * FROM access WHERE ' <<
+                       'service = "kTCCServiceAccessibility" AND ' <<
+                       "client = \"#{new_resource.name}\" LIMIT 1")
+        res.empty? ? nil : res
       end
 
       #
       # Open and return a connection to the SQLite DB that holds the
       # Accessibility settings
       #
-      # @return [SQLite3::Database]
+      # @param [String] query
       #
-      def db
-        SQLite3::Database.new(::File.expand_path(DB_PATH),
-                              results_as_hash: true)
-      end
-
+      # @return [Array]
       #
-      # Install the sqlite3 gem
+      # @raise [Mixlib::ShellOut::ShellCommandFailed]
       #
-      def install_sqlite3_gem
-        chef_gem 'sqlite3' do
-          compile_time(true) if defined?(compile_time)
-          version SQLITE3_VERSION
-          action :install
-        end
+      def db_query(query)
+        shell_out!("sqlite3 #{::File.expand_path(DB_PATH)} '#{query}'").stdout
+          .split('|')
       end
     end
   end
