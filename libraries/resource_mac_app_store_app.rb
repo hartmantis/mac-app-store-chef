@@ -52,6 +52,15 @@ class Chef
       # An optional Apple ID password
       #
       attribute :password, kind_of: [NilClass, String], default: nil
+
+      #
+      # Override resource's text rendering to remove password information
+      #
+      # @return [String]
+      #
+      def to_text
+        super.gsub(password, '****************')
+      end
     end
   end
 end

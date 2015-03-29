@@ -139,4 +139,12 @@ describe Chef::Resource::MacAppStoreApp do
       it_behaves_like 'an invalid configuration'
     end
   end
+
+  describe '#to_text' do
+    let(:password) { 'abc123' }
+
+    it 'suppresses the password in the resource rendered text' do
+      expect(resource.to_text).to include('password "****************"')
+    end
+  end
 end
