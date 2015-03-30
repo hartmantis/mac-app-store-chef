@@ -185,8 +185,10 @@ describe MacAppStoreCookbook::Helpers do
         allow(described_class).to receive(m).and_return(send(m))
       end
       allow(described_class).to receive(:row).with(app_name).and_return(row)
-      allow(described_class).to receive(:wait_for)
-        .with(:web_area, app_store.main_window, description: app_name)
+      allow(described_class).to receive(:wait_for).and_return(true)
+        .with(:button,
+              app_store.main_window.web_area,
+              description: /^(Install,|Download,|Installed,|Open,)/)
         .and_return(wait_for)
     end
 
