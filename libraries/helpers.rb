@@ -172,11 +172,9 @@ module MacAppStoreCookbook
       signed_in? || fail(Exceptions::UserNotSignedIn)
       unless app_store.main_window.web_area.description == 'Purchases'
         select_menu_item(app_store, 'Store', 'Purchases')
-        unless wait_for(:web_area,
-                        app_store.main_window,
-                        description: 'Purchases')
-          fail(Exceptions::Timeout, 'Purchases page')
-        end
+      end
+      unless wait_for(:table, app_store.main_window, description: 'Purchases')
+        fail(Exceptions::Timeout, 'Purchases list')
       end
       app_store
     end

@@ -390,15 +390,23 @@ describe MacAppStoreCookbook::Helpers do
     let(:app_store) { double(main_window: main_window, ancestry: []) }
 
     before(:each) do
-      %i(set_focus_to select_menu_item).each do |m|
-        allow(described_class).to receive(m).and_return(m)
-      end
+      allow(described_class).to receive(:select_menu_item)
+        .with(app_store, 'Store', 'Purchases').and_return(true)
       %i(signed_in? app_store).each do |m|
         allow(described_class).to receive(m).and_return(send(m))
       end
       allow(described_class).to receive(:wait_for)
-        .with(:web_area, main_window, description: 'Purchases')
+        .with(:table, main_window, description: 'Purchases')
         .and_return(wait_for)
+    end
+
+    shared_examples_for 'user signed in' do
+      it 'waits for the Purchases table to load' do
+        expect(described_class).to receive(:wait_for)
+          .with(:table, main_window, description: 'Purchases')
+          .and_return(wait_for)
+        described_class.purchases
+      end
     end
 
     context 'user not signed in' do
@@ -414,16 +422,11 @@ describe MacAppStoreCookbook::Helpers do
       let(:wait_for) { true }
       let(:signed_in?) { true }
 
+      it_behaves_like 'user signed in'
+
       it 'selects Purchases from the dropdown menu'do
         expect(described_class).to receive(:select_menu_item)
           .with(app_store, 'Store', 'Purchases')
-        described_class.purchases
-      end
-
-      it 'waits for the window group to load' do
-        expect(described_class).to receive(:wait_for)
-          .with(:web_area, app_store.main_window, description: 'Purchases')
-          .and_return(true)
         described_class.purchases
       end
 
@@ -432,8 +435,9 @@ describe MacAppStoreCookbook::Helpers do
       end
     end
 
-    context 'purchases list loading timeout' do
+    context 'user signed in, purchases list loading timeout' do
       let(:wait_for) { nil }
+      let(:signed_in?) { true }
 
       it 'raises an exception' do
         expected = MacAppStoreCookbook::Exceptions::Timeout
@@ -442,12 +446,19 @@ describe MacAppStoreCookbook::Helpers do
     end
 
     context 'App Store already at the Purchases page' do
+      let(:wait_for) { true }
+      let(:signed_in?) { true }
       let(:already_there?) { true }
+
+      it_behaves_like 'user signed in'
 
       it 'does nothing to modify App Store state' do
         expect(described_class).not_to receive(:select_menu_item)
-        expect(described_class).not_to receive(:wait_for)
         described_class.purchases
+      end
+
+      it 'returns the App Store object' do
+        expect(described_class.purchases).to eq(app_store)
       end
     end
   end
