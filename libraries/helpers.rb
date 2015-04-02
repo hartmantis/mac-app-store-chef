@@ -318,8 +318,13 @@ module MacAppStoreCookbook
     def self.app_store
       require 'ax_elements'
       as = AX::Application.new('com.apple.appstore')
+      # The page and navigation buttons load separately, not in a consistent
+      # order
       unless wait_for(:web_area, as.main_window)
         fail(Exceptions::Timeout, 'App Store')
+      end
+      unless wait_for(:radio_button, as.main_window.toolbar, id: 'purchased')
+        fail(Exceptions::Timeout, 'App Store toolbar nav buttons')
       end
       as
     end

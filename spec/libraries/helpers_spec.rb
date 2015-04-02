@@ -844,32 +844,55 @@ describe MacAppStoreCookbook::Helpers do
   end
 
   describe '#app_store' do
-    let(:app_store) { double(main_window: 'a main window') }
-    let(:wait_for) { nil }
+    let(:app_store) { double(main_window: double(toolbar: 'a toolbar')) }
+    let(:wait_for_web_area) { nil }
+    let(:wait_for_nav) { nil }
 
     before(:each) do
       allow(AX::Application).to receive(:new).with('com.apple.appstore')
         .and_return(app_store)
       allow(described_class).to receive(:wait_for)
-        .with(:web_area, app_store.main_window).and_return(wait_for)
+        .with(:web_area, app_store.main_window).and_return(wait_for_web_area)
+      allow(described_class).to receive(:wait_for)
+        .with(:radio_button, app_store.main_window.toolbar, id: 'purchased')
+        .and_return(wait_for_nav)
     end
 
     context 'normal circumstances, no timeout' do
-      let(:wait_for) { true }
+      let(:wait_for_web_area) { true }
+      let(:wait_for_nav) { true }
 
       it 'returns an AX::Application object' do
         expect(described_class.app_store).to eq(app_store)
       end
 
-      it 'waits for the Purchases menu to load' do
+      it 'waits for the web area to load' do
         expect(described_class).to receive(:wait_for)
-          .with(:web_area, app_store.main_window).and_return(true)
+          .with(:web_area, app_store.main_window).and_return(wait_for_web_area)
+        described_class.app_store
+      end
+
+      it 'waits for the navbar buttons to load' do
+        expect(described_class).to receive(:wait_for)
+          .with(:radio_button, app_store.main_window.toolbar, id: 'purchased')
+          .and_return(wait_for_nav)
         described_class.app_store
       end
     end
 
-    context 'Purchases menu loading timeout' do
-      let(:wait_for) { nil }
+    context 'Web area loading timeout' do
+      let(:wait_for_web_area) { nil }
+      let(:wait_for_nav) { true }
+
+      it 'raises an exception' do
+        expected = MacAppStoreCookbook::Exceptions::Timeout
+        expect { described_class.app_store }.to raise_error(expected)
+      end
+    end
+
+    context 'navbar button loading timeout' do
+      let(:wait_for_web_area) { true }
+      let(:wait_for_nav) { nil }
 
       it 'raises an exception' do
         expected = MacAppStoreCookbook::Exceptions::Timeout
