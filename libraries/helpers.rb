@@ -115,7 +115,7 @@ module MacAppStoreCookbook
       unless app_store.main_window.web_area.description == app_name
         press(row(app_name).link)
         unless wait_for(:button,
-                        app_store.main_window.web_area,
+                        app_store.main_window,
                         description: /^(Install,|Download,|Installed,|Open,)/)
           fail(Exceptions::Timeout, "'#{app_name}' app page")
         end
