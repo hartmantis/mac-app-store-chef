@@ -45,7 +45,8 @@ Recipes
 
 ***default***
 
-Installs any apps in an attribute list.
+Opens the Mac App Store, signs in with a given Apple ID, and installs each of
+a provided list of apps
 
 Attributes
 ==========
@@ -58,7 +59,7 @@ An attribute is supplied to represent a set of apps to install:
 
 It can be overridden with an array of app names (as displayed in the App Store):
 
-    default['mac_app_store']['apps'] = %w(Tweetbot for Twitter)
+    default['mac_app_store']['apps'] = ['Tweetbot for Twitter']
 
 By default, the main recipe assumes an Apple ID is already signed into the App
 Store, but a set of credentials can be provided:
@@ -69,17 +70,44 @@ Store, but a set of credentials can be provided:
 Resources
 =========
 
+***mac_app_store***
+
+A singleton resource, there can be only one. Used to start and configure the
+App Store application itself.
+
+Syntax:
+
+    mac_app_store 'default' do
+      username 'example@example.com'
+      password 'abc123'
+      action :open
+    end
+
+Actions:
+
+| Action     | Description                     |
+|------------|---------------------------------|
+| `:open`    | Default; starts the App Store   |
+| `:quit`    | Quits the App Store             |
+
+Attributes:
+
+| Attribute  | Default        | Description                                  |
+|------------|----------------|----------------------------------------------|
+| username   | `nil`          | An Apple ID username                         |
+| password   | `nil`          | An Apple ID password                         |
+| action     | `:open`        | Action(s) to perform                         |
+
 ***mac_app_store_app***
 
-Used to install a single app from the App Store.
+Used to install a single app from the App Store. Requires that the App Store
+be running and an Apple ID signed into.
 
 Syntax:
 
     mac_app_store_app 'Some App' do
-        timeout 1200
-        username 'example@example.com'
-        password 'abc123'
-        action :install
+      timeout 1200
+      action :install
     end
 
 Actions:
@@ -93,12 +121,14 @@ Attributes:
 | Attribute  | Default        | Description                                  |
 |------------|----------------|----------------------------------------------|
 | timeout    | `600`          | Time to wait on a download + install         |
-| username   | `nil`          | An Apple ID username                         |
-| password   | `nil`          | An Apple ID password                         |
 | action     | `:install`     | Action(s) to perform                         |
 
 Providers
 =========
+
+***Chef::Provider::MacAppStore***
+
+Provider for interactions with the App Store itself.
 
 ***Chef::Provider::MacAppStoreApp***
 
