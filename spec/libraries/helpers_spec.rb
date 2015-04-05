@@ -14,13 +14,13 @@ describe MacAppStoreCookbook::Helpers do
   end
 
   describe '#install!' do
-    let(:installed?) { false }
+    let(:app_installed?) { false }
     let(:press) { 'a button press' }
     let(:app_page_button) { 'an install button' }
     let(:wait_for_install) { 'a wait' }
 
     before(:each) do
-      %i(installed? press app_page_button wait_for_install).each do |m|
+      %i(app_installed? press app_page_button wait_for_install).each do |m|
         allow_any_instance_of(described_class).to receive(m).and_return(send(m))
       end
       allow_any_instance_of(described_class).to receive(:fail_unless_purchased)
@@ -36,7 +36,7 @@ describe MacAppStoreCookbook::Helpers do
     end
 
     context 'app not installed' do
-      let(:installed?) { false }
+      let(:app_installed?) { false }
 
       it_behaves_like 'any circumstances'
 
@@ -56,7 +56,7 @@ describe MacAppStoreCookbook::Helpers do
     end
 
     context 'app already installed' do
-      let(:installed?) { true }
+      let(:app_installed?) { true }
 
       it_behaves_like 'any circumstances'
 
@@ -105,7 +105,7 @@ describe MacAppStoreCookbook::Helpers do
     end
   end
 
-  describe '#installed?' do
+  describe '#app_installed?' do
     let(:installed) { false }
     let(:app_page_button) do
       double(description: installed ? 'Open, Thing' : 'Install, Thing')
@@ -120,7 +120,7 @@ describe MacAppStoreCookbook::Helpers do
       let(:installed) { false }
 
       it 'returns false' do
-        expect(test_obj.installed?(app_name)).to eq(false)
+        expect(test_obj.app_installed?(app_name)).to eq(false)
       end
     end
 
@@ -128,7 +128,7 @@ describe MacAppStoreCookbook::Helpers do
       let(:installed) { true }
 
       it 'returns true' do
-        expect(test_obj.installed?(app_name)).to eq(true)
+        expect(test_obj.app_installed?(app_name)).to eq(true)
       end
     end
   end

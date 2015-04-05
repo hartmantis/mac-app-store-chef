@@ -35,7 +35,7 @@ module MacAppStoreCookbook
     #
     def install!(app_name, timeout)
       fail_unless_purchased(app_name)
-      return nil if installed?(app_name)
+      return nil if app_installed?(app_name)
       press(app_page_button(app_name))
       wait_for_install(app_name, timeout)
     end
@@ -71,7 +71,7 @@ module MacAppStoreCookbook
     #
     # @return [TrueClass, FalseClass]
     #
-    def installed?(app_name)
+    def app_installed?(app_name)
       app_page_button(app_name).description.match(/^Open,/) ? true : false
     end
 
