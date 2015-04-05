@@ -33,7 +33,7 @@ module MacAppStoreCookbook
     #
     # @raise [MacAppStoreCookbook::Exceptions::Timeout]
     #
-    def self.install!(app_name, timeout)
+    def install!(app_name, timeout)
       fail_unless_purchased(app_name)
       return nil if installed?(app_name)
       press(app_page_button(app_name))
@@ -52,7 +52,7 @@ module MacAppStoreCookbook
     # @raise [MacAppStoreCookbook::Exceptions::Timeout]
     #
     #
-    def self.wait_for_install(app_name, timeout)
+    def wait_for_install(app_name, timeout)
       # Button might be 'Installed' or 'Open' depending on OS X version
       unless wait_for(:button,
                       app_page(app_name),
@@ -71,7 +71,7 @@ module MacAppStoreCookbook
     #
     # @return [TrueClass, FalseClass]
     #
-    def self.installed?(app_name)
+    def installed?(app_name)
       app_page_button(app_name).description.match(/^Open,/) ? true : false
     end
 
@@ -83,7 +83,7 @@ module MacAppStoreCookbook
     #
     # @return [String]
     #
-    def self.latest_version(app_name)
+    def latest_version(app_name)
       app_page(app_name).main_window.static_text(value: 'Version: ').parent
         .static_text(value: /^[0-9]/).value
     end
@@ -95,7 +95,7 @@ module MacAppStoreCookbook
     #
     # @return [AX::Button]
     #
-    def self.app_page_button(app_name)
+    def app_page_button(app_name)
       app_page(app_name).main_window.web_area.group.group.button
     end
 
@@ -111,7 +111,7 @@ module MacAppStoreCookbook
     # @raise [MacAppStoreCookbook::Exceptions::AppNotPurchased]
     # @raise [MacAppStoreCookbook::Exceptions::Timeout]
     #
-    def self.app_page(app_name)
+    def app_page(app_name)
       unless app_store.main_window.web_area.description == app_name
         press(row(app_name).link)
         unless wait_for(:button,
@@ -128,7 +128,7 @@ module MacAppStoreCookbook
     #
     # @raise [MacAppStoreCookbook::Exceptions::AppNotPurchased]
     #
-    def self.fail_unless_purchased(app_name)
+    def fail_unless_purchased(app_name)
       purchased?(app_name) || fail(Exceptions::AppNotPurchased, app_name)
     end
 
@@ -139,7 +139,7 @@ module MacAppStoreCookbook
     #
     # @return [TrueClass, FalseClass]
     #
-    def self.purchased?(app_name)
+    def purchased?(app_name)
       if app_store.main_window.web_area.description == app_name
         r = /^(Open,|Install,|Installed,|Download,)/
         app_page_button(app_name).description.match(r) ? true : false
@@ -155,7 +155,7 @@ module MacAppStoreCookbook
     #
     # @return [AX::Row, NilClass]
     #
-    def self.row(app_name)
+    def row(app_name)
       purchases.main_window.search(:row, link: { title: app_name })
     end
 
@@ -168,7 +168,7 @@ module MacAppStoreCookbook
     # @raise [MacAppStoreCookbook::Exceptions::Timeout]
     # @raise [MacAppStoreCookbook::Exceptions::UserNotSignedIn]
     #
-    def self.purchases
+    def purchases
       signed_in? || fail(Exceptions::UserNotSignedIn)
       unless app_store.main_window.web_area.description == 'Purchases'
         select_menu_item(app_store, 'Store', 'Purchases')
@@ -182,7 +182,7 @@ module MacAppStoreCookbook
     #
     # Sign out of the App Store if a user is currently signed in
     #
-    def self.sign_out!
+    def sign_out!
       return unless signed_in?
       select_menu_item(app_store, 'Store', 'Sign Out')
     end
@@ -195,7 +195,7 @@ module MacAppStoreCookbook
     # @param [String] username
     # @param [String] password
     #
-    def self.sign_in!(username, password)
+    def sign_in!(username, password)
       return if signed_in? && current_user? == username
       fail(Exceptions::AppleIDInfoMissing, 'username') if username.nil?
       fail(Exceptions::AppleIDInfoMissing, 'password') if password.nil?
@@ -212,7 +212,7 @@ module MacAppStoreCookbook
     #
     # @raise [MacAppStoreCookbook::Exceptions::Timeout]
     #
-    def self.wait_for_sign_in
+    def wait_for_sign_in
       unless wait_for(:menu_item,
                       app_store.menu_bar_item(title: 'Store'),
                       title: 'Sign Out')
@@ -226,7 +226,7 @@ module MacAppStoreCookbook
     #
     # @return [AX::Button]
     #
-    def self.sign_in_button
+    def sign_in_button
       sign_in_menu.main_window.sheet.button(title: 'Sign In')
     end
 
@@ -236,7 +236,7 @@ module MacAppStoreCookbook
     #
     # @return[AX::TextField]
     #
-    def self.username_field
+    def username_field
       sign_in_menu.main_window.sheet.text_field(
         title_ui_element: sign_in_menu.main_window.sheet.static_text(
           value: 'Apple ID '
@@ -250,7 +250,7 @@ module MacAppStoreCookbook
     #
     # @return [AX::SecureTextField]
     #
-    def self.password_field
+    def password_field
       sign_in_menu.main_window.sheet.secure_text_field(
         title_ui_element: sign_in_menu.main_window.sheet.static_text(
           value: 'Password'
@@ -266,7 +266,7 @@ module MacAppStoreCookbook
     #
     # @raise [MacAppStoreCookbook::Exceptions::Timeout]
     #
-    def self.sign_in_menu
+    def sign_in_menu
       unless app_store.main_window.search(:button, title: 'Sign In')
         select_menu_item(app_store, 'Store', 'Sign In…')
         unless wait_for(:button,
@@ -284,7 +284,7 @@ module MacAppStoreCookbook
     #
     # @return [NilClass, String]
     #
-    def self.current_user?
+    def current_user?
       return nil unless signed_in?
       app_store.menu_bar_item(title: 'Store')
         .menu_item(title: /^View My Account /)
@@ -296,7 +296,7 @@ module MacAppStoreCookbook
     #
     # @return [TrueClass, FalseClass]
     #
-    def self.signed_in?
+    def signed_in?
       !app_store.menu_bar_item(title: 'Store').search(:menu_item,
                                                       title: 'Sign Out').nil?
     end
@@ -304,8 +304,8 @@ module MacAppStoreCookbook
     #
     # Quit the App Store app
     #
-    def self.quit!
-      app_store.terminate if running?
+    def quit!
+      app_store.terminate if app_store_running?
     end
 
     #
@@ -315,7 +315,7 @@ module MacAppStoreCookbook
     #
     # @raise [MacAppStoreCookbook::Exceptions::Timeout]
     #
-    def self.app_store
+    def app_store
       require 'ax_elements'
       as = AX::Application.new('com.apple.appstore')
       # The page and navigation buttons load separately, not in a consistent
@@ -334,7 +334,7 @@ module MacAppStoreCookbook
     #
     # @return [TrueClass, FalseClass]
     #
-    def self.running?
+    def app_store_running?
       require 'ax_elements'
       !NSRunningApplication.runningApplicationsWithBundleIdentifier(
         'com.apple.appstore'
@@ -349,7 +349,7 @@ module MacAppStoreCookbook
     # @param [AX::Application, AX::StandardWindow, AX::MenuBarItem] ancestor
     # @param [Hash] search_params
     #
-    def self.wait_for(element, ancestor, search_params = {})
+    def wait_for(element, ancestor, search_params = {})
       require 'ax_elements'
       AX.wait_for(element,
                   { ancestor: ancestor, timeout: 30 }.merge(search_params))

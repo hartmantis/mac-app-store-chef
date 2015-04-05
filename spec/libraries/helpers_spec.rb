@@ -5,10 +5,12 @@ require_relative '../spec_helper'
 require_relative '../../libraries/helpers'
 
 describe MacAppStoreCookbook::Helpers do
+  let(:described_class) { Class.new { include MacAppStoreCookbook::Helpers } }
+  let(:test_obj) { described_class.new }
   let(:app_name) { 'Some App' }
 
   before(:each) do
-    allow(described_class).to receive(:sleep).and_return(true)
+    allow_any_instance_of(described_class).to receive(:sleep).and_return(true)
   end
 
   describe '#install!' do
@@ -19,17 +21,17 @@ describe MacAppStoreCookbook::Helpers do
 
     before(:each) do
       %i(installed? press app_page_button wait_for_install).each do |m|
-        allow(described_class).to receive(m).and_return(send(m))
+        allow_any_instance_of(described_class).to receive(m).and_return(send(m))
       end
-      allow(described_class).to receive(:fail_unless_purchased)
+      allow_any_instance_of(described_class).to receive(:fail_unless_purchased)
         .with(app_name).and_return(true)
     end
 
     shared_examples_for 'any circumstances' do
       it 'bails out if the app is not purchased' do
-        expect(described_class).to receive(:fail_unless_purchased)
-          .with(app_name)
-        described_class.install!(app_name, 10)
+        expect_any_instance_of(described_class)
+          .to receive(:fail_unless_purchased).with(app_name)
+        test_obj.install!(app_name, 10)
       end
     end
 
@@ -39,15 +41,17 @@ describe MacAppStoreCookbook::Helpers do
       it_behaves_like 'any circumstances'
 
       it 'presses the install button' do
-        expect(described_class).to receive(:app_page_button).with(app_name)
-        expect(described_class).to receive(:press).with(app_page_button)
-        described_class.install!(app_name, 10)
+        expect_any_instance_of(described_class).to receive(:app_page_button)
+          .with(app_name)
+        expect_any_instance_of(described_class).to receive(:press)
+          .with(app_page_button)
+        test_obj.install!(app_name, 10)
       end
 
       it 'waits for the install to finish' do
-        expect(described_class).to receive(:wait_for_install)
+        expect_any_instance_of(described_class).to receive(:wait_for_install)
           .with(app_name, 10)
-        described_class.install!(app_name, 10)
+        test_obj.install!(app_name, 10)
       end
     end
 
@@ -57,12 +61,12 @@ describe MacAppStoreCookbook::Helpers do
       it_behaves_like 'any circumstances'
 
       it 'returns nil' do
-        expect(described_class.install!(app_name, 10)).to eq(nil)
+        expect(test_obj.install!(app_name, 10)).to eq(nil)
       end
 
       it 'presses no buttons' do
-        expect(described_class).not_to receive(:press)
-        described_class.install!(app_name, 10)
+        expect_any_instance_of(described_class).not_to receive(:press)
+        test_obj.install!(app_name, 10)
       end
     end
   end
@@ -73,9 +77,9 @@ describe MacAppStoreCookbook::Helpers do
     let(:wait_for) { nil }
 
     before(:each) do
-      allow(described_class).to receive(:app_page).with(app_name)
-        .and_return(app_page)
-      allow(described_class).to receive(:wait_for)
+      allow_any_instance_of(described_class).to receive(:app_page)
+        .with(app_name).and_return(app_page)
+      allow_any_instance_of(described_class).to receive(:wait_for)
         .with(:button,
               app_page,
               description: /^(Installed,|Open,)/,
@@ -86,7 +90,7 @@ describe MacAppStoreCookbook::Helpers do
       let(:wait_for) { true }
 
       it 'returns nil' do
-        expect(described_class.wait_for_install(app_name, timeout)).to eq(nil)
+        expect(test_obj.wait_for_install(app_name, timeout)).to eq(nil)
       end
     end
 
@@ -95,7 +99,7 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'raises an error' do
         expected = MacAppStoreCookbook::Exceptions::Timeout
-        expect { described_class.wait_for_install(app_name, timeout) }
+        expect { test_obj.wait_for_install(app_name, timeout) }
           .to raise_error(expected)
       end
     end
@@ -108,15 +112,15 @@ describe MacAppStoreCookbook::Helpers do
     end
 
     before(:each) do
-      allow(described_class).to receive(:app_page_button).with(app_name)
-        .and_return(app_page_button)
+      allow_any_instance_of(described_class).to receive(:app_page_button)
+        .with(app_name).and_return(app_page_button)
     end
 
     context 'app not installed' do
       let(:installed) { false }
 
       it 'returns false' do
-        expect(described_class.installed?(app_name)).to eq(false)
+        expect(test_obj.installed?(app_name)).to eq(false)
       end
     end
 
@@ -124,7 +128,7 @@ describe MacAppStoreCookbook::Helpers do
       let(:installed) { true }
 
       it 'returns true' do
-        expect(described_class.installed?(app_name)).to eq(true)
+        expect(test_obj.installed?(app_name)).to eq(true)
       end
     end
   end
@@ -140,11 +144,12 @@ describe MacAppStoreCookbook::Helpers do
     end
 
     before(:each) do
-      allow(described_class).to receive(:app_page).and_return(app_page)
+      allow_any_instance_of(described_class).to receive(:app_page)
+        .and_return(app_page)
     end
 
     it 'returns the version number' do
-      expect(described_class.latest_version(app_name)).to eq('1.2.3')
+      expect(test_obj.latest_version(app_name)).to eq('1.2.3')
     end
   end
 
@@ -157,11 +162,12 @@ describe MacAppStoreCookbook::Helpers do
     end
 
     before(:each) do
-      allow(described_class).to receive(:app_page).and_return(app_page)
+      allow_any_instance_of(described_class).to receive(:app_page)
+        .and_return(app_page)
     end
 
     it 'returns the install button' do
-      expect(described_class.app_page_button(app_name)).to eq(button)
+      expect(test_obj.app_page_button(app_name)).to eq(button)
     end
   end
 
@@ -182,26 +188,29 @@ describe MacAppStoreCookbook::Helpers do
 
     before(:each) do
       [:press, :app_store].each do |m|
-        allow(described_class).to receive(m).and_return(send(m))
+        allow_any_instance_of(described_class).to receive(m)
+          .and_return(send(m))
       end
-      allow(described_class).to receive(:row).with(app_name).and_return(row)
-      allow(described_class).to receive(:wait_for).and_return(true)
-        .with(:button,
-              app_store.main_window,
-              description: /^(Install,|Download,|Installed,|Open,)/)
-        .and_return(wait_for)
+      allow_any_instance_of(described_class).to receive(:row).with(app_name)
+        .and_return(row)
+      allow_any_instance_of(described_class).to receive(:wait_for)
+        .with(
+          :button,
+          app_store.main_window,
+          description: /^(Install,|Download,|Installed,|Open,)/
+        ).and_return(wait_for)
     end
 
     context 'normal conditions, no timeouts' do
       let(:wait_for) { true }
 
       it 'presses the app link' do
-        expect(described_class).to receive(:press).with('link')
-        described_class.app_page(app_name)
+        expect_any_instance_of(described_class).to receive(:press).with('link')
+        test_obj.app_page(app_name)
       end
 
       it 'returns the app store object' do
-        expect(described_class.app_page(app_name)).to eq(app_store)
+        expect(test_obj.app_page(app_name)).to eq(app_store)
       end
     end
 
@@ -210,7 +219,7 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'raises an error' do
         expected = MacAppStoreCookbook::Exceptions::Timeout
-        expect { described_class.app_page(app_name) }.to raise_error(expected)
+        expect { test_obj.app_page(app_name) }.to raise_error(expected)
       end
     end
 
@@ -218,9 +227,9 @@ describe MacAppStoreCookbook::Helpers do
       let(:already_there?) { true }
 
       it 'does nothing to alter the App Store state' do
-        expect(described_class).not_to receive(:press)
-        expect(described_class).not_to receive(:wait_for)
-        described_class.app_page(app_name)
+        expect_any_instance_of(described_class).not_to receive(:press)
+        expect_any_instance_of(described_class).not_to receive(:wait_for)
+        test_obj.app_page(app_name)
       end
     end
   end
@@ -229,14 +238,15 @@ describe MacAppStoreCookbook::Helpers do
     let(:purchased?) { true }
 
     before(:each) do
-      allow(described_class).to receive(:purchased?).and_return(purchased?)
+      allow_any_instance_of(described_class).to receive(:purchased?)
+        .and_return(purchased?)
     end
 
     context 'purchased app' do
       let(:purchased?) { true }
 
       it 'returns true' do
-        expect(described_class.fail_unless_purchased(app_name)).to eq(true)
+        expect(test_obj.fail_unless_purchased(app_name)).to eq(true)
       end
     end
 
@@ -245,7 +255,7 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'raises an error' do
         expected = MacAppStoreCookbook::Exceptions::AppNotPurchased
-        expect { described_class.fail_unless_purchased(app_name) }
+        expect { test_obj.fail_unless_purchased(app_name) }
           .to raise_error(expected)
       end
     end
@@ -279,10 +289,12 @@ describe MacAppStoreCookbook::Helpers do
     let(:row) { purchased ? 'a row' : nil }
 
     before(:each) do
-      allow(described_class).to receive(:app_store).and_return(app_store)
-      allow(described_class).to receive(:app_page_button).with(app_name)
-        .and_return(app_page_button)
-      allow(described_class).to receive(:row).with(app_name).and_return(row)
+      allow_any_instance_of(described_class).to receive(:app_store)
+        .and_return(app_store)
+      allow_any_instance_of(described_class).to receive(:app_page_button)
+        .with(app_name).and_return(app_page_button)
+      allow_any_instance_of(described_class).to receive(:row).with(app_name)
+        .and_return(row)
     end
 
     context 'already on the app page, past the Purchases list' do
@@ -293,7 +305,7 @@ describe MacAppStoreCookbook::Helpers do
         let(:installed) { true }
 
         it 'returns true' do
-          expect(described_class.purchased?(app_name)).to eq(true)
+          expect(test_obj.purchased?(app_name)).to eq(true)
         end
       end
 
@@ -302,7 +314,7 @@ describe MacAppStoreCookbook::Helpers do
         let(:installed) { false }
 
         it 'returns true' do
-          expect(described_class.purchased?(app_name)).to eq(true)
+          expect(test_obj.purchased?(app_name)).to eq(true)
         end
       end
 
@@ -311,7 +323,7 @@ describe MacAppStoreCookbook::Helpers do
         let(:installed) { false }
 
         it 'returns false' do
-          expect(described_class.purchased?(app_name)).to eq(false)
+          expect(test_obj.purchased?(app_name)).to eq(false)
         end
       end
     end
@@ -324,7 +336,7 @@ describe MacAppStoreCookbook::Helpers do
         let(:installed) { true }
 
         it 'returns true' do
-          expect(described_class.purchased?(app_name)).to eq(true)
+          expect(test_obj.purchased?(app_name)).to eq(true)
         end
       end
 
@@ -333,7 +345,7 @@ describe MacAppStoreCookbook::Helpers do
         let(:installed) { false }
 
         it 'returns true' do
-          expect(described_class.purchased?(app_name)).to eq(true)
+          expect(test_obj.purchased?(app_name)).to eq(true)
         end
       end
 
@@ -342,7 +354,7 @@ describe MacAppStoreCookbook::Helpers do
         let(:installed) { false }
 
         it 'returns false' do
-          expect(described_class.purchased?(app_name)).to eq(false)
+          expect(test_obj.purchased?(app_name)).to eq(false)
         end
       end
     end
@@ -354,7 +366,8 @@ describe MacAppStoreCookbook::Helpers do
     let(:purchases) { double(main_window: main_window) }
 
     before(:each) do
-      allow(described_class).to receive(:purchases).and_return(purchases)
+      allow_any_instance_of(described_class).to receive(:purchases)
+        .and_return(purchases)
       allow(main_window).to receive(:search)
         .with(:row, link: { title: app_name }).and_return(search)
     end
@@ -363,7 +376,7 @@ describe MacAppStoreCookbook::Helpers do
       let(:search) { 'some row' }
 
       it 'returns the app row' do
-        expect(described_class.row(app_name)).to eq('some row')
+        expect(test_obj.row(app_name)).to eq('some row')
       end
     end
 
@@ -371,7 +384,7 @@ describe MacAppStoreCookbook::Helpers do
       let(:search) { nil }
 
       it 'returns nil' do
-        expect(described_class.row(app_name)).to eq(nil)
+        expect(test_obj.row(app_name)).to eq(nil)
       end
     end
   end
@@ -390,22 +403,23 @@ describe MacAppStoreCookbook::Helpers do
     let(:app_store) { double(main_window: main_window, ancestry: []) }
 
     before(:each) do
-      allow(described_class).to receive(:select_menu_item)
+      allow_any_instance_of(described_class).to receive(:select_menu_item)
         .with(app_store, 'Store', 'Purchases').and_return(true)
       %i(signed_in? app_store).each do |m|
-        allow(described_class).to receive(m).and_return(send(m))
+        allow_any_instance_of(described_class).to receive(m)
+          .and_return(send(m))
       end
-      allow(described_class).to receive(:wait_for)
+      allow_any_instance_of(described_class).to receive(:wait_for)
         .with(:table, main_window, description: 'Purchases')
         .and_return(wait_for)
     end
 
     shared_examples_for 'user signed in' do
       it 'waits for the Purchases table to load' do
-        expect(described_class).to receive(:wait_for)
+        expect_any_instance_of(described_class).to receive(:wait_for)
           .with(:table, main_window, description: 'Purchases')
           .and_return(wait_for)
-        described_class.purchases
+        test_obj.purchases
       end
     end
 
@@ -414,7 +428,7 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'raises an exception' do
         expected = MacAppStoreCookbook::Exceptions::UserNotSignedIn
-        expect { described_class.purchases }.to raise_error(expected)
+        expect { test_obj.purchases }.to raise_error(expected)
       end
     end
 
@@ -425,13 +439,13 @@ describe MacAppStoreCookbook::Helpers do
       it_behaves_like 'user signed in'
 
       it 'selects Purchases from the dropdown menu'do
-        expect(described_class).to receive(:select_menu_item)
+        expect_any_instance_of(described_class).to receive(:select_menu_item)
           .with(app_store, 'Store', 'Purchases')
-        described_class.purchases
+        test_obj.purchases
       end
 
       it 'returns the App Store object' do
-        expect(described_class.purchases).to eq(app_store)
+        expect(test_obj.purchases).to eq(app_store)
       end
     end
 
@@ -441,7 +455,7 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'raises an exception' do
         expected = MacAppStoreCookbook::Exceptions::Timeout
-        expect { described_class.purchases }.to raise_error(expected)
+        expect { test_obj.purchases }.to raise_error(expected)
       end
     end
 
@@ -453,12 +467,13 @@ describe MacAppStoreCookbook::Helpers do
       it_behaves_like 'user signed in'
 
       it 'does nothing to modify App Store state' do
-        expect(described_class).not_to receive(:select_menu_item)
-        described_class.purchases
+        expect_any_instance_of(described_class)
+          .not_to receive(:select_menu_item)
+        test_obj.purchases
       end
 
       it 'returns the App Store object' do
-        expect(described_class.purchases).to eq(app_store)
+        expect(test_obj.purchases).to eq(app_store)
       end
     end
   end
@@ -469,17 +484,20 @@ describe MacAppStoreCookbook::Helpers do
 
     before(:each) do
       %i(signed_in? app_store).each do |m|
-        allow(described_class).to receive(m).and_return(send(m))
+        allow_any_instance_of(described_class).to receive(m)
+          .and_return(send(m))
       end
-      allow(described_class).to receive(:select_menu_item).and_return(true)
+      allow_any_instance_of(described_class).to receive(:select_menu_item)
+        .and_return(true)
     end
 
     context 'user not signed in' do
       let(:signed_in?) { false }
 
       it 'returns without doing anything' do
-        expect(described_class).not_to receive(:select_menu_item)
-        described_class.sign_out!
+        expect_any_instance_of(described_class)
+          .not_to receive(:select_menu_item)
+        test_obj.sign_out!
       end
     end
 
@@ -487,9 +505,9 @@ describe MacAppStoreCookbook::Helpers do
       let(:signed_in?) { true }
 
       it 'signs the user out' do
-        expect(described_class).to receive(:select_menu_item)
+        expect_any_instance_of(described_class).to receive(:select_menu_item)
           .with(app_store, 'Store', 'Sign Out')
-        described_class.sign_out!
+        test_obj.sign_out!
       end
     end
   end
@@ -511,10 +529,11 @@ describe MacAppStoreCookbook::Helpers do
         signed_in?
         current_user?
       ).each do |m|
-        allow(described_class).to receive(m).and_return(send(m))
+        allow_any_instance_of(described_class).to receive(m)
+          .and_return(send(m))
       end
       %i(sign_in_menu set press wait_for_sign_in).each do |m|
-        allow(described_class).to receive(m).and_return(true)
+        allow_any_instance_of(described_class).to receive(m).and_return(true)
       end
     end
 
@@ -523,8 +542,8 @@ describe MacAppStoreCookbook::Helpers do
       let(:current_user?) { username }
 
       it 'returns immediately' do
-        expect(described_class).not_to receive(:sign_in_menu)
-        described_class.sign_in!(username, password)
+        expect_any_instance_of(described_class).not_to receive(:sign_in_menu)
+        test_obj.sign_in!(username, password)
       end
     end
 
@@ -536,33 +555,36 @@ describe MacAppStoreCookbook::Helpers do
         let(:password) { 'some_password' }
 
         it 'does not sign out' do
-          expect(described_class).not_to receive(:sign_out!)
-          described_class.sign_in!(username, password)
+          expect_any_instance_of(described_class).not_to receive(:sign_out!)
+          test_obj.sign_in!(username, password)
         end
 
         it 'selects the Sign In menu' do
-          expect(described_class).to receive(:sign_in_menu)
-          described_class.sign_in!(username, password)
+          expect_any_instance_of(described_class).to receive(:sign_in_menu)
+          test_obj.sign_in!(username, password)
         end
 
         it 'enters Apple ID information' do
-          expect(described_class).to receive(:set).with(username_field, username)
-          described_class.sign_in!(username, password)
+          expect_any_instance_of(described_class).to receive(:set)
+            .with(username_field, username)
+          test_obj.sign_in!(username, password)
         end
 
         it 'enters Password information' do
-          expect(described_class).to receive(:set).with(password_field, password)
-          described_class.sign_in!(username, password)
+          expect_any_instance_of(described_class).to receive(:set)
+            .with(password_field, password)
+          test_obj.sign_in!(username, password)
         end
 
         it 'presses the Sign In button' do
-          expect(described_class).to receive(:press).with(sign_in_button)
-          described_class.sign_in!(username, password)
+          expect_any_instance_of(described_class).to receive(:press)
+            .with(sign_in_button)
+          test_obj.sign_in!(username, password)
         end
 
         it 'waits for sign in to finish' do
-          expect(described_class).to receive(:wait_for_sign_in)
-          described_class.sign_in!(username, password)
+          expect_any_instance_of(described_class).to receive(:wait_for_sign_in)
+          test_obj.sign_in!(username, password)
         end
       end
 
@@ -571,7 +593,7 @@ describe MacAppStoreCookbook::Helpers do
         let(:password) { 'some_password' }
 
         it 'raises an error' do
-          expect { described_class.sign_in!(username, password) }
+          expect { test_obj.sign_in!(username, password) }
             .to raise_error(MacAppStoreCookbook::Exceptions::AppleIDInfoMissing)
         end
       end
@@ -581,7 +603,7 @@ describe MacAppStoreCookbook::Helpers do
         let(:password) { nil }
 
         it 'raises an error' do
-          expect { described_class.sign_in!(username, password) }
+          expect { test_obj.sign_in!(username, password) }
             .to raise_error(MacAppStoreCookbook::Exceptions::AppleIDInfoMissing)
         end
       end
@@ -592,8 +614,8 @@ describe MacAppStoreCookbook::Helpers do
       let(:current_user?) { 'anotheruser' }
 
       it 'signs out' do
-        expect(described_class).to receive(:sign_out!)
-        described_class.sign_in!(username, password)
+        expect_any_instance_of(described_class).to receive(:sign_out!)
+        test_obj.sign_in!(username, password)
       end
     end
   end
@@ -606,8 +628,9 @@ describe MacAppStoreCookbook::Helpers do
     before(:each) do
       expect(app_store).to receive(:menu_bar_item).with(title: 'Store')
         .and_return(menu_bar_item)
-      expect(described_class).to receive(:app_store).and_return(app_store)
-      expect(described_class).to receive(:wait_for)
+      expect_any_instance_of(described_class).to receive(:app_store)
+        .and_return(app_store)
+      expect_any_instance_of(described_class).to receive(:wait_for)
         .with(:menu_item,
               menu_bar_item,
               title: 'Sign Out').and_return(wait_for)
@@ -617,7 +640,7 @@ describe MacAppStoreCookbook::Helpers do
       let(:wait_for) { true }
 
       it 'raises no errors' do
-        expect { described_class.wait_for_sign_in }.not_to raise_error
+        expect { test_obj.wait_for_sign_in }.not_to raise_error
       end
     end
 
@@ -626,7 +649,7 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'raises an error' do
         expected = MacAppStoreCookbook::Exceptions::Timeout
-        expect { described_class.wait_for_sign_in }.to raise_error(expected)
+        expect { test_obj.wait_for_sign_in }.to raise_error(expected)
       end
     end
   end
@@ -639,11 +662,12 @@ describe MacAppStoreCookbook::Helpers do
     before(:each) do
       allow(sheet).to receive(:button).with(title: 'Sign In')
         .and_return(button)
-      allow(described_class).to receive(:sign_in_menu).and_return(sign_in_menu)
+      allow_any_instance_of(described_class).to receive(:sign_in_menu)
+        .and_return(sign_in_menu)
     end
 
     it 'returns the Sign In button' do
-      expect(described_class.sign_in_button).to eq(button)
+      expect(test_obj.sign_in_button).to eq(button)
     end
   end
 
@@ -658,11 +682,12 @@ describe MacAppStoreCookbook::Helpers do
         .and_return(static_text)
       allow(sheet).to receive(:text_field).with(title_ui_element: static_text)
         .and_return(text_field)
-      allow(described_class).to receive(:sign_in_menu).and_return(sign_in_menu)
+      allow_any_instance_of(described_class).to receive(:sign_in_menu)
+        .and_return(sign_in_menu)
     end
 
     it 'returns the Apple ID text field' do
-      expect(described_class.username_field).to eq(text_field)
+      expect(test_obj.username_field).to eq(text_field)
     end
   end
 
@@ -677,11 +702,12 @@ describe MacAppStoreCookbook::Helpers do
         .and_return(static_text)
       allow(sheet).to receive(:secure_text_field)
         .with(title_ui_element: static_text).and_return(secure_text_field)
-      allow(described_class).to receive(:sign_in_menu).and_return(sign_in_menu)
+      allow_any_instance_of(described_class).to receive(:sign_in_menu)
+        .and_return(sign_in_menu)
     end
 
     it 'returns the Password text field' do
-      expect(described_class.password_field).to eq(secure_text_field)
+      expect(test_obj.password_field).to eq(secure_text_field)
     end
   end
 
@@ -694,9 +720,11 @@ describe MacAppStoreCookbook::Helpers do
     before(:each) do
       allow(main_window).to receive(:search).with(:button, title: 'Sign In')
         .and_return(signed_in)
-      allow(described_class).to receive(:app_store).and_return(app_store)
-      allow(described_class).to receive(:select_menu_item).and_return(true)
-      allow(described_class).to receive(:wait_for)
+      allow_any_instance_of(described_class).to receive(:app_store)
+        .and_return(app_store)
+      allow_any_instance_of(described_class).to receive(:select_menu_item)
+        .and_return(true)
+      allow_any_instance_of(described_class).to receive(:wait_for)
         .with(:button, main_window, title: 'Sign In')
         .and_return(wait_for)
     end
@@ -706,19 +734,19 @@ describe MacAppStoreCookbook::Helpers do
       let(:wait_for) { true }
 
       it 'selects Sign In from the menu' do
-        expect(described_class).to receive(:select_menu_item)
+        expect_any_instance_of(described_class).to receive(:select_menu_item)
           .with(app_store, 'Store', 'Sign In…')
-        described_class.sign_in_menu
+        test_obj.sign_in_menu
       end
 
       it 'waits for the Sign In menu to load' do
-        expect(described_class).to receive(:wait_for)
+        expect_any_instance_of(described_class).to receive(:wait_for)
           .with(:button, app_store.main_window, title: 'Sign In')
-        described_class.sign_in_menu
+        test_obj.sign_in_menu
       end
 
       it 'returns the App Store application' do
-        expect(described_class.sign_in_menu).to eq(app_store)
+        expect(test_obj.sign_in_menu).to eq(app_store)
       end
     end
 
@@ -727,17 +755,18 @@ describe MacAppStoreCookbook::Helpers do
       let(:wait_for) { true }
 
       it 'does not select any menus' do
-        expect(described_class).not_to receive(:select_menu_item)
-        described_class.sign_in_menu
+        expect_any_instance_of(described_class)
+          .not_to receive(:select_menu_item)
+        test_obj.sign_in_menu
       end
 
       it 'does not wait for anything' do
-        expect(described_class).not_to receive(:wait_for)
-        described_class.sign_in_menu
+        expect_any_instance_of(described_class).not_to receive(:wait_for)
+        test_obj.sign_in_menu
       end
 
       it 'returns the App Store application' do
-        expect(described_class.sign_in_menu).to eq(app_store)
+        expect(test_obj.sign_in_menu).to eq(app_store)
       end
     end
 
@@ -746,7 +775,7 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'raises an error' do
         expected = MacAppStoreCookbook::Exceptions::Timeout
-        expect { described_class.sign_in_menu }.to raise_error(expected)
+        expect { test_obj.sign_in_menu }.to raise_error(expected)
       end
     end
   end
@@ -759,19 +788,21 @@ describe MacAppStoreCookbook::Helpers do
     let(:app_store) { double }
 
     before(:each) do
-      allow(described_class).to receive(:signed_in?).and_return(signed_in?)
+      allow_any_instance_of(described_class).to receive(:signed_in?)
+        .and_return(signed_in?)
       allow(menu_bar_item).to receive(:menu_item)
         .with(title: /^View My Account /).and_return(menu_item)
       allow(app_store).to receive(:menu_bar_item).with(title: 'Store')
         .and_return(menu_bar_item)
-      allow(described_class).to receive(:app_store).and_return(app_store)
+      allow_any_instance_of(described_class).to receive(:app_store)
+        .and_return(app_store)
     end
 
     context 'user not signed in' do
       let(:signed_in?) { false }
 
       it 'returns nil' do
-        expect(described_class.current_user?).to eq(nil)
+        expect(test_obj.current_user?).to eq(nil)
       end
     end
 
@@ -779,7 +810,7 @@ describe MacAppStoreCookbook::Helpers do
       let(:signed_in?) { true }
 
       it 'returns the username' do
-        expect(described_class.current_user?).to eq(user)
+        expect(test_obj.current_user?).to eq(user)
       end
     end
   end
@@ -795,14 +826,15 @@ describe MacAppStoreCookbook::Helpers do
         .with(:menu_item, title: 'Sign Out').and_return(search)
       allow(app_store).to receive(:menu_bar_item).with(title: 'Store')
         .and_return(menu_bar_item)
-      allow(described_class).to receive(:app_store).and_return(app_store)
+      allow_any_instance_of(described_class).to receive(:app_store)
+        .and_return(app_store)
     end
 
     context 'user not signed in' do
       let(:signed_in?) { false }
 
       it 'returns false' do
-        expect(described_class.signed_in?).to eq(false)
+        expect(test_obj.signed_in?).to eq(false)
       end
     end
 
@@ -810,35 +842,37 @@ describe MacAppStoreCookbook::Helpers do
       let(:signed_in?) { true }
 
       it 'returns true' do
-        expect(described_class.signed_in?).to eq(true)
+        expect(test_obj.signed_in?).to eq(true)
       end
     end
   end
 
   describe '#quit!' do
     let(:app_store) { double(terminate: true) }
-    let(:running?) { false }
+    let(:app_store_running?) { false }
 
     before(:each) do
-      allow(described_class).to receive(:app_store).and_return(app_store)
-      allow(described_class).to receive(:running?).and_return(running?)
+      allow_any_instance_of(described_class).to receive(:app_store)
+        .and_return(app_store)
+      allow_any_instance_of(described_class).to receive(:app_store_running?)
+        .and_return(app_store_running?)
     end
 
     context 'App Store not running' do
-      let(:running?) { false }
+      let(:app_store_running?) { false }
 
       it 'does not try to quit' do
         expect(app_store).not_to receive(:terminate)
-        described_class.quit!
+        test_obj.quit!
       end
     end
 
     context 'App Store running' do
-      let(:running?) { true }
+      let(:app_store_running?) { true }
 
       it 'quits' do
         expect(app_store).to receive(:terminate)
-        described_class.quit!
+        test_obj.quit!
       end
     end
   end
@@ -851,9 +885,9 @@ describe MacAppStoreCookbook::Helpers do
     before(:each) do
       allow(AX::Application).to receive(:new).with('com.apple.appstore')
         .and_return(app_store)
-      allow(described_class).to receive(:wait_for)
+      allow_any_instance_of(described_class).to receive(:wait_for)
         .with(:web_area, app_store.main_window).and_return(wait_for_web_area)
-      allow(described_class).to receive(:wait_for)
+      allow_any_instance_of(described_class).to receive(:wait_for)
         .with(:radio_button, app_store.main_window.toolbar, id: 'purchased')
         .and_return(wait_for_nav)
     end
@@ -863,20 +897,20 @@ describe MacAppStoreCookbook::Helpers do
       let(:wait_for_nav) { true }
 
       it 'returns an AX::Application object' do
-        expect(described_class.app_store).to eq(app_store)
+        expect(test_obj.app_store).to eq(app_store)
       end
 
       it 'waits for the web area to load' do
-        expect(described_class).to receive(:wait_for)
+        expect_any_instance_of(described_class).to receive(:wait_for)
           .with(:web_area, app_store.main_window).and_return(wait_for_web_area)
-        described_class.app_store
+        test_obj.app_store
       end
 
       it 'waits for the navbar buttons to load' do
-        expect(described_class).to receive(:wait_for)
+        expect_any_instance_of(described_class).to receive(:wait_for)
           .with(:radio_button, app_store.main_window.toolbar, id: 'purchased')
           .and_return(wait_for_nav)
-        described_class.app_store
+        test_obj.app_store
       end
     end
 
@@ -886,7 +920,7 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'raises an exception' do
         expected = MacAppStoreCookbook::Exceptions::Timeout
-        expect { described_class.app_store }.to raise_error(expected)
+        expect { test_obj.app_store }.to raise_error(expected)
       end
     end
 
@@ -896,12 +930,12 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'raises an exception' do
         expected = MacAppStoreCookbook::Exceptions::Timeout
-        expect { described_class.app_store }.to raise_error(expected)
+        expect { test_obj.app_store }.to raise_error(expected)
       end
     end
   end
 
-  describe '#running?' do
+  describe '#app_store_running?' do
     let(:running_applications) { [] }
 
     before(:each) do
@@ -914,7 +948,7 @@ describe MacAppStoreCookbook::Helpers do
       let(:running_applications) { [] }
 
       it 'returns false' do
-        expect(described_class.running?).to eq(false)
+        expect(test_obj.app_store_running?).to eq(false)
       end
     end
 
@@ -922,7 +956,7 @@ describe MacAppStoreCookbook::Helpers do
       let(:running_applications) { %w(some_app) }
 
       it 'returns true' do
-        expect(described_class.running?).to eq(true)
+        expect(test_obj.app_store_running?).to eq(true)
       end
     end
   end
@@ -936,7 +970,7 @@ describe MacAppStoreCookbook::Helpers do
       it 'translates it into a call for AXE wait_for' do
         expect(AX).to receive(:wait_for)
           .with(element, ancestor: ancestor, timeout: 30).and_return(true)
-        described_class.wait_for(element, ancestor)
+        test_obj.wait_for(element, ancestor)
       end
     end
 
@@ -947,7 +981,7 @@ describe MacAppStoreCookbook::Helpers do
         expect(AX).to receive(:wait_for)
           .with(element, ancestor: ancestor, timeout: 30, description: 'thing')
           .and_return(true)
-        described_class.wait_for(element, ancestor, search_params)
+        test_obj.wait_for(element, ancestor, search_params)
       end
     end
 
@@ -958,7 +992,7 @@ describe MacAppStoreCookbook::Helpers do
         expect(AX).to receive(:wait_for)
           .with(element, ancestor: ancestor, timeout: 10, description: 'thing')
           .and_return(true)
-        described_class.wait_for(element, ancestor, search_params)
+        test_obj.wait_for(element, ancestor, search_params)
       end
     end
   end
