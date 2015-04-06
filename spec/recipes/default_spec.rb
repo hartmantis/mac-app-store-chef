@@ -24,6 +24,10 @@ describe 'mac-app-store::default' do
     end
 
     shared_examples_for 'given a set of apps to install' do
+      it 'opens the Mac App Store' do
+        expect(chef_run).to open_mac_app_store('default')
+      end
+
       it 'installs the specified apps' do
         r = chef_run
         overrides[:mac_app_store][:apps].each do |a|
@@ -35,7 +39,11 @@ describe 'mac-app-store::default' do
     context 'default attributes' do
       it_behaves_like 'any attribute set'
 
-      it 'does nothing' do
+      it 'does not open the App Store' do
+        expect(chef_run).not_to open_mac_app_store('default')
+      end
+
+      it 'installs no apps' do
         expect(chef_run.find_resources(:mac_app_store_app)).to be_empty
       end
     end
@@ -60,12 +68,9 @@ describe 'mac-app-store::default' do
         it_behaves_like 'given a set of apps to install'
 
         it 'uses the provided Apple ID' do
-          r = chef_run
-          overrides[:mac_app_store][:apps].each do |a|
-            expect(r).to install_mac_app_store_app(a)
-              .with(username: overrides[:mac_app_store][:username])
-              .with(password: overrides[:mac_app_store][:password])
-          end
+          expect(chef_run).to open_mac_app_store('default')
+            .with(username: overrides[:mac_app_store][:username])
+            .with(password: overrides[:mac_app_store][:password])
         end
       end
     end

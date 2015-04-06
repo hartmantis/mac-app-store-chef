@@ -26,9 +26,16 @@ include_recipe 'build-essential'
 
 apps = node['mac_app_store'] && node['mac_app_store']['apps'] || []
 
+mac_app_store 'default' do
+  username node['mac_app_store']['username']
+  password node['mac_app_store']['password']
+  action :open
+  not_if { apps.empty? }
+end
+
 apps.each do |a|
   mac_app_store_app a do
-    username node['mac_app_store']['username']
-    password node['mac_app_store']['password']
+    action :install
+    notifies :quit, 'mac_app_store[default]'
   end
 end
