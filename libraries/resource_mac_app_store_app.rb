@@ -42,25 +42,6 @@ class Chef
       # Timeout value for app download + install
       #
       attribute :timeout, kind_of: Fixnum, default: 600
-
-      #
-      # An optional Apple ID username
-      #
-      attribute :username, kind_of: [NilClass, String], default: nil
-
-      #
-      # An optional Apple ID password
-      #
-      attribute :password, kind_of: [NilClass, String], default: nil
-
-      #
-      # Override resource's text rendering to remove password information
-      #
-      # @return [String]
-      #
-      def to_text
-        super.gsub(password, '****************')
-      end
     end
   end
 end
