@@ -46,26 +46,6 @@ describe Chef::Provider::MacAppStore do
     end
   end
 
-  %i(quit_when_done quit_when_done?).each do |m|
-    describe "##{m}" do
-      context 'App Store not running' do
-        let(:app_store_running?) { false }
-
-        it 'returns true' do
-          expect(provider.send(m)).to eq(true)
-        end
-      end
-
-      context 'App Store running' do
-        let(:app_store_running?) { true }
-
-        it 'returns false' do
-          expect(provider.send(m)).to eq(false)
-        end
-      end
-    end
-  end
-
   describe '#initialize' do
     shared_examples_for 'any initial state' do
       it 'installs the AXE gem' do
@@ -80,26 +60,6 @@ describe Chef::Provider::MacAppStore do
 
       it 'saves the original focused app for later' do
         expect(provider.original_focus).to eq('focused app')
-      end
-    end
-
-    context 'App Store not running' do
-      let(:app_store_running?) { false }
-
-      it_behaves_like 'any initial state'
-
-      it 'will quit the App Store when done' do
-        expect(provider.quit_when_done?).to eq(true)
-      end
-    end
-
-    context 'App Store running' do
-      let(:app_store_running?) { true }
-
-      it_behaves_like 'any initial state'
-
-      it 'will leave the App Store open when done' do
-        expect(provider.quit_when_done?).to eq(false)
       end
     end
   end

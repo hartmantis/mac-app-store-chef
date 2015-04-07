@@ -45,8 +45,6 @@ class Chef
       end
 
       attr_reader :original_focus
-      attr_reader :quit_when_done
-      alias_method :quit_when_done?, :quit_when_done
 
       def initialize(new_resource, run_context)
         super
@@ -54,7 +52,6 @@ class Chef
         trust_app
         require 'ax_elements'
         @original_focus = AX::SystemWide.new.focused_application
-        @quit_when_done = !app_store_running?
       end
 
       #
