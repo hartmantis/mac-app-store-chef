@@ -5,7 +5,7 @@ require 'spec_helper'
 describe 'Microsoft Remote Desktop app' do
   it 'is present in pkgutil' do
     p = 'com.microsoft.rdc.mac'
-    expect(package(p)).to be_installed_by(:pkgutil)
+    expect(package(p)).to be_installed.by(:pkgutil)
   end
 
   it 'is present on the filesystem' do
@@ -17,7 +17,7 @@ end
 describe 'White Noise Lite app' do
   it 'is present in pkgutil' do
     p = 'com.tmsoft.mac.WhiteNoiseLite'
-    expect(package(p)).to be_installed_by(:pkgutil)
+    expect(package(p)).to be_installed.by(:pkgutil)
   end
 
   it 'is present on the filesystem' do
