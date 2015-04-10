@@ -28,25 +28,37 @@ Usage
 A new resource is defined as well as an attribute-driven default recipe, either
 of which can be used.
 
+Caveats
+=======
+
+Your Chef run may be slow; try to be patient. This is due to all the page loads
+that have to be waited on while navigating around the App Store.
+
 _DO NOT_ switch between windows in OS X while Chef is running--it is important
 for the UI interaction that Chef have full control. If you Cmd+Tab during a run,
 unexpected and probably undesirable behavior will occur.
 
-For an application (e.g. the Terminal instance you might run Chef in) to
-control mouse and keyboard interaction, it must be given access in OS X's
-Accessibility settings. This cookbook _WILL_ modify those settings when run.
+For an application (e.g. the Terminal app Chef might run in) to control mouse
+and keyboard interaction, it needs access to OS X's Accessibility API. This
+cookbook will attempt attempt to configure that, but any errors in that attempt
+will result in the Chef run exiting with an error and a popup window prompting
+you to visit your system's accessibility settings.
 
-The default recipe also installs the OS X dev tools required via the
-`build-essential` cookbook. If you are calling the resource directly, you'll
-need to ensure XCode is installed separately.
+The Accessibility API, and the App Store in particular, are suceptible to
+assorted race conditions. Attempts have been made to account for these, but
+any errors mentioning timeouts or `AXAPI has been disabled` can be submitted,
+along with their stack traces, as GitHub
+[issues](https://github.com/RoboticCheese/mac-app-store-chef/issues).
 
 Recipes
 =======
 
 ***default***
 
-Opens the Mac App Store, signs in with a given Apple ID, and installs each of
-a provided list of apps
+* Installs the OS X command line tools (via the `build-essential` cookbook)
+* Opens the Mac App Store
+* Signs into the App Store with a given Apple ID
+* Installs each of an attribute-derived list of apps
 
 Attributes
 ==========
