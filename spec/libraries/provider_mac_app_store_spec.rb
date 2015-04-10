@@ -140,59 +140,25 @@ describe Chef::Provider::MacAppStore do
   end
 
   describe '#trust_app' do
-    let(:bundle_identifier) { nil }
-    let(:path) { nil }
-    let(:frontmost_application) do
-      double(bundleIdentifier: bundle_identifier,
-             executableURL: double(path: path))
-    end
+    let(:current_application_name) { 'com.example.app' }
 
     before(:each) do
       allow_any_instance_of(described_class).to receive(:trust_app)
         .and_call_original
-      allow(NSWorkspace).to receive(:frontmostApplication)
-        .and_return(frontmost_application)
       allow_any_instance_of(described_class)
         .to receive(:mac_app_store_trusted_app).and_return(true)
+      allow_any_instance_of(described_class)
+        .to receive(:current_application_name)
+        .and_return(current_application_name)
     end
 
-    shared_examples_for 'any running application' do
-      it 'trusts sshd-keygen-wrapper' do
-        p = provider
-        expect(p).to receive(:mac_app_store_trusted_app)
-          .with('/usr/libexec/sshd-keygen-wrapper').and_yield
-        expect(p).to receive(:compile_time).with(true)
-        expect(p).to receive(:action).with(:create)
-        p.send(:trust_app)
-      end
-    end
-
-    context 'application with a bundle ID' do
-      let(:bundle_identifier) { 'com.example.app' }
-      let(:path) { '/usr/bin/example' }
-
-      it 'trusts the bundle ID' do
-        p = provider
-        expect(p).to receive(:mac_app_store_trusted_app)
-          .with('com.example.app').and_yield
-        expect(p).to receive(:compile_time).with(true)
-        expect(p).to receive(:action).with(:create)
-        p.send(:trust_app)
-      end
-    end
-
-    context 'application with no bundle ID' do
-      let(:bundle_identifier) { nil }
-      let(:path) { '/usr/bin/example' }
-
-      it 'trusts the application path' do
-        p = provider
-        expect(p).to receive(:mac_app_store_trusted_app)
-          .with('/usr/bin/example').and_yield
-        expect(p).to receive(:compile_time).with(true)
-        expect(p).to receive(:action).with(:create)
-        p.send(:trust_app)
-      end
+    it 'grants accessibility rights to the current running application' do
+      p = provider
+      expect(p).to receive(:mac_app_store_trusted_app)
+        .with(current_application_name).and_yield
+      expect(p).to receive(:compile_time).with(true)
+      expect(p).to receive(:action).with(:create)
+      p.send(:trust_app)
     end
   end
 

@@ -90,18 +90,9 @@ class Chef
       # Enable accessibility for running application
       #
       def trust_app
-        require 'accessibility/extras'
-        front = NSWorkspace.frontmostApplication
-        [
-          # Chef over SSH (e.g. Test Kitchen)
-          '/usr/libexec/sshd-keygen-wrapper',
-          # Chef within an app (e.g. Terminal or iTerm)
-          front.bundleIdentifier || front.executableURL.path
-        ].compact.each do |a|
-          mac_app_store_trusted_app a do
-            compile_time true
-            action :create
-          end
+        mac_app_store_trusted_app current_application_name do
+          compile_time true
+          action :create
         end
       end
 

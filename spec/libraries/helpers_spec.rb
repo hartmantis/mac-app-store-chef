@@ -996,4 +996,82 @@ describe MacAppStoreCookbook::Helpers do
       end
     end
   end
+
+  describe '#current_application_name' do
+    let(:bundle_identifier) { nil }
+    let(:path) { nil }
+    let(:running_application) do
+      double(bundleIdentifier: bundle_identifier,
+             executableURL: double(path: path))
+    end
+    let(:current_application_pid) { 42 }
+
+    before(:each) do
+      allow_any_instance_of(described_class)
+        .to receive(:current_application_pid)
+        .and_return(current_application_pid)
+      allow(NSRunningApplication)
+        .to receive(:runningApplicationWithProcessIdentifier)
+        .with(current_application_pid).and_return(running_application)
+    end
+
+    context 'an application with a bundle ID' do
+      let(:bundle_identifier) { 'com.example.app' }
+      let(:path) { '/usr/bin/example' }
+
+      it 'returns the bundle ID' do
+        expect(test_obj.current_application_name).to eq(bundle_identifier)
+      end
+    end
+
+    context 'an application with no bundle ID' do
+      let(:bundle_identifier) { nil }
+      let(:path) { '/usr/bin/example' }
+
+      it 'returns the executable path' do
+        expect(test_obj.current_application_name).to eq(path)
+      end
+    end
+
+    context 'Chef running over SSH (no application)' do
+      let(:running_application) { nil }
+
+      it 'returns the path to sshd-keygen-wrapper as a default' do
+        expected = '/usr/libexec/sshd-keygen-wrapper'
+        expect(test_obj.current_application_name).to eq(expected)
+      end
+    end
+  end
+
+  describe '#current_application_pid' do
+    let(:pid) { 4242 }
+    let(:appid) { 23 }
+
+    before(:each) do
+      allow(Process).to receive(:pid).and_return(pid)
+      { pid => 30, 30 => 29, 29 => appid, appid => 1 }.each do |pid, ppid|
+        allow_any_instance_of(described_class).to receive(:ppid).with(pid)
+          .and_return(ppid)
+      end
+    end
+
+    it 'returns the PID of the child process of PID 1' do
+      expect(test_obj.current_application_pid).to eq(appid)
+    end
+  end
+
+  describe '#ppid' do
+    let(:pid) { 20 }
+    let(:ppid) { 10 }
+    let(:shell_out!) { double(stdout: "PPID\n#{ppid}\n") }
+
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:shell_out!)
+        .with("ps -o ppid -c #{pid}").and_return(shell_out!)
+    end
+
+    it 'returns the PPID' do
+      expect(test_obj.ppid(pid)).to eq(ppid)
+    end
+  end
 end

@@ -19,12 +19,15 @@
 #
 
 require 'chef/exceptions'
+require 'chef/mixin/shell_out'
 
 module MacAppStoreCookbook
   # A set of helper methods for interacting with the Mac App Store
   #
   # @author Jonathan Hartman <j@p4nt5.com>
   module Helpers
+    include Chef::Mixin::ShellOut
+
     #
     # Perform the installation of an App Store app
     #
@@ -353,6 +356,57 @@ module MacAppStoreCookbook
       require 'ax_elements'
       AX.wait_for(element,
                   { ancestor: ancestor, timeout: 30 }.merge(search_params))
+    end
+
+    #
+    # Find either the bundle ID or executable path of the ancestor of the
+    # current process that is a direct child of PID 1. The NSRunningApplication
+    # class doesn't require accessibility privileges so should always work.
+    #
+    # The running application, when Chef is run over SSH, is returned as nil
+    # and shows up in the accessibility settings as
+    # '/usr/libexec/sshd-keygen-wrapper'. It's unknown if there are other
+    # cases which might also return nil and break this method, but it's been
+    # tested with Chef running from Terminal, iTerm, and SSH (via Kitchen).
+    #
+    # @return [String]
+    #
+    def current_application_name
+      require 'accessibility/extras'
+      app = NSRunningApplication.runningApplicationWithProcessIdentifier(
+              current_application_pid
+            )
+      return '/usr/libexec/sshd-keygen-wrapper' if app.nil?
+      app.bundleIdentifier || app.executableURL.path
+    end
+
+    #
+    # Trace up the process tree, starting at the current running process, and
+    # return the PID of the process that is a direct child of PID 1
+    #
+    # @return [Fixnum]
+    #
+    def current_application_pid
+      pid = Process.pid
+      while
+        ppid = ppid(pid)
+        break if ppid == 1
+        pid = ppid
+      end
+      pid
+    end
+
+    #
+    # Return the PID of the parent process of a given PID. The Process module
+    # in Ruby's stdlib can only return the PPID of the current process; it
+    # can't be used to trace all the way up a process tree.
+    #
+    # @param [Fixnum] pid
+    #
+    # @return [Fixnum]
+    #
+    def ppid(pid)
+      shell_out!("ps -o ppid -c #{pid}").stdout.split[1].to_i
     end
   end
 
