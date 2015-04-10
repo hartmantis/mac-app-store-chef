@@ -8,6 +8,7 @@ provisioner:
 platforms:
   - name: macosx-10.9
     driver:
+      box: opscode-macosx-10.9
       ssh:
         insert_key: false
 
