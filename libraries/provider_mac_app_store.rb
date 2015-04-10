@@ -70,7 +70,15 @@ class Chef
       #
       action :open do
         set_focus_to(app_store)
-        sign_in!(new_resource.username, new_resource.password)
+        if new_resource.username && new_resource.password
+          sign_in!(new_resource.username, new_resource.password)
+        elsif new_resource.username || new_resource.password
+          fail(Chef::Exceptions::ValidationFailed,
+               'Username and password must be provided together')
+        elsif !signed_in?
+          fail(Chef::Exceptions::ValidationFailed,
+               'Someone must be signed into the App Store or a username and password provided')
+        end
         new_resource.running(true)
       end
 

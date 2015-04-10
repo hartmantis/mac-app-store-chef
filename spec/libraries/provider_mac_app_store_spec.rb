@@ -80,6 +80,7 @@ describe Chef::Provider::MacAppStore do
   describe '#action_open' do
     let(:app_store_running?) { false }
     let(:app_store) { 'app store' }
+    let(:signed_in?) { true }
 
     before(:each) do
       allow_any_instance_of(described_class).to receive(:app_store)
@@ -88,25 +89,79 @@ describe Chef::Provider::MacAppStore do
         .with(app_store).and_return(true)
       allow_any_instance_of(described_class).to receive(:sign_in!)
         .with(username, password).and_return(true)
+      allow_any_instance_of(described_class).to receive(:signed_in?)
+        .and_return(signed_in?)
     end
 
-    it 'sets focus to the App Store' do
-      expect_any_instance_of(described_class).to receive(:set_focus_to)
-        .with(app_store)
-      provider.action_open
+    shared_examples_for 'any valid set of attributes' do
+      it 'sets focus to the App Store' do
+        expect_any_instance_of(described_class).to receive(:set_focus_to)
+          .with(app_store)
+        provider.action_open
+      end
+
+      it 'sets the resource running status' do
+        p = provider
+        expect(p.new_resource.running?).to eq(nil)
+        p.action_open
+        expect(p.new_resource.running?).to eq(true)
+      end
     end
 
-    it 'signs in as the provided Apple ID' do
-      expect_any_instance_of(described_class).to receive(:sign_in!)
-        .with(username, password)
-      provider.action_open
+    shared_examples_for 'an invalid configuration' do
+      it 'raises an exception' do
+        expected = Chef::Exceptions::ValidationFailed
+        expect { provider.action_open }.to raise_error(expected)
+      end
     end
 
-    it 'sets the resource running status' do
-      p = provider
-      expect(p.new_resource.running?).to eq(nil)
-      p.action_open
-      expect(p.new_resource.running?).to eq(true)
+    context 'username and password provided' do
+      let(:username) { 'example@example.com' }
+      let(:password) { '12345' }
+      let(:signed_in?) { false }
+
+      it_behaves_like 'any valid set of attributes'
+
+      it 'signs in as the provided Apple ID' do
+        expect_any_instance_of(described_class).to receive(:sign_in!)
+          .with(username, password)
+        provider.action_open
+      end
+    end
+
+    context 'no username or password provided but already signed in' do
+      let(:username) { nil }
+      let(:password) { nil }
+      let(:signed_in?) { true }
+
+      it_behaves_like 'any valid set of attributes'
+
+      it 'does not try to sign in' do
+        expect_any_instance_of(described_class).not_to receive(:sign_in!)
+        provider.action_open
+      end
+    end
+
+    context 'no username or password provided and not signed in' do
+      let(:username) { nil }
+      let(:password) { nil }
+      let(:signed_in?) { false }
+
+      it_behaves_like 'an invalid configuration'
+    end
+
+    context 'username only provided' do
+      let(:username) { 'example@example.com' }
+      let(:password) { nil }
+
+      it_behaves_like 'an invalid configuration'
+    end
+
+    context 'password only provided' do
+      let(:username) { nil }
+      let(:password) { '12345' }
+
+      it_behaves_like 'an invalid configuration'
     end
   end
 
