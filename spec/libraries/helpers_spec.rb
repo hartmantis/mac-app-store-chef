@@ -137,8 +137,12 @@ describe MacAppStoreCookbook::Helpers do
     let(:version) { '1.2.3' }
     let(:app_page) do
       double(
-        main_window: double(static_text: double(parent: double(
-          static_text: double(value: version)))
+        main_window: double(
+          static_text: double(
+            parent: double(
+              static_text: double(value: version)
+            )
+          )
         )
       )
     end
@@ -554,8 +558,8 @@ describe MacAppStoreCookbook::Helpers do
         let(:username) { 'some_user' }
         let(:password) { 'some_password' }
 
-        it 'does not sign out' do
-          expect_any_instance_of(described_class).not_to receive(:sign_out!)
+        it 'signs out (though it will not do anything)' do
+          expect_any_instance_of(described_class).to receive(:sign_out!)
           test_obj.sign_in!(username, password)
         end
 

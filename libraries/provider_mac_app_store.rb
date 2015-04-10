@@ -77,7 +77,8 @@ class Chef
                'Username and password must be provided together')
         elsif !signed_in?
           fail(Chef::Exceptions::ValidationFailed,
-               'Someone must be signed into the App Store or a username and password provided')
+               'Someone must be signed into the App Store or a username and ' \
+               'password provided')
         end
         new_resource.running(true)
       end

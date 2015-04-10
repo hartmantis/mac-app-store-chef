@@ -104,7 +104,7 @@ describe Chef::Provider::MacAppStoreTrustedApp do
     let(:row) { nil }
     let(:type) { 0 }
     let(:query) do
-      'INSERT INTO access VALUES("kTCCServiceAccessibility", ' <<
+      'INSERT INTO access VALUES("kTCCServiceAccessibility", ' \
         "\"#{name}\", #{type}, 1, 0, NULL)"
     end
 
@@ -159,7 +159,7 @@ describe Chef::Provider::MacAppStoreTrustedApp do
     let(:row) { nil }
     let(:created?) { false }
     let(:query) do
-      'UPDATE access SET allowed = 1 WHERE ' <<
+      'UPDATE access SET allowed = 1 WHERE ' \
         "service = \"kTCCServiceAccessibility\" AND client = \"#{name}\""
     end
 
@@ -229,7 +229,7 @@ describe Chef::Provider::MacAppStoreTrustedApp do
   describe '#row' do
     let(:query_res) { [] }
     let(:query) do
-      'SELECT * FROM access WHERE service = "kTCCServiceAccessibility" ' <<
+      'SELECT * FROM access WHERE service = "kTCCServiceAccessibility" ' \
         'AND client = "thing"'
     end
 

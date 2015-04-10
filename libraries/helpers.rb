@@ -57,12 +57,12 @@ module MacAppStoreCookbook
     #
     def wait_for_install(app_name, timeout)
       # Button might be 'Installed' or 'Open' depending on OS X version
-      unless wait_for(:button,
-                      app_page(app_name),
-                      description: /^(Installed,|Open,)/,
-                      timeout: timeout)
-        fail(Exceptions::Timeout, "'#{app_name}' installation")
-      end
+      fail(Exceptions::Timeout, "'#{app_name}' installation") unless wait_for(
+        :button,
+        app_page(app_name),
+        description: /^(Installed,|Open,)/,
+        timeout: timeout
+      )
     end
 
     #
@@ -200,9 +200,8 @@ module MacAppStoreCookbook
     #
     def sign_in!(username, password)
       return if signed_in? && current_user? == username
-      fail(Exceptions::AppleIDInfoMissing, 'username') if username.nil?
-      fail(Exceptions::AppleIDInfoMissing, 'password') if password.nil?
-      sign_out! if signed_in?
+      fail(Exceptions::AppleIDInfoMissing) unless username && password
+      sign_out!
       sign_in_menu
       set(username_field, username)
       set(password_field, password)
@@ -216,11 +215,11 @@ module MacAppStoreCookbook
     # @raise [MacAppStoreCookbook::Exceptions::Timeout]
     #
     def wait_for_sign_in
-      unless wait_for(:menu_item,
-                      app_store.menu_bar_item(title: 'Store'),
-                      title: 'Sign Out')
-        fail(Exceptions::Timeout, 'sign in')
-      end
+      fail(Exceptions::Timeout, 'sign in') unless wait_for(
+        :menu_item,
+        app_store.menu_bar_item(title: 'Store'),
+        title: 'Sign Out'
+      )
     end
 
     #
@@ -374,8 +373,8 @@ module MacAppStoreCookbook
     def current_application_name
       require 'accessibility/extras'
       app = NSRunningApplication.runningApplicationWithProcessIdentifier(
-              current_application_pid
-            )
+        current_application_pid
+      )
       return '/usr/libexec/sshd-keygen-wrapper' if app.nil?
       app.bundleIdentifier || app.executableURL.path
     end
@@ -388,11 +387,7 @@ module MacAppStoreCookbook
     #
     def current_application_pid
       pid = Process.pid
-      while
-        ppid = ppid(pid)
-        break if ppid == 1
-        pid = ppid
-      end
+      pid = ppid(pid) while ppid(pid) != 1
       pid
     end
 
@@ -444,9 +439,9 @@ module MacAppStoreCookbook
     #
     # @author Jonathan Hartman <j@p4nt5.com>
     class AppleIDInfoMissing < StandardError
-      def initialize(param)
-        super("An Apple ID '#{param}' *must* be provided or a user already " <<
-              'signed into the App Store')
+      def initialize
+        super("An Apple ID 'username' and 'password' *must* be provided " \
+              'together to sign into the App Store')
       end
     end
   end

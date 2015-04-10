@@ -73,10 +73,10 @@ class Chef
       #
       def insert!
         return nil unless row.nil?
-        db_query('INSERT INTO access VALUES(' <<
-                 '"kTCCServiceAccessibility", ' <<
-                 "\"#{new_resource.name}\", " <<
-                 "#{new_resource.name.start_with?('/') ? 1 : 0}, " <<
+        db_query('INSERT INTO access VALUES(' \
+                 '"kTCCServiceAccessibility", ' \
+                 "\"#{new_resource.name}\", " \
+                 "#{new_resource.name.start_with?('/') ? 1 : 0}, " \
                  '1, 0, NULL)')
       end
 
@@ -85,8 +85,8 @@ class Chef
       #
       def update!
         return nil if row.nil? || created?
-        db_query('UPDATE access SET allowed = 1 WHERE ' <<
-                 'service = "kTCCServiceAccessibility" AND ' <<
+        db_query('UPDATE access SET allowed = 1 WHERE ' \
+                 'service = "kTCCServiceAccessibility" AND ' \
                  "client = \"#{new_resource.name}\"")
       end
 
@@ -106,11 +106,11 @@ class Chef
       #
       # | service | client | client_type | allowed | prompt_count | cs_req |
       # | kTCC... | <NAME> | 0/1         | 0/1     | 0/1          | NULL   |
-      # | 
+      # |
       #
       def row
-        res = db_query('SELECT * FROM access WHERE ' <<
-                       'service = "kTCCServiceAccessibility" AND ' <<
+        res = db_query('SELECT * FROM access WHERE ' \
+                       'service = "kTCCServiceAccessibility" AND ' \
                        "client = \"#{new_resource.name}\" LIMIT 1")
         res.empty? ? nil : res
       end
