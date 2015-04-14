@@ -1,12 +1,12 @@
 Mac App Store Cookbook
 ======================
-[![Cookbook Version](http://img.shields.io/cookbook/v/mac-app-store.svg)][cookbook]
-[![Build Status](http://img.shields.io/travis/RoboticCheese/mac-app-store-chef.svg)][travis]
-[![Code Climate](http://img.shields.io/codeclimate/github/RoboticCheese/mac-app-store-chef.svg)][codeclimate]
-[![Coverage Status](http://img.shields.io/coveralls/RoboticCheese/mac-app-store-chef.svg)][coveralls]
+[![Cookbook Version](https://img.shields.io/cookbook/v/mac-app-store.svg)][cookbook]
+[![Build Status](https://img.shields.io/travis/RoboticCheese/mac-app-store-chef.svg)][travis]
+[![Code Climate](https://img.shields.io/codeclimate/github/RoboticCheese/mac-app-store-chef.svg)][codeclimate]
+[![Coverage Status](https://img.shields.io/coveralls/RoboticCheese/mac-app-store-chef.svg)][coveralls]
 
 [cookbook]: https://supermarket.getchef.com/cookbooks/mac-app-store
-[travis]: http://travis-ci.org/RoboticCheese/mac-app-store-chef
+[travis]: https://travis-ci.org/RoboticCheese/mac-app-store-chef
 [codeclimate]: https://codeclimate.com/github/RoboticCheese/mac-app-store-chef
 [coveralls]: https://coveralls.io/r/RoboticCheese/mac-app-store-chef
 
