@@ -1,3 +1,6 @@
 ---
 driver:
-  name: digitalocean
+  name: localhost
+
+platforms:
+  - name: macosx

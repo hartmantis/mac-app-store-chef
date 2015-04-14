@@ -23,6 +23,3 @@ suites:
         apps:
           - Microsoft Remote Desktop
           - White Noise Lite
-# TODO:
-# - name: app_not_purchased
-# - name: user_not_signed_in
