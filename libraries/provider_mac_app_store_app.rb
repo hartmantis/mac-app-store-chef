@@ -19,6 +19,7 @@
 #
 
 require 'chef/provider/lwrp_base'
+require 'chef/mixin/shell_out'
 require_relative 'helpers'
 require_relative 'resource_mac_app_store_app'
 
@@ -29,6 +30,7 @@ class Chef
     # @author Jonathan Hartman <j@p4nt5.com>
     class MacAppStoreApp < Provider::LWRPBase
       include MacAppStoreCookbook::Helpers
+      include Chef::Mixin::ShellOut
 
       #
       # WhyRun is supported by this provider
@@ -46,7 +48,7 @@ class Chef
       #
       def load_current_resource
         @current_resource ||= Resource::MacAppStoreApp.new(new_resource.name)
-        @current_resource.installed(app_installed?(new_resource.name))
+        @current_resource.installed(installed?(new_resource.name))
         @current_resource
       end
 
@@ -59,6 +61,24 @@ class Chef
           new_resource.updated_by_last_action(true)
         end
         new_resource.installed(true)
+      end
+
+      private
+
+      #
+      # Check whether the resource app is installed. If a bundle ID was
+      # provided, shell out to pkgutil. Otherwise, fall back to the helper
+      # method that is much slower and has to do multiple page loads in the
+      # App Store UI.
+      #
+      # @return [TrueClass, FalseClass]
+      #
+      def installed?
+        if new_resource.bundle_id
+          !shell_out("pkgutil --pkg-info #{new_resource.bundle_id}").error?
+        else
+          app_installed?(new_resource.name)
+        end
       end
     end
   end

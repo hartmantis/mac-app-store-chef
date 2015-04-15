@@ -22,7 +22,7 @@ require 'chef/resource/lwrp_base'
 
 class Chef
   class Resource
-    # A Chef resource for Mac App Store applications
+    # A Chef resource for Mac App Store applications.
     #
     # @author Jonathan Hartman <j@p4nt5.com>
     class MacAppStoreApp < Resource::LWRPBase
@@ -31,7 +31,7 @@ class Chef
       default_action :install
 
       #
-      # Attribute for the app's installed status
+      # Attribute for the app's installed status.
       #
       attribute :installed,
                 kind_of: [NilClass, TrueClass, FalseClass],
@@ -39,9 +39,18 @@ class Chef
       alias_method :installed?, :installed
 
       #
-      # Timeout value for app download + install
+      # Timeout value for app download + install.
       #
       attribute :timeout, kind_of: Fixnum, default: 600
+
+      #
+      # An optional bundle identifier for the app, as seen in the package-id
+      # field in the output of `pkgutil --pkg-info`. If one is provided, it
+      # makes checking the installed status of an app much easier--it can be
+      # be done by shelling out to pkgutil instead of having to wait for
+      # multiple App Store page loads.
+      #
+      attribute :bundle_id, kind_of: String, default: nil
     end
   end
 end

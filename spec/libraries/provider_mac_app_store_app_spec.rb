@@ -7,9 +7,11 @@ require_relative '../../libraries/provider_mac_app_store_app'
 describe Chef::Provider::MacAppStoreApp do
   let(:app_name) { 'Some App' }
   let(:timeout) { nil }
+  let(:bundle_id) { nil }
   let(:new_resource) do
     r = Chef::Resource::MacAppStoreApp.new(app_name, nil)
     r.timeout(timeout)
+    r.bundle_id(bundle_id)
     r
   end
   let(:provider) { described_class.new(new_resource, nil) }
@@ -21,11 +23,11 @@ describe Chef::Provider::MacAppStoreApp do
   end
 
   describe '#load_current_resource' do
-    let(:app_installed?) { true }
+    let(:installed?) { true }
 
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:app_installed?)
-        .with(app_name).and_return(app_installed?)
+      allow_any_instance_of(described_class).to receive(:installed?)
+        .with(app_name).and_return(installed?)
     end
 
     it 'returns a MacAppStoreApp resource instance' do
@@ -76,6 +78,72 @@ describe Chef::Provider::MacAppStoreApp do
       it 'does not install the app' do
         expect_any_instance_of(described_class).not_to receive(:install!)
         provider.action_install
+      end
+    end
+  end
+
+  describe '#installed?' do
+    let(:installed?) { false }
+    let(:shell_out) { double(error?: !installed?) }
+
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:shell_out)
+        .with("pkgutil --pkg-info #{bundle_id}").and_return(shell_out)
+      allow_any_instance_of(described_class).to receive(:app_installed?)
+        .with(app_name).and_return(installed?)
+    end
+
+    context 'no bundle ID provided' do
+      let(:bundle_id) { nil }
+
+      it 'uses the App Store helper method' do
+        expect_any_instance_of(described_class).not_to receive(:shell_out)
+        expect_any_instance_of(described_class).to receive(:app_installed?)
+          .with(app_name)
+        provider.send(:installed?)
+      end
+
+      context 'app not installed' do
+        let(:installed?) { false }
+
+        it 'returns false' do
+          expect(provider.send(:installed?)).to eq(false)
+        end
+      end
+
+      context 'app installed' do
+        let(:installed?) { true }
+
+        it 'returns true' do
+          expect(provider.send(:installed?)).to eq(true)
+        end
+      end
+    end
+
+    context 'bundle ID provided' do
+      let(:bundle_id) { 'com.example.someapp' }
+
+      it 'uses pkgutil' do
+        expect_any_instance_of(described_class).to receive(:shell_out)
+          .with("pkgutil --pkg-info #{bundle_id}")
+        expect_any_instance_of(described_class).not_to receive(:app_installed?)
+        provider.send(:installed?)
+      end
+
+      context 'app not installed' do
+        let(:installed?) { false }
+
+        it 'returns false' do
+          expect(provider.send(:installed?)).to eq(false)
+        end
+      end
+
+      context 'app installed' do
+        let(:installed?) { true }
+
+        it 'returns true' do
+          expect(provider.send(:installed?)).to eq(true)
+        end
       end
     end
   end

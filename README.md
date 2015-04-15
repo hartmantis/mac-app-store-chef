@@ -119,6 +119,7 @@ Syntax:
 
     mac_app_store_app 'Some App' do
       timeout 1200
+      bundle_id 'com.example.someapp'
       action :install
     end
 
@@ -130,10 +131,11 @@ Actions:
 
 Attributes:
 
-| Attribute  | Default        | Description                                  |
-|------------|----------------|----------------------------------------------|
-| timeout    | `600`          | Time to wait on a download + install         |
-| action     | `:install`     | Action(s) to perform                         |
+| Attribute | Default    | Description                                  |
+|-----------|------------|----------------------------------------------|
+| timeout   | `600`      | Time to wait on a download + install         |
+| bundle_id | `nil`      | Optionally specify the app ID (from pkgutil) |
+| action    | `:install` | Action(s) to perform                         |
 
 Providers
 =========

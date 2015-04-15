@@ -6,9 +6,11 @@ require_relative '../../libraries/resource_mac_app_store_app'
 describe Chef::Resource::MacAppStoreApp do
   let(:app_name) { 'Some App' }
   let(:timeout) { nil }
+  let(:bundle_id) { nil }
   let(:resource) do
     r = described_class.new(app_name, nil)
     r.timeout(timeout)
+    r.bundle_id(bundle_id)
     r
   end
 
@@ -77,6 +79,28 @@ describe Chef::Resource::MacAppStoreApp do
 
     context 'an invalid override' do
       let(:timeout) { :thing }
+
+      it_behaves_like 'an invalid configuration'
+    end
+  end
+
+  describe '#bundle_id' do
+    context 'no override' do
+      it 'returns nil' do
+        expect(resource.bundle_id).to eq(nil)
+      end
+    end
+
+    context 'a valid override' do
+      let(:bundle_id) { 'com.example.someapp' }
+
+      it 'returns the override' do
+        expect(resource.bundle_id).to eq('com.example.someapp')
+      end
+    end
+
+    context 'an invalid override' do
+      let(:bundle_id) { [1, 2] }
 
       it_behaves_like 'an invalid configuration'
     end
