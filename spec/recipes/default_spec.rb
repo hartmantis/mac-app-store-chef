@@ -6,7 +6,7 @@ describe 'mac-app-store::default' do
   let(:platform) { { platform: nil, version: nil } }
   let(:overrides) { {} }
   let(:runner) do
-    ChefSpec::ServerRunner.new(platform) do |node|
+    ChefSpec::SoloRunner.new(platform) do |node|
       overrides.each { |k, v| node.set[k] = v }
     end
   end
