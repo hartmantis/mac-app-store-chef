@@ -230,12 +230,12 @@ describe Chef::Provider::MacAppStoreTrustedApp do
     let(:query_res) { [] }
     let(:query) do
       'SELECT * FROM access WHERE service = "kTCCServiceAccessibility" ' \
-        'AND client = "thing"'
+        "AND client = \"#{name}\" LIMIT 1"
     end
 
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:db_query)
-        .and_return(query_res)
+      expect_any_instance_of(described_class).to receive(:db_query)
+        .with(query).and_return(query_res)
     end
 
     context 'no row for the given app' do

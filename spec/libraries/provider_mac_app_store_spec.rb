@@ -47,20 +47,18 @@ describe Chef::Provider::MacAppStore do
   end
 
   describe '#initialize' do
-    shared_examples_for 'any initial state' do
-      it 'installs the AXE gem' do
-        expect_any_instance_of(described_class).to receive(:install_axe_gem)
-        provider
-      end
+    it 'installs the AXE gem' do
+      expect_any_instance_of(described_class).to receive(:install_axe_gem)
+      provider
+    end
 
-      it 'sets up accessibility for the app running Chef' do
-        expect_any_instance_of(described_class).to receive(:trust_app)
-        provider
-      end
+    it 'sets up accessibility for the app running Chef' do
+      expect_any_instance_of(described_class).to receive(:trust_app)
+      provider
+    end
 
-      it 'saves the original focused app for later' do
-        expect(provider.original_focus).to eq('focused app')
-      end
+    it 'saves the original focused app for later' do
+      expect(provider.original_focus).to eq('focused app')
     end
   end
 
