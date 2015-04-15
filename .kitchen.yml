@@ -22,4 +22,5 @@ suites:
         password: <%= ENV['APPLE_ID_PASSWORD'] %>
         apps:
           - Microsoft Remote Desktop
-          - White Noise Lite
+          - name: White Noise Lite
+            bundle_id: com.tmsoft.mac.WhiteNoiseLite

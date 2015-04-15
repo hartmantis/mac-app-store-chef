@@ -24,7 +24,15 @@ end
 
 include_recipe 'build-essential'
 
-apps = node['mac_app_store'] && node['mac_app_store']['apps'] || []
+apps = (node['mac_app_store']['apps'] || []).map do |a|
+  if a.is_a?(Hash)
+    a
+  elsif a.is_a?(String)
+    { name: a, bundle_id: nil }
+  else
+    fail(Chef::Exceptions::ValidationFailed, "Invalid app entry '#{a}'")
+  end
+end
 
 mac_app_store 'default' do
   username node['mac_app_store']['username']
@@ -34,7 +42,8 @@ mac_app_store 'default' do
 end
 
 apps.each do |a|
-  mac_app_store_app a do
+  mac_app_store_app a[:name] do
+    bundle_id a[:bundle_id]
     action :install
     notifies :quit, 'mac_app_store[default]'
   end

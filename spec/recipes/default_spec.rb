@@ -23,6 +23,14 @@ describe 'mac-app-store::default' do
       end
     end
 
+    shared_examples_for 'given an Apple ID' do
+      it 'uses the provided Apple ID' do
+        expect(chef_run).to open_mac_app_store('default')
+          .with(username: overrides[:mac_app_store][:username])
+          .with(password: overrides[:mac_app_store][:password])
+      end
+    end
+
     shared_examples_for 'given a set of apps to install' do
       it 'opens the Mac App Store' do
         expect(chef_run).to open_mac_app_store('default')
@@ -31,7 +39,12 @@ describe 'mac-app-store::default' do
       it 'installs the specified apps' do
         r = chef_run
         overrides[:mac_app_store][:apps].each do |a|
-          expect(r).to install_mac_app_store_app(a)
+          if a.is_a?(String)
+            expect(r).to install_mac_app_store_app(a)
+          else
+            expect(r).to install_mac_app_store_app(a[:name])
+              .with(bundle_id: a[:bundle_id])
+          end
         end
       end
     end
@@ -48,7 +61,7 @@ describe 'mac-app-store::default' do
       end
     end
 
-    context 'an attribue set of apps' do
+    context 'an attribue array of app names only' do
       let(:overrides) { { mac_app_store: { apps: %w(app1 app2) } } }
 
       context 'no Apple ID given' do
@@ -65,13 +78,40 @@ describe 'mac-app-store::default' do
         end
 
         it_behaves_like 'any attribute set'
+        it_behaves_like 'given an Apple ID'
         it_behaves_like 'given a set of apps to install'
+      end
+    end
 
-        it 'uses the provided Apple ID' do
-          expect(chef_run).to open_mac_app_store('default')
-            .with(username: overrides[:mac_app_store][:username])
-            .with(password: overrides[:mac_app_store][:password])
+    context 'an attribute set of mixed array and hash apps' do
+      let(:overrides) do
+        {
+          mac_app_store: {
+            apps: [
+              'app1',
+              { name: 'app2', bundle_id: 'com.example.app2' },
+              { name: 'app3' }
+            ]
+          }
+        }
+      end
+
+      context 'no Apple ID given' do
+        it_behaves_like 'any attribute set'
+        it_behaves_like 'given a set of apps to install'
+      end
+
+      context 'an Apple ID given' do
+        let(:overrides) do
+          o = super()
+          o[:mac_app_store][:username] = 'e@example.com'
+          o[:mac_app_store][:password] = 'abc123'
+          o
         end
+
+        it_behaves_like 'any attribute set'
+        it_behaves_like 'given an Apple ID'
+        it_behaves_like 'given a set of apps to install'
       end
     end
   end

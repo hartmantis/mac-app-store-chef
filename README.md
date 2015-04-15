@@ -73,6 +73,13 @@ It can be overridden with an array of app names (as displayed in the App Store):
 
     default['mac_app_store']['apps'] = ['Tweetbot for Twitter']
 
+Optionally, the bundle IDs for the apps (as displayed in pkgutil) can also be
+provided to speed up the Chef run:
+
+    default['mac_app_store']['apps'] = [
+      { name: 'Tweetbot for Twitter', bundle_id: 'com.tapbots.TweetbotMac' }
+    ]
+
 By default, the main recipe assumes an Apple ID is already signed into the App
 Store, but a set of credentials can be provided:
 
