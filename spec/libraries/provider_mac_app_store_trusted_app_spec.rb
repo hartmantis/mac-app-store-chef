@@ -257,18 +257,31 @@ describe Chef::Provider::MacAppStoreTrustedApp do
 
   describe '#db_query' do
     let(:db_path) { '/Library/Application\ Support/com.apple.TCC/TCC.db' }
+    let(:db_exist?) { true }
     let(:query) { nil }
     let(:query_res) { '' }
     let(:shell_out) { double(stdout: query_res) }
 
     before(:each) do
+      allow(File).to receive(:exist?).with(db_path).and_return(db_exist?)
       allow_any_instance_of(described_class).to receive(:'shell_out!')
         .with("sqlite3 #{db_path} '#{query}'").and_return(shell_out)
+    end
+
+    shared_examples_for 'an existing Accessibility database' do
+      it 'does not re-init the DB' do
+        expect_any_instance_of(described_class).not_to receive(
+          :reset_accessibility_settings
+        )
+        provider.send(:db_query, query)
+      end
     end
 
     context 'a successful query with a result' do
       let(:query) { 'SELECT * FROM access LIMIT 1' }
       let(:query_res) { 'thing1|thing2' }
+
+      it_behaves_like 'an existing Accessibility database'
 
       it 'returns the query result' do
         expect(provider.send(:db_query, query)).to eq(query_res.split('|'))
@@ -279,6 +292,8 @@ describe Chef::Provider::MacAppStoreTrustedApp do
       let(:query) { 'SELECT * FROM access LIMIT 1' }
       let(:query_res) { '' }
 
+      it_behaves_like 'an existing Accessibility database'
+
       it 'returns an empty array' do
         expect(provider.send(:db_query, query)).to eq([])
       end
@@ -288,7 +303,7 @@ describe Chef::Provider::MacAppStoreTrustedApp do
       let(:query) { 'SELECT * FROM access LIMIT 1' }
 
       before(:each) do
-        expect_any_instance_of(described_class).to receive(:'shell_out!')
+        expect_any_instance_of(described_class).to receive(:shell_out!)
           .with("sqlite3 #{db_path} '#{query}'")
           .and_raise(Mixlib::ShellOut::ShellCommandFailed)
       end
@@ -296,6 +311,25 @@ describe Chef::Provider::MacAppStoreTrustedApp do
       it 'raises an error' do
         expect { provider.send(:db_query, query) }.to raise_error
       end
+    end
+
+    context 'a new server with a missing Accessibility DB' do
+      let(:db_exist?) { false }
+      
+      it 'resets the accessibility settings' do
+        expect_any_instance_of(described_class).to receive(
+          :reset_accessibility_settings
+        ).and_return(true)
+        provider.send(:db_query, query)
+      end
+    end
+  end
+
+  describe '#reset_accessibility_settings' do
+    it 'shells out to tccutil' do
+      expect_any_instance_of(described_class).to receive(:shell_out!)
+        .with('tccutil reset Accessibility').and_return(true)
+      provider.send(:reset_accessibility_settings)
     end
   end
 end

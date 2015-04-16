@@ -18,6 +18,7 @@
 # limitations under the License.
 #
 
+require 'chef/log'
 require 'chef/provider/lwrp_base'
 require 'chef/resource/chef_gem'
 require_relative 'resource_mac_app_store_trusted_app'
@@ -126,8 +127,22 @@ class Chef
       # @raise [Mixlib::ShellOut::ShellCommandFailed]
       #
       def db_query(query)
-        shell_out!("sqlite3 #{::File.expand_path(DB_PATH)} '#{query}'").stdout
-          .split('|')
+        path = ::File.expand_path(DB_PATH)
+        unless ::File.exist?(path)
+          Chef::Log.info('Accessibility settings DB not present; resetting...')
+          reset_accessibility_settings
+        end
+        Chef::Log.debug("Querying Accessibility DB with '#{query}'")
+        shell_out!("sqlite3 #{path} '#{query}'").stdout.split('|')
+      end
+
+      #
+      # Use the `tccutil` command to reset the Accessibility settings database.
+      # For use in cases where a new OS X instance is brought up and doesn't
+      # yet have an initialized Accessibility database.
+      #
+      def reset_accessibility_settings
+        shell_out!('tccutil reset Accessibility')
       end
     end
   end
