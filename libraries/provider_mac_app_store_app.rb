@@ -48,7 +48,7 @@ class Chef
       #
       def load_current_resource
         @current_resource ||= Resource::MacAppStoreApp.new(new_resource.name)
-        @current_resource.installed(installed?(new_resource.name))
+        @current_resource.installed(installed?)
         @current_resource
       end
 
