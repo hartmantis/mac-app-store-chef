@@ -54,7 +54,7 @@ class Chef
       # @return [String]
       #
       def to_text
-        super.gsub(password, '****************')
+        password.nil? ? super : super.gsub(password, '****************')
       end
     end
   end

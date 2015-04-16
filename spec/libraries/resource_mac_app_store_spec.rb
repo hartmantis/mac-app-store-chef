@@ -111,10 +111,20 @@ describe Chef::Resource::MacAppStore do
   end
 
   describe '#to_text' do
-    let(:password) { 'abc123' }
+    context 'no password provided' do
+      let(:password) { nil }
 
-    it 'suppresses the password in the resource rendered text' do
-      expect(resource.to_text).to include('password "****************"')
+      it 'does nothing special' do
+        expect(resource.to_text).not_to include('password')
+      end
+    end
+
+    context 'password provided' do
+      let(:password) { 'abc123' }
+
+      it 'suppresses the password in the resource rendered text' do
+        expect(resource.to_text).to include('password "****************"')
+      end
     end
   end
 end
