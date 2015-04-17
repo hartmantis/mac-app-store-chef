@@ -315,7 +315,7 @@ describe Chef::Provider::MacAppStoreTrustedApp do
 
     context 'a new server with a missing Accessibility DB' do
       let(:db_exist?) { false }
-      
+
       it 'resets the accessibility settings' do
         expect_any_instance_of(described_class).to receive(
           :reset_accessibility_settings
