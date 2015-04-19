@@ -28,6 +28,57 @@ Usage
 A new resource is defined as well as an attribute-driven default recipe, either
 of which can be used.
 
+Any reference to an application name means the name displayed in the App Store
+(e.g. even though the app is named "Tweetbot" it's App Store entry calls it
+"Tweetbot for Twitter"). Any reference to the bundle or package ID means means
+the package's ID as shown in the output of the `pkgutil` command.
+
+Some example app names and their corresponding bundle IDs, as of 2015-04-18
+(some of them seem to change over time to correspond to their versions):
+
+| App Name                                       | Bundle ID                         |
+|------------------------------------------------|-----------------------------------|
+| 1Password - Password Manager and Secure Wallet | com.agilebits.onepassword-osx     |
+| Airmail                                        | it.bloop.airmail                  |
+| Dash - API Docs & Snippets                     | com.kapeli.dash                   |
+| Divvy - Window Manager                         | com.mizage.Divvy                  |
+| Evernote                                       | com.evernote.Evernote             |
+| Fantastical - Calendar and Reminders           | com.flexibits.fantastical         |
+| Fantastical 2 - Calendar and Reminders         | com.flexibits.fantastical2.mac    |
+| FaxFresh                                       | com.purplecover.faxfresh          |
+| GarageBand 6.0.5                               | com.apple.pkg.GarageBand_AppStore |
+| GIF Brewery                                    | com.helloresolven.CineGIF         |
+| Growl                                          | com.Growl.GrowlHelperApp          |
+| iBooks Author                                  | com.apple.pkg.iBooksAuthor        |
+| iMovie                                         | com.apple.pkg.iMovie_AppStore     |
+| iPhoto                                         | com.apple.pkg.iPhoto_AppStore     |
+| Keynote                                        | com.apple.pkg.Keynote6            |
+| Kindle                                         | com.amazon.Kindle                 |
+| Lock Me Now                                    | com.bymaster.lockmenow            |
+| Mail Pilot                                     | co.mindsense.MailPilotMac         |
+| Markdown Pro                                   | com.radsense.markdown             |
+| Marked                                         | com.brettterpstra.marky           |
+| Microsoft OneNote                              | com.microsoft.onenote.mac         |
+| Microsoft Remote Desktop                       | com.microsoft.rdc.mac             |
+| MPlayerX                                       | org.niltsh.MPlayerX               |
+| Numbers                                        | com.apple.pkg.Numbers3            |
+| OceanBar                                       | com.stylemac.OceanBar             |
+| Osfoora for Twitter                            | osfoora.osfooramac                |
+| Pages                                          | com.apple.pkg.Pages5              |
+| Reeder                                         | com.reederapp.mac                 |
+| Slack                                          | com.tinyspeck.slackmacgap         |
+| SourceTree (Git/Hg)                            | com.torusknot.SourceTree          |
+| Sunrise Calendar                               | m.sunrise.mac                     |
+| Textual                                        | com.codeux.irc.textual            |
+| The 7th Guest                                  | com.trilobytegames.the7thguestosx |
+| Trillian                                       | com.ceruleanstudios.trillian.osx  |
+| Tweetbot for Twitter                           | com.tapbots.TweetbotMac           |
+| Twitter                                        | com.twitter.twitter-mac           |
+| Visual JSON                                    | org.3rddev.VisualJSON             |
+| White Noise Lite                               | com.tmsoft.mac.WhiteNoiseLite     |
+| WiFi Explorer                                  | wifiexplorer                      |
+| Xcode                                          | com.apple.pkg.Xcode               |
+
 Caveats
 =======
 
