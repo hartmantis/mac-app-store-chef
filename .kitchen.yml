@@ -11,6 +11,7 @@ platforms:
       box: opscode-macosx-10.9
       ssh:
         insert_key: false
+      gui: true
 
 suites:
   - name: two-sample-apps
