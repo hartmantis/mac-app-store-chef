@@ -10,7 +10,7 @@ describe Chef::Provider::MacAppStoreTrustedApp do
 
   describe 'DB_PATH' do
     it 'points to the TCC SQLite file' do
-      expected = '/Library/Application\ Support/com.apple.TCC/TCC.db'
+      expected = '/Library/Application Support/com.apple.TCC/TCC.db'
       expect(Chef::Provider::MacAppStoreTrustedApp::DB_PATH).to eq(expected)
     end
   end
@@ -256,7 +256,7 @@ describe Chef::Provider::MacAppStoreTrustedApp do
   end
 
   describe '#db_query' do
-    let(:db_path) { '/Library/Application\ Support/com.apple.TCC/TCC.db' }
+    let(:db_path) { '/Library/Application Support/com.apple.TCC/TCC.db' }
     let(:db_exist?) { true }
     let(:query) { nil }
     let(:query_res) { '' }
@@ -265,7 +265,8 @@ describe Chef::Provider::MacAppStoreTrustedApp do
     before(:each) do
       allow(File).to receive(:exist?).with(db_path).and_return(db_exist?)
       allow_any_instance_of(described_class).to receive(:'shell_out!')
-        .with("sqlite3 #{db_path} '#{query}'").and_return(shell_out)
+        .with("sqlite3 #{db_path.gsub(' ', '\ ')} '#{query}'")
+        .and_return(shell_out)
     end
 
     shared_examples_for 'an existing Accessibility database' do
@@ -304,7 +305,7 @@ describe Chef::Provider::MacAppStoreTrustedApp do
 
       before(:each) do
         expect_any_instance_of(described_class).to receive(:shell_out!)
-          .with("sqlite3 #{db_path} '#{query}'")
+          .with("sqlite3 #{db_path.gsub(' ', '\ ')} '#{query}'")
           .and_raise(Mixlib::ShellOut::ShellCommandFailed)
       end
 

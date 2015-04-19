@@ -33,7 +33,7 @@ class Chef
       include Chef::Mixin::ShellOut
       use_inline_resources
 
-      DB_PATH ||= '/Library/Application\ Support/com.apple.TCC/TCC.db'
+      DB_PATH ||= '/Library/Application Support/com.apple.TCC/TCC.db'
 
       #
       # WhyRun is supported by this provider
@@ -133,7 +133,8 @@ class Chef
           reset_accessibility_settings
         end
         Chef::Log.debug("Querying Accessibility DB with '#{query}'")
-        shell_out!("sqlite3 #{path} '#{query}'").stdout.split('|')
+        shell_out!("sqlite3 #{path.gsub(' ', '\ ')} '#{query}'").stdout
+          .split('|')
       end
 
       #
