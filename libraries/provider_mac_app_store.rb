@@ -69,7 +69,12 @@ class Chef
       # Open the App Store program and sign in as the specified user
       #
       action :open do
-        set_focus_to(app_store)
+        if !app_store_running?
+          new_resource.updated_by_last_action(true)
+          set_focus_to(app_store)
+        else
+          set_focus_to(app_store)
+        end
         if new_resource.username && new_resource.password
           sign_in!(new_resource.username, new_resource.password)
         elsif new_resource.username || new_resource.password
@@ -88,7 +93,10 @@ class Chef
       # original target
       #
       action :quit do
-        quit!
+        if app_store_running?
+          quit!
+          new_resource.updated_by_last_action(true)
+        end
         set_focus_to(original_focus)
         new_resource.running(false)
       end

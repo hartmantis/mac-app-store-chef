@@ -81,14 +81,14 @@ describe Chef::Provider::MacAppStore do
     let(:signed_in?) { true }
 
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:app_store)
-        .and_return(app_store)
+      %i(app_store app_store_running? signed_in?).each do |m|
+        allow_any_instance_of(described_class).to receive(m)
+          .and_return(send(m))
+      end
       allow_any_instance_of(described_class).to receive(:set_focus_to)
         .with(app_store).and_return(true)
       allow_any_instance_of(described_class).to receive(:sign_in!)
         .with(username, password).and_return(true)
-      allow_any_instance_of(described_class).to receive(:signed_in?)
-        .and_return(signed_in?)
     end
 
     shared_examples_for 'any valid set of attributes' do
@@ -110,6 +110,34 @@ describe Chef::Provider::MacAppStore do
       it 'raises an exception' do
         expected = Chef::Exceptions::ValidationFailed
         expect { provider.action_open }.to raise_error(expected)
+      end
+    end
+
+    context 'App Store running' do
+      let(:username) { nil }
+      let(:password) { nil }
+      let(:app_store_running?) { true }
+
+      it_behaves_like 'any valid set of attributes'
+
+      it 'does not update new_resource' do
+        p = provider
+        p.action_open
+        expect(p.new_resource.updated).to eq(false)
+      end
+    end
+
+    context 'App Store not running' do
+      let(:username) { nil }
+      let(:password) { nil }
+      let(:app_store_running?) { false }
+
+      it_behaves_like 'any valid set of attributes'
+
+      it 'updates new_resource' do
+        p = provider
+        p.action_open
+        expect(p.new_resource.updated).to eq(true)
       end
     end
 
@@ -167,28 +195,61 @@ describe Chef::Provider::MacAppStore do
     let(:app_store_running?) { true }
 
     before(:each) do
+      allow_any_instance_of(described_class).to receive(:app_store_running?)
+        .and_return(app_store_running?)
       allow_any_instance_of(described_class).to receive(:quit!)
         .and_return(true)
       allow_any_instance_of(described_class).to receive(:set_focus_to)
         .with('focused app').and_return(true)
     end
 
-    it 'quits the App Store' do
-      expect_any_instance_of(described_class).to receive(:quit!)
-      provider.action_quit
+    shared_examples_for 'any running state' do
+      it 'returns focus to the original target' do
+        expect_any_instance_of(described_class).to receive(:set_focus_to)
+          .with('focused app')
+        provider.action_quit
+      end
+
+      it 'sets the resource running status' do
+        p = provider
+        expect(p.new_resource.running?).to eq(nil)
+        p.action_quit
+        expect(p.new_resource.running?).to eq(false)
+      end
     end
 
-    it 'returns focus to the original target' do
-      expect_any_instance_of(described_class).to receive(:set_focus_to)
-        .with('focused app')
-      provider.action_quit
+    context 'App Store running' do
+      let(:app_store_running?) { true }
+
+      it_behaves_like 'any running state'
+
+      it 'quits the App Store' do
+        expect_any_instance_of(described_class).to receive(:quit!)
+        provider.action_quit
+      end
+
+      it 'updates new_resource' do
+        p = provider
+        p.action_quit
+        expect(p.new_resource.updated).to eq(true)
+      end
     end
 
-    it 'sets the resource running status' do
-      p = provider
-      expect(p.new_resource.running?).to eq(nil)
-      p.action_quit
-      expect(p.new_resource.running?).to eq(false)
+    context 'App Store not running' do
+      let(:app_store_running?) { false }
+
+      it_behaves_like 'any running state'
+
+      it 'does not quit the App Store' do
+        expect_any_instance_of(described_class).not_to receive(:quit!)
+        provider.action_quit
+      end
+
+      it 'does not update new_resource' do
+        p = provider
+        p.action_quit
+        expect(p.new_resource.updated).to eq(false)
+      end
     end
   end
 
