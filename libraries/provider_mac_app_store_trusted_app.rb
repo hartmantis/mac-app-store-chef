@@ -61,8 +61,8 @@ class Chef
       #
       action :create do
         unless created?
-          @new_resource.updated_by_last_action(true)
           update! || insert!
+          new_resource.updated_by_last_action(true)
         end
         new_resource.created(true)
       end
