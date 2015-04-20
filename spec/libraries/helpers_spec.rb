@@ -883,59 +883,80 @@ describe MacAppStoreCookbook::Helpers do
 
   describe '#app_store' do
     let(:app_store) { double(main_window: double(toolbar: 'a toolbar')) }
-    let(:wait_for_web_area) { nil }
-    let(:wait_for_nav) { nil }
+    let(:main_window) { nil }
+    let(:web_area) { nil }
+    let(:nav) { nil }
 
     before(:each) do
       allow(AX::Application).to receive(:new).with('com.apple.appstore')
         .and_return(app_store)
       allow_any_instance_of(described_class).to receive(:wait_for)
-        .with(:web_area, app_store.main_window).and_return(wait_for_web_area)
+        .with(:standard_window, app_store).and_return(main_window)
+      allow_any_instance_of(described_class).to receive(:wait_for)
+        .with(:web_area, app_store.main_window).and_return(web_area)
       allow_any_instance_of(described_class).to receive(:wait_for)
         .with(:radio_button, app_store.main_window.toolbar, id: 'purchased')
-        .and_return(wait_for_nav)
+        .and_return(nav)
+    end
+
+    shared_examples_for 'a timeout error' do
+      it 'raises an exception' do
+        expected = MacAppStoreCookbook::Exceptions::Timeout
+        expect { test_obj.app_store }.to raise_error(expected)
+      end
     end
 
     context 'normal circumstances, no timeout' do
-      let(:wait_for_web_area) { true }
-      let(:wait_for_nav) { true }
+      let(:main_window) { true }
+      let(:web_area) { true }
+      let(:nav) { true }
 
       it 'returns an AX::Application object' do
         expect(test_obj.app_store).to eq(app_store)
       end
 
+      it 'waits for the main window to load' do
+        expect_any_instance_of(described_class).to receive(:wait_for)
+          .with(:standard_window, app_store).and_return(main_window)
+        test_obj.app_store
+      end
+
       it 'waits for the web area to load' do
         expect_any_instance_of(described_class).to receive(:wait_for)
-          .with(:web_area, app_store.main_window).and_return(wait_for_web_area)
+          .with(:web_area, app_store.main_window).and_return(web_area)
         test_obj.app_store
       end
 
       it 'waits for the navbar buttons to load' do
         expect_any_instance_of(described_class).to receive(:wait_for)
           .with(:radio_button, app_store.main_window.toolbar, id: 'purchased')
-          .and_return(wait_for_nav)
+          .and_return(nav)
         test_obj.app_store
       end
     end
 
-    context 'Web area loading timeout' do
-      let(:wait_for_web_area) { nil }
-      let(:wait_for_nav) { true }
+    context 'main window loading timeout' do
+      let(:main_window) { nil }
+      let(:web_area) { true }
+      let(:nav) { true }
 
-      it 'raises an exception' do
-        expected = MacAppStoreCookbook::Exceptions::Timeout
-        expect { test_obj.app_store }.to raise_error(expected)
-      end
+      it_behaves_like 'a timeout error'
+    end
+
+    context 'web area loading timeout' do
+      let(:main_window) { true }
+      let(:web_area) { nil }
+      let(:nav) { true }
+
+      it_behaves_like 'a timeout error'
     end
 
     context 'navbar button loading timeout' do
-      let(:wait_for_web_area) { true }
-      let(:wait_for_nav) { nil }
+      let(:main_window) { true }
+      let(:web_area) { true }
+      let(:nav) { nil }
 
-      it 'raises an exception' do
-        expected = MacAppStoreCookbook::Exceptions::Timeout
-        expect { test_obj.app_store }.to raise_error(expected)
-      end
+      it_behaves_like 'a timeout error'
     end
   end
 

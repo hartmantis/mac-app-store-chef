@@ -320,8 +320,10 @@ module MacAppStoreCookbook
     def app_store
       require 'ax_elements'
       as = AX::Application.new('com.apple.appstore')
-      # The page and navigation buttons load separately, not in a consistent
-      # order
+      # The page loading can be funky, especially on a slow machine. Some
+      # elements don't even load in a consistent order, so try to wait until
+      # everything we need to interact with is loaded.
+      wait_for(:standard_window, as) || fail(Exceptions::Timeout, 'App Store')
       unless wait_for(:web_area, as.main_window)
         fail(Exceptions::Timeout, 'App Store')
       end
