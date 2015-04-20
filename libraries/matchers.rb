@@ -19,8 +19,14 @@
 #
 
 if defined?(ChefSpec)
-  def open_mac_app_store(name)
-    ChefSpec::Matchers::ResourceMatcher.new(:mac_app_store, :open, name)
+  [:mac_app_store, :mac_app_store_app, :mac_app_store_trusted_app].each do |r|
+    ChefSpec.define_matcher(r)
+  end
+
+  [:open, :quit].each do |a|
+    define_method("#{a}_mac_app_store") do |name|
+      ChefSpec::Matchers::ResourceMatcher.new(:mac_app_store, a, name)
+    end
   end
 
   def install_mac_app_store_app(name)
