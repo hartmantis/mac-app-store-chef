@@ -7,7 +7,7 @@ maintainer_email 'j@p4nt5.com'
 license          'Apache v2.0'
 description      'Automates installation of Mac App Store apps'
 long_description 'Automates installation of Mac App Store apps'
-version          '0.0.1'
+version          '0.1.0'
 
 depends          'build-essential', '~> 2.1'
 
