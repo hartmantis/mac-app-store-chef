@@ -3,25 +3,37 @@
 require 'spec_helper'
 
 describe 'Microsoft Remote Desktop app' do
-  it 'is present in pkgutil' do
-    p = 'com.microsoft.rdc.mac'
-    expect(package(p)).to be_installed.by(:pkgutil)
+  describe package('com.microsoft.rdc.mac') do
+    it 'is installed' do
+      expect(subject).to be_installed.by(:pkgutil)
+    end
   end
 
-  it 'is present on the filesystem' do
-    d = '/Applications/Microsoft Remote Desktop.app'
-    expect(file(d)).to be_directory
+  describe file('/Applications/Microsoft Remote Desktop.app') do
+    it 'is present on the filesystem' do
+      expect(subject).to be_directory
+    end
   end
 end
 
 describe 'White Noise Lite app' do
-  it 'is present in pkgutil' do
-    p = 'com.tmsoft.mac.WhiteNoiseLite'
-    expect(package(p)).to be_installed.by(:pkgutil)
+  describe package('com.tmsoft.mac.WhiteNoiseLite') do
+    it 'is installed' do
+      expect(subject).to be_installed.by(:pkgutil)
+    end
   end
 
-  it 'is present on the filesystem' do
-    d = '/Applications/WhiteNoiseLite.app'
-    expect(file(d)).to be_directory
+  describe file('/Applications/WhiteNoiseLite.app') do
+    it 'is present on the filesystem' do
+      expect(subject).to be_directory
+    end
+  end
+end
+
+describe 'Mac App Store' do
+  describe command('pgrep "App Store"') do
+    it 'exits 1 (App Store not running)' do
+      expect(subject.exit_status).to eq(1)
+    end
   end
 end
