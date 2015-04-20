@@ -79,27 +79,24 @@ Some example app names and their corresponding bundle IDs, as of 2015-04-18
 | WiFi Explorer                                  | wifiexplorer                      |
 | Xcode                                          | com.apple.pkg.Xcode               |
 
-Caveats
-=======
+Known Limitations
+-----------------
 
-Your Chef run may be slow; try to be patient. This is due to all the page loads
-that have to be waited on while navigating around the App Store.
-
-_DO NOT_ switch between windows in OS X while Chef is running--it is important
-for the UI interaction that Chef have full control. If you Cmd+Tab during a run,
-unexpected and probably undesirable behavior will occur.
-
-For an application (e.g. the Terminal app Chef might run in) to control mouse
-and keyboard interaction, it needs access to OS X's Accessibility API. This
-cookbook will attempt attempt to configure that, but any errors in that attempt
-will result in the Chef run exiting with an error and a popup window prompting
-you to visit your system's accessibility settings.
-
-The Accessibility API, and the App Store in particular, are suceptible to
-assorted race conditions. Attempts have been made to account for these, but
-any errors mentioning timeouts or `AXAPI has been disabled` can be submitted,
-along with their stack traces, as GitHub
-[issues](https://github.com/RoboticCheese/mac-app-store-chef/issues).
+* Your Chef run may be slow, especially if bundle IDs aren't provided for the
+apps being installed. This is due to all the page loads that have to be waited
+on while navigating the App Store.
+* A successful run requires Chef to have control over OS X's UI--moving your
+mouse or pressing Cmd+Tab during a run may result in undesirable behavior.
+* The UI actions performed by this cookbook require a running window server--a
+user must be logged into OS X.
+* OS X uses a permission system where individual apps are granted access to
+its Accessibility API. This cookbook will make a best effort to authorize the
+app running Chef, but any errors will result in a failed Chef run and a GUI
+warning popup asking for permission.
+* The Accessibility API, and the App Store in particular, are suceptible to
+assorted race conditions. Attempts have been made to catch most of these, but
+any errors and stack traces can be reported on the
+[issues page](https://github.com/RoboticCheese/mac-app-store-chef/issues).
 
 Recipes
 =======
