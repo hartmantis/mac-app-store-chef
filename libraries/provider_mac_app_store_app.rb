@@ -57,7 +57,7 @@ class Chef
       #
       action :install do
         unless current_resource.installed?
-          install!(new_resource.name, new_resource.timeout)
+          install!(new_resource.app_name, new_resource.timeout)
           new_resource.updated_by_last_action(true)
         end
         new_resource.installed(true)
@@ -77,7 +77,7 @@ class Chef
         if new_resource.bundle_id
           !shell_out("pkgutil --pkg-info #{new_resource.bundle_id}").error?
         else
-          app_installed?(new_resource.name)
+          app_installed?(new_resource.app_name)
         end
       end
     end

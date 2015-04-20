@@ -5,13 +5,13 @@ require_relative '../spec_helper'
 require_relative '../../libraries/provider_mac_app_store_app'
 
 describe Chef::Provider::MacAppStoreApp do
-  let(:app_name) { 'Some App' }
+  let(:name) { 'Some App' }
+  %i(app_name timeout bundle_id).each { |a| let(a) { nil } }
   let(:timeout) { nil }
   let(:bundle_id) { nil }
   let(:new_resource) do
-    r = Chef::Resource::MacAppStoreApp.new(app_name, nil)
-    r.timeout(timeout)
-    r.bundle_id(bundle_id)
+    r = Chef::Resource::MacAppStoreApp.new(name, nil)
+    %i(app_name timeout bundle_id).each { |a| r.send(a, send(a)) }
     r
   end
   let(:provider) { described_class.new(new_resource, nil) }
@@ -48,7 +48,7 @@ describe Chef::Provider::MacAppStoreApp do
       allow_any_instance_of(described_class).to receive(:current_resource)
         .and_return(current_resource)
       allow_any_instance_of(described_class).to receive(:install!)
-        .with(app_name, timeout || 600).and_return(true)
+        .with(name, timeout || 600).and_return(true)
     end
 
     shared_examples_for 'any installed state' do
@@ -65,7 +65,7 @@ describe Chef::Provider::MacAppStoreApp do
 
       it 'installs the app' do
         expect_any_instance_of(described_class).to receive(:install!)
-          .with(app_name, 600)
+          .with(name, 600)
         provider.action_install
       end
     end
@@ -80,6 +80,17 @@ describe Chef::Provider::MacAppStoreApp do
         provider.action_install
       end
     end
+
+    context 'an overridden app_name' do
+      let(:app_name) { 'somethingelse' }
+      let(:installed?) { false }
+
+      it 'installs the app_name instead of the resource name' do
+        expect_any_instance_of(described_class).to receive(:install!)
+          .with(app_name, 600)
+        provider.action_install
+      end
+    end
   end
 
   describe '#installed?' do
@@ -90,7 +101,7 @@ describe Chef::Provider::MacAppStoreApp do
       allow_any_instance_of(described_class).to receive(:shell_out)
         .with("pkgutil --pkg-info #{bundle_id}").and_return(shell_out)
       allow_any_instance_of(described_class).to receive(:app_installed?)
-        .with(app_name).and_return(installed?)
+        .with(name).and_return(installed?)
     end
 
     context 'no bundle ID provided' do
@@ -99,7 +110,7 @@ describe Chef::Provider::MacAppStoreApp do
       it 'uses the App Store helper method' do
         expect_any_instance_of(described_class).not_to receive(:shell_out)
         expect_any_instance_of(described_class).to receive(:app_installed?)
-          .with(app_name)
+          .with(name)
         provider.send(:installed?)
       end
 
@@ -115,6 +126,19 @@ describe Chef::Provider::MacAppStoreApp do
         let(:installed?) { true }
 
         it 'returns true' do
+          expect(provider.send(:installed?)).to eq(true)
+        end
+      end
+
+      context 'installed and an overridden app_name' do
+        let(:installed?) { true }
+        let(:app_name) { 'somethingelse' }
+
+        it 'checks the app_name instead of resource name' do
+          expect_any_instance_of(described_class)
+            .not_to receive(:app_installed?).with(name)
+          expect_any_instance_of(described_class).to receive(:app_installed?)
+            .with(app_name).and_return(installed?)
           expect(provider.send(:installed?)).to eq(true)
         end
       end

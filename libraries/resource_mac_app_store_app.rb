@@ -39,6 +39,11 @@ class Chef
       alias_method :installed?, :installed
 
       #
+      # The name of the app to be installed (defaults to the resource name).
+      #
+      attribute :app_name, kind_of: String, name_attribute: true
+
+      #
       # Timeout value for app download + install.
       #
       attribute :timeout, kind_of: Fixnum, default: 600
