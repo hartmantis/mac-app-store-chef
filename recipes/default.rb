@@ -39,12 +39,12 @@ mac_app_store 'default' do
   password node['mac_app_store']['password']
   action :open
   not_if { apps.empty? }
+  notifies :quit, 'mac_app_store[default]'
 end
 
 apps.each do |a|
   mac_app_store_app a[:name] do
     bundle_id a[:bundle_id]
     action :install
-    notifies :quit, 'mac_app_store[default]'
   end
 end

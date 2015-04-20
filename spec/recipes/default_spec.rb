@@ -36,6 +36,11 @@ describe 'mac-app-store::default' do
         expect(chef_run).to open_mac_app_store('default')
       end
 
+      it 'notifies the App Store to quit when done' do
+        expect(chef_run.mac_app_store('default'))
+          .to notify('mac_app_store[default]').to(:quit).delayed
+      end
+
       it 'installs the specified apps' do
         r = chef_run
         overrides[:mac_app_store][:apps].each do |a|
