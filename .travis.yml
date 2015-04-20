@@ -2,7 +2,7 @@ language: objective-c
 
 install:
   - curl -L https://www.opscode.com/chef/install.sh | sudo bash -s -- -P chefdk
-  - chef exec bundle install --without=development
+  - chef exec bundle install --without=development integration
 
 before_script:
   # Pending ENV support in Kitchen's Rake tasks and not just the CLI
