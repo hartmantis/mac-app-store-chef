@@ -29,7 +29,7 @@ A new resource is defined as well as an attribute-driven default recipe, either
 of which can be used.
 
 Any reference to an application name means the name displayed in the App Store
-(e.g. even though the app is named "Tweetbot" it's App Store entry calls it
+(e.g. even though the app is named "Tweetbot" its App Store entry calls it
 "Tweetbot for Twitter"). Any reference to the bundle or package ID means means
 the package's ID as shown in the output of the `pkgutil` command.
 
