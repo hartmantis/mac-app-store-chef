@@ -30,8 +30,8 @@ of which can be used.
 
 Any reference to an application name means the name displayed in the App Store
 (e.g. even though the app is named "Tweetbot" its App Store entry calls it
-"Tweetbot for Twitter"). Any reference to the bundle or package ID means means
-the package's ID as shown in the output of the `pkgutil` command.
+"Tweetbot for Twitter"). Any reference to the bundle or package ID means the
+package's ID as shown in the output of the `pkgutil` command.
 
 Some example app names and their corresponding bundle IDs, as of 2015-04-18
 (some of them seem to change over time to correspond to their versions):
