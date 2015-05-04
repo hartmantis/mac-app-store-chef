@@ -19,7 +19,7 @@
 #
 
 if defined?(ChefSpec)
-  [:mac_app_store, :mac_app_store_app, :mac_app_store_trusted_app].each do |r|
+  [:mac_app_store, :mac_app_store_app].each do |r|
     ChefSpec.define_matcher(r)
   end
 

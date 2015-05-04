@@ -107,9 +107,10 @@ class Chef
       # Enable accessibility for running application
       #
       def trust_app
-        mac_app_store_trusted_app current_application_name do
-          compile_time true
-          action :create
+        app = current_application_name
+        macosx_accessibility app do
+          items [app]
+          action [:insert, :enable]
         end
       end
 
