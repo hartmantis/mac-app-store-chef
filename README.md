@@ -194,32 +194,6 @@ Attributes:
 | bundle_id | `nil`         | Optionally specify the app ID (from pkgutil) |
 | action    | `:install`    | Action(s) to perform                         |
 
-***mac_app_store_trusted_app***
-
-Modifies the SQLite DB containing OS X's Accessibility API settings to grant
-access to new apps (i.e. the one running Chef). New apps will either take the
-form of a bundle ID (`com.example.someapp`) or path (`/usr/bin/someapp`).
-
-Syntax:
-
-    mac_app_store_trusted_app 'com.example.someapp' do
-      compile_time true
-      action :create
-    end
-
-Actions:
-
-| Action    | Description                      |
-|-----------|----------------------------------|
-| `:create` | Default; grant access to the app |
-
-Attributes:
-
-| Attribute    | Default   | Description                          |
-|--------------|-----------|--------------------------------------|
-| compile_time | `false`   | Create rule during the compile stage |
-| action       | `:create` | Action(s) to perform                 |
-
 Providers
 =========
 
@@ -230,10 +204,6 @@ Provider for interactions with the App Store itself.
 ***Chef::Provider::MacAppStoreApp***
 
 All the logic for app installs.
-
-***Chef::Provider::MacAppStoreTrustedApp***
-
-Provider for authoring new apps to use the Accessibility API.
 
 Contributing
 ============

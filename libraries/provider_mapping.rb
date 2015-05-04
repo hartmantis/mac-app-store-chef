@@ -22,7 +22,6 @@ require 'chef/dsl' # TODO: Chef bug(?)
 require 'chef/platform/provider_mapping'
 require_relative 'provider_mac_app_store'
 require_relative 'provider_mac_app_store_app'
-require_relative 'provider_mac_app_store_trusted_app'
 
 Chef::Platform.set(platform: :mac_os_x,
                    resource: :mac_app_store,
@@ -30,6 +29,3 @@ Chef::Platform.set(platform: :mac_os_x,
 Chef::Platform.set(platform: :mac_os_x,
                    resource: :mac_app_store_app,
                    provider: Chef::Provider::MacAppStoreApp)
-Chef::Platform.set(platform: :mac_os_x,
-                   resource: :mac_app_store_trusted_app,
-                   provider: Chef::Provider::MacAppStoreTrustedApp)

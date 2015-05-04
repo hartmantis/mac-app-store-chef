@@ -260,7 +260,7 @@ describe Chef::Provider::MacAppStore do
       allow_any_instance_of(described_class).to receive(:trust_app)
         .and_call_original
       allow_any_instance_of(described_class)
-        .to receive(:mac_app_store_trusted_app).and_return(true)
+        .to receive(:macosx_accessibility)
       allow_any_instance_of(described_class)
         .to receive(:current_application_name)
         .and_return(current_application_name)
@@ -268,10 +268,10 @@ describe Chef::Provider::MacAppStore do
 
     it 'grants accessibility rights to the current running application' do
       p = provider
-      expect(p).to receive(:mac_app_store_trusted_app)
+      expect(p).to receive(:macosx_accessibility)
         .with(current_application_name).and_yield
-      expect(p).to receive(:compile_time).with(true)
-      expect(p).to receive(:action).with(:create)
+      expect(p).to receive(:items).with([current_application_name])
+      expect(p).to receive(:action).with([:insert, :enable])
       p.send(:trust_app)
     end
   end

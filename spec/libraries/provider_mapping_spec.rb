@@ -11,9 +11,6 @@ describe :provider_mapping do
   let(:app_provider) do
     Chef::Platform.platforms[platform][:default][:mac_app_store_app]
   end
-  let(:trust_provider) do
-    Chef::Platform.platforms[platform][:default][:mac_app_store_trusted_app]
-  end
 
   context 'Mac OS X' do
     let(:platform) { :mac_os_x }
@@ -24,10 +21,6 @@ describe :provider_mapping do
 
     it 'uses the MacAppStoreApp app provider' do
       expect(app_provider).to eq(Chef::Provider::MacAppStoreApp)
-    end
-
-    it 'uses the MacAppStoreTrustedApp trust provider' do
-      expect(trust_provider).to eq(Chef::Provider::MacAppStoreTrustedApp)
     end
   end
 
@@ -40,10 +33,6 @@ describe :provider_mapping do
 
     it 'returns no app provider' do
       expect(app_provider).to eq(nil)
-    end
-
-    it 'returns no trust provider' do
-      expect(trust_provider).to eq(nil)
     end
   end
 end
