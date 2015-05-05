@@ -335,16 +335,14 @@ module MacAppStoreCookbook
     end
 
     #
-    # Return whether the App Store app is running or not. This method does not
-    # require Accessibility privileges.
+    # Return whether the App Store app is running or not. This method uses `ps`
+    # so that it has no dependency on the AXElements gem and can be run any
+    # time, including during a Chef compile stage.
     #
     # @return [TrueClass, FalseClass]
     #
     def app_store_running?
-      require 'accessibility/extras'
-      !NSRunningApplication.runningApplicationsWithBundleIdentifier(
-        'com.apple.appstore'
-      ).empty?
+      !shell_out('ps -A -c -o command | grep ^App\ Store$').stdout.empty?
     end
 
     #
@@ -364,7 +362,8 @@ module MacAppStoreCookbook
     #
     # Find either the bundle ID or executable path of the ancestor of the
     # current process that is a direct child of PID 1. The NSRunningApplication
-    # class doesn't require accessibility privileges so should always work.
+    # class doesn't require accessibility privileges so should work immediately
+    # after the AXElements gem is installed.
     #
     # The running application, when Chef is run over SSH, is returned as nil
     # and shows up in the accessibility settings as

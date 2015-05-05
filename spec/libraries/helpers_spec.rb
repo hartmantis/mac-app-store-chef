@@ -961,16 +961,19 @@ describe MacAppStoreCookbook::Helpers do
   end
 
   describe '#app_store_running?' do
-    let(:running_applications) { [] }
+    let(:app_store_running?) { nil }
+    let(:stdout) do
+      app_store_running? ? 'some output' : ''
+    end
 
     before(:each) do
-      allow(NSRunningApplication)
-        .to receive(:runningApplicationsWithBundleIdentifier)
-        .with('com.apple.appstore').and_return(running_applications)
+      allow_any_instance_of(described_class).to receive(:shell_out)
+        .with('ps -A -c -o command | grep ^App\ Store$')
+        .and_return(double(stdout: stdout))
     end
 
     context 'App Store not running' do
-      let(:running_applications) { [] }
+      let(:app_store_running?) { false }
 
       it 'returns false' do
         expect(test_obj.app_store_running?).to eq(false)
@@ -978,7 +981,7 @@ describe MacAppStoreCookbook::Helpers do
     end
 
     context 'App Store running' do
-      let(:running_applications) { %w(some_app) }
+      let(:app_store_running?) { true }
 
       it 'returns true' do
         expect(test_obj.app_store_running?).to eq(true)
