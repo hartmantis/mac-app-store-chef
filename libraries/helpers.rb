@@ -321,6 +321,7 @@ module MacAppStoreCookbook
     def app_store
       require 'ax_elements'
       as = AX::Application.new('com.apple.appstore')
+      set_focus_to(as)
       # The page loading can be funky, especially on a slow machine. Some
       # elements don't even load in a consistent order, so try to wait until
       # everything we need to interact with is loaded.

@@ -890,6 +890,7 @@ describe MacAppStoreCookbook::Helpers do
     before(:each) do
       allow(AX::Application).to receive(:new).with('com.apple.appstore')
         .and_return(app_store)
+      allow_any_instance_of(described_class).to receive(:set_focus_to)
       allow_any_instance_of(described_class).to receive(:wait_for)
         .with(:standard_window, app_store).and_return(main_window)
       allow_any_instance_of(described_class).to receive(:wait_for)
@@ -913,6 +914,12 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'returns an AX::Application object' do
         expect(test_obj.app_store).to eq(app_store)
+      end
+
+      it 'sets focus to the App Store application' do
+        expect_any_instance_of(described_class).to receive(:set_focus_to)
+          .with(app_store)
+        test_obj.app_store
       end
 
       it 'waits for the main window to load' do
