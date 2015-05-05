@@ -311,7 +311,8 @@ module MacAppStoreCookbook
     end
 
     #
-    # Find the App Store application running or launch it
+    # Find the App Store application running or launch it. This method requires
+    # Accessibility privileges.
     #
     # @return [AX::Application]
     #
@@ -334,12 +335,13 @@ module MacAppStoreCookbook
     end
 
     #
-    # Return whether the App Store app is running or not
+    # Return whether the App Store app is running or not. This method does not
+    # require Accessibility privileges.
     #
     # @return [TrueClass, FalseClass]
     #
     def app_store_running?
-      require 'ax_elements'
+      require 'accessibility/extras'
       !NSRunningApplication.runningApplicationsWithBundleIdentifier(
         'com.apple.appstore'
       ).empty?
