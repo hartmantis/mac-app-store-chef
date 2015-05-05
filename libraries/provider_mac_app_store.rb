@@ -35,6 +35,8 @@ class Chef
 
       use_inline_resources
 
+      attr_reader :original_focus
+
       #
       # WhyRun is supported by this provider
       #
@@ -44,18 +46,9 @@ class Chef
         true
       end
 
-      attr_reader :original_focus
-
-      def initialize(new_resource, run_context)
-        super
-        install_axe_gem
-        trust_app
-        require 'ax_elements'
-        @original_focus = AX::SystemWide.new.focused_application
-      end
-
       #
-      # Load and return the current resource
+      # Load and return the current resource. Note that this does not require
+      # Accessibility API access to complete.
       #
       # @return [Chef::Resource::MacAppStore]
       #
@@ -69,22 +62,11 @@ class Chef
       # Open the App Store program and sign in as the specified user
       #
       action :open do
-        if !app_store_running?
-          new_resource.updated_by_last_action(true)
-          set_focus_to(app_store)
-        else
-          set_focus_to(app_store)
-        end
-        if new_resource.username && new_resource.password
-          sign_in!(new_resource.username, new_resource.password)
-        elsif new_resource.username || new_resource.password
-          fail(Chef::Exceptions::ValidationFailed,
-               'Username and password must be provided together')
-        elsif !signed_in?
-          fail(Chef::Exceptions::ValidationFailed,
-               'Someone must be signed into the App Store or a username and ' \
-               'password provided')
-        end
+        prep
+        require 'ax_elements'
+        @original_focus = AX::SystemWide.new.focused_application
+        open_app_store
+        sign_in!(new_resource.username, new_resource.password)
         new_resource.running(true)
       end
 
@@ -93,36 +75,66 @@ class Chef
       # original target
       #
       action :quit do
-        if app_store_running?
-          quit!
-          new_resource.updated_by_last_action(true)
-        end
-        set_focus_to(original_focus)
+        prep
+        require 'ax_elements'
+        quit_app_store
+        set_focus_to(original_focus) unless original_focus.nil?
         new_resource.running(false)
       end
 
       private
 
       #
-      # Enable accessibility for running application
+      # Quit the App Store if it's running.
       #
-      def trust_app
-        app = current_application_name
-        macosx_accessibility app do
-          items [app]
-          action [:insert, :enable]
-        end
+      def quit_app_store
+        doit = app_store_running?
+        quit! if doit
+        new_resource.updated_by_last_action(true) if doit
       end
 
       #
-      # Install the AXElements gem
+      # Start the App Store, an action which will also assign focus to it.
+      #
+      def open_app_store
+        already_open = app_store_running?
+        app_store
+        new_resource.updated_by_last_action(true) unless already_open
+      end
+
+      #
+      # Perform the system prep work of installing the AXElements gem and
+      # giving the app running Chef accessibility rights.
+      #
+      def prep
+        install_axe_gem
+        trust_app
+      end
+
+      #
+      # Enable accessibility for running application and converge the resource
+      # immediately so everything else in this provider doesn't have to go in
+      # ruby_block resources.
+      #
+      def trust_app
+        app = current_application_name
+        ma = macosx_accessibility app do
+          items [app]
+        end
+        ma.run_action(:insert)
+        ma.run_action(:enable)
+      end
+
+      #
+      # Install the AXElements gem. Converge the resource immediately so
+      # everything else in this provider doesn't have to go in ruby_block
+      # resources.
       #
       def install_axe_gem
         chef_gem 'AXElements' do
-          compile_time(true) if respond_to?(:compile_time)
+          compile_time(false) if respond_to?(:compile_time)
           version AXE_VERSION
-          action :install
-        end
+        end.run_action(:install)
       end
     end
   end

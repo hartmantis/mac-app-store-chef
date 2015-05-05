@@ -326,9 +326,8 @@ module MacAppStoreCookbook
       # elements don't even load in a consistent order, so try to wait until
       # everything we need to interact with is loaded.
       wait_for(:standard_window, as) || fail(Exceptions::Timeout, 'App Store')
-      unless wait_for(:web_area, as.main_window)
-        fail(Exceptions::Timeout, 'App Store')
-      end
+      fail(Exceptions::Timeout, 'App Store') unless wait_for(:web_area,
+                                                             as.main_window)
       unless wait_for(:radio_button, as.main_window.toolbar, id: 'purchased')
         fail(Exceptions::Timeout, 'App Store toolbar nav buttons')
       end
