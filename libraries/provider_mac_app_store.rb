@@ -107,6 +107,7 @@ class Chef
       # giving the app running Chef accessibility rights.
       #
       def prep
+        install_xcode_tools
         install_axe_gem
         trust_app
       end
@@ -135,6 +136,16 @@ class Chef
           compile_time(false) if respond_to?(:compile_time)
           version AXE_VERSION
         end.run_action(:install)
+      end
+
+      #
+      # Install the Xcode command line tools via the resource provided in the
+      # build-essentials cookbook. Converge the resource immediately so
+      # everything else in this provider doesn't have to go in a ruby_block
+      # resource.
+      #
+      def install_xcode_tools
+        xcode_command_line_tools('default').run_action(:install)
       end
     end
   end

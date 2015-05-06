@@ -211,8 +211,9 @@ describe Chef::Provider::MacAppStore do
   end
 
   describe '#prep' do
-    it 'installs AXE and sets up Accessibility rights' do
+    it 'installs Xcode and AXE and sets up Accessibility rights' do
       p = provider
+      expect(p).to receive(:install_xcode_tools)
       expect(p).to receive(:install_axe_gem)
       expect(p).to receive(:trust_app)
       p.send(:prep)
@@ -253,6 +254,19 @@ describe Chef::Provider::MacAppStore do
         .and_return(chef_gem_resource)
       expect(chef_gem_resource).to receive(:run_action).with(:install)
       p.send(:install_axe_gem)
+    end
+  end
+
+  describe '#install_xcode_tools' do
+    let(:xcode_command_line_tools_resource) { double(run_action: true) }
+
+    it 'installs the Xcode command line tools' do
+      p = provider
+      expect(p).to receive(:xcode_command_line_tools).with('default')
+        .and_return(xcode_command_line_tools_resource)
+      expect(xcode_command_line_tools_resource).to receive(:run_action)
+        .with(:install)
+      p.send(:install_xcode_tools)
     end
   end
 end
