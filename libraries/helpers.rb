@@ -21,6 +21,7 @@
 require 'chef/exceptions'
 require 'chef/mixin/shell_out'
 
+# rubocop:disable ModuleLength
 module MacAppStoreCookbook
   # A set of helper methods for interacting with the Mac App Store
   #
@@ -449,3 +450,4 @@ module MacAppStoreCookbook
     end
   end
 end
+# rubocop:enable ModuleLength
