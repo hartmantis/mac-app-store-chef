@@ -38,11 +38,6 @@ mac_app_store 'default' do
   username node['mac_app_store']['username']
   password node['mac_app_store']['password']
   action :open
-  only_if do
-    node.run_context.resource_collection.any? do |r|
-      r.is_a?(Chef::Resource::MacAppStoreApp)
-    end
-  end
   notifies :quit, 'mac_app_store[default]'
 end
 
