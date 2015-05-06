@@ -22,8 +22,6 @@ unless node['platform'] == 'mac_os_x'
   fail(Chef::Exceptions::UnsupportedPlatform, node['platform'])
 end
 
-include_recipe 'build-essential'
-
 apps = (node['mac_app_store']['apps'] || []).map do |a|
   if a.is_a?(Hash)
     a
@@ -38,11 +36,6 @@ mac_app_store 'default' do
   username node['mac_app_store']['username']
   password node['mac_app_store']['password']
   action :open
-  only_if do
-    node.run_context.resource_collection.any? do |r|
-      r.is_a?(Chef::Resource::MacAppStoreApp)
-    end
-  end
   notifies :quit, 'mac_app_store[default]'
 end
 

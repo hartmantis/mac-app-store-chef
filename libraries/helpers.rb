@@ -21,6 +21,7 @@
 require 'chef/exceptions'
 require 'chef/mixin/shell_out'
 
+# rubocop:disable ModuleLength
 module MacAppStoreCookbook
   # A set of helper methods for interacting with the Mac App Store
   #
@@ -311,7 +312,8 @@ module MacAppStoreCookbook
     end
 
     #
-    # Find the App Store application running or launch it
+    # Find the App Store application running or launch it. This method requires
+    # Accessibility privileges.
     #
     # @return [AX::Application]
     #
@@ -320,13 +322,13 @@ module MacAppStoreCookbook
     def app_store
       require 'ax_elements'
       as = AX::Application.new('com.apple.appstore')
+      set_focus_to(as)
       # The page loading can be funky, especially on a slow machine. Some
       # elements don't even load in a consistent order, so try to wait until
       # everything we need to interact with is loaded.
       wait_for(:standard_window, as) || fail(Exceptions::Timeout, 'App Store')
-      unless wait_for(:web_area, as.main_window)
-        fail(Exceptions::Timeout, 'App Store')
-      end
+      fail(Exceptions::Timeout, 'App Store') unless wait_for(:web_area,
+                                                             as.main_window)
       unless wait_for(:radio_button, as.main_window.toolbar, id: 'purchased')
         fail(Exceptions::Timeout, 'App Store toolbar nav buttons')
       end
@@ -334,15 +336,14 @@ module MacAppStoreCookbook
     end
 
     #
-    # Return whether the App Store app is running or not
+    # Return whether the App Store app is running or not. This method uses `ps`
+    # so that it has no dependency on the AXElements gem and can be run any
+    # time, including during a Chef compile stage.
     #
     # @return [TrueClass, FalseClass]
     #
     def app_store_running?
-      require 'ax_elements'
-      !NSRunningApplication.runningApplicationsWithBundleIdentifier(
-        'com.apple.appstore'
-      ).empty?
+      !shell_out('ps -A -c -o command | grep ^App\ Store$').stdout.empty?
     end
 
     #
@@ -362,7 +363,8 @@ module MacAppStoreCookbook
     #
     # Find either the bundle ID or executable path of the ancestor of the
     # current process that is a direct child of PID 1. The NSRunningApplication
-    # class doesn't require accessibility privileges so should always work.
+    # class doesn't require accessibility privileges so should work immediately
+    # after the AXElements gem is installed.
     #
     # The running application, when Chef is run over SSH, is returned as nil
     # and shows up in the accessibility settings as
@@ -448,3 +450,4 @@ module MacAppStoreCookbook
     end
   end
 end
+# rubocop:enable ModuleLength

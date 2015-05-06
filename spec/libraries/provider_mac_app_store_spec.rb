@@ -19,15 +19,6 @@ describe Chef::Provider::MacAppStore do
   end
   let(:provider) { described_class.new(new_resource, nil) }
 
-  before(:each) do
-    %i(install_axe_gem trust_app).each do |m|
-      allow_any_instance_of(described_class).to receive(m).and_return(true)
-    end
-    allow(AX::SystemWide).to receive(:new).and_return(system_wide)
-    allow_any_instance_of(described_class).to receive(:app_store_running?)
-      .and_return(app_store_running?)
-  end
-
   describe 'AXE_VERSION' do
     it 'pins AXE to 7 prerelease' do
       expect(described_class::AXE_VERSION).to eq('~> 7.0.0.pre')
@@ -42,28 +33,19 @@ describe Chef::Provider::MacAppStore do
 
   describe '#original_focus' do
     it 'returns the app originally focused on' do
-      expect(provider.original_focus).to eq('focused app')
-    end
-  end
-
-  describe '#initialize' do
-    it 'installs the AXE gem' do
-      expect_any_instance_of(described_class).to receive(:install_axe_gem)
-      provider
-    end
-
-    it 'sets up accessibility for the app running Chef' do
-      expect_any_instance_of(described_class).to receive(:trust_app)
-      provider
-    end
-
-    it 'saves the original focused app for later' do
-      expect(provider.original_focus).to eq('focused app')
+      p = provider
+      p.instance_variable_set(:@original_focus, 'focused app')
+      expect(p.original_focus).to eq('focused app')
     end
   end
 
   describe '#load_current_resource' do
     let(:app_store_running?) { true }
+
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:app_store_running?)
+        .and_return(app_store_running?)
+    end
 
     it 'returns a MacAppStore resource instance' do
       expected = Chef::Resource::MacAppStore
@@ -71,199 +53,182 @@ describe Chef::Provider::MacAppStore do
     end
 
     it 'sets the resource running status' do
-      expect(provider.load_current_resource.running?).to eq(true)
+      p = provider
+      p.load_current_resource
+      expect(p.current_resource.running?).to eq(true)
     end
   end
 
   describe '#action_open' do
-    let(:app_store_running?) { false }
-    let(:app_store) { 'app store' }
-    let(:signed_in?) { true }
+    let(:focused_application) { 'some app' }
 
     before(:each) do
-      %i(app_store app_store_running? signed_in?).each do |m|
+      [:prep, :open_app_store, :sign_in!].each do |m|
         allow_any_instance_of(described_class).to receive(m)
-          .and_return(send(m))
       end
-      allow_any_instance_of(described_class).to receive(:set_focus_to)
-        .with(app_store).and_return(true)
-      allow_any_instance_of(described_class).to receive(:sign_in!)
-        .with(username, password).and_return(true)
+      allow(AX::SystemWide).to receive(:new)
+        .and_return(double(focused_application: focused_application))
     end
 
-    shared_examples_for 'any valid set of attributes' do
-      it 'sets focus to the App Store' do
-        expect_any_instance_of(described_class).to receive(:set_focus_to)
-          .with(app_store)
-        provider.action_open
-      end
-
-      it 'sets the resource running status' do
-        p = provider
-        expect(p.new_resource.running?).to eq(nil)
-        p.action_open
-        expect(p.new_resource.running?).to eq(true)
-      end
-    end
-
-    shared_examples_for 'an invalid configuration' do
-      it 'raises an exception' do
-        expected = Chef::Exceptions::ValidationFailed
-        expect { provider.action_open }.to raise_error(expected)
-      end
-    end
-
-    context 'App Store running' do
-      let(:username) { nil }
-      let(:password) { nil }
-      let(:app_store_running?) { true }
-
-      it_behaves_like 'any valid set of attributes'
-
-      it 'does not update new_resource' do
-        p = provider
-        p.action_open
-        expect(p.new_resource.updated).to eq(false)
-      end
-    end
-
-    context 'App Store not running' do
-      let(:username) { nil }
-      let(:password) { nil }
-      let(:app_store_running?) { false }
-
-      it_behaves_like 'any valid set of attributes'
-
-      it 'updates new_resource' do
-        p = provider
-        p.action_open
-        expect(p.new_resource.updated).to eq(true)
-      end
-    end
-
-    context 'username and password provided' do
-      let(:username) { 'example@example.com' }
-      let(:password) { '12345' }
-      let(:signed_in?) { false }
-
-      it_behaves_like 'any valid set of attributes'
-
-      it 'signs in as the provided Apple ID' do
-        expect_any_instance_of(described_class).to receive(:sign_in!)
-          .with(username, password)
+    [:prep, :open_app_store].each do |m|
+      it "calls #{m}" do
+        expect_any_instance_of(described_class).to receive(m)
         provider.action_open
       end
     end
 
-    context 'no username or password provided but already signed in' do
-      let(:username) { nil }
-      let(:password) { nil }
-      let(:signed_in?) { true }
-
-      it_behaves_like 'any valid set of attributes'
-
-      it 'does not try to sign in' do
-        expect_any_instance_of(described_class).not_to receive(:sign_in!)
-        provider.action_open
-      end
+    it 'saves the original target of system focus' do
+      p = provider
+      p.action_open
+      expect(p.original_focus).to eq('some app')
     end
 
-    context 'no username or password provided and not signed in' do
-      let(:username) { nil }
-      let(:password) { nil }
-      let(:signed_in?) { false }
-
-      it_behaves_like 'an invalid configuration'
+    it 'signs in' do
+      expect_any_instance_of(described_class).to receive(:sign_in!)
+        .with(username, password)
+      provider.action_open
     end
 
-    context 'username only provided' do
-      let(:username) { 'example@example.com' }
-      let(:password) { nil }
-
-      it_behaves_like 'an invalid configuration'
-    end
-
-    context 'password only provided' do
-      let(:username) { nil }
-      let(:password) { '12345' }
-
-      it_behaves_like 'an invalid configuration'
+    it 'sets the resource running state' do
+      p = provider
+      p.action_open
+      expect(p.new_resource.running?).to eq(true)
     end
   end
 
   describe '#action_quit' do
-    let(:app_store_running?) { true }
+    let(:original_focus) { nil }
 
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:app_store_running?)
-        .and_return(app_store_running?)
-      allow_any_instance_of(described_class).to receive(:quit!)
-        .and_return(true)
-      allow_any_instance_of(described_class).to receive(:set_focus_to)
-        .with('focused app').and_return(true)
+      [:prep, :quit_app_store, :set_focus_to].each do |m|
+        allow_any_instance_of(described_class).to receive(m)
+      end
+      allow_any_instance_of(described_class).to receive(:original_focus)
+        .and_return(original_focus)
     end
 
-    shared_examples_for 'any running state' do
-      it 'returns focus to the original target' do
-        expect_any_instance_of(described_class).to receive(:set_focus_to)
-          .with('focused app')
-        provider.action_quit
+    shared_examples_for 'any prior state' do
+      [:prep, :quit_app_store].each do |m|
+        it "calls #{m}" do
+          expect_any_instance_of(described_class).to receive(m)
+          provider.action_quit
+        end
       end
 
-      it 'sets the resource running status' do
+      it 'sets the resource running state' do
         p = provider
-        expect(p.new_resource.running?).to eq(nil)
         p.action_quit
         expect(p.new_resource.running?).to eq(false)
       end
     end
 
-    context 'App Store running' do
-      let(:app_store_running?) { true }
+    context 'no saved original focus' do
+      let(:original_focus) { nil }
 
-      it_behaves_like 'any running state'
+      it_behaves_like 'any prior state'
 
-      it 'quits the App Store' do
-        expect_any_instance_of(described_class).to receive(:quit!)
+      it 'does not reset focus' do
+        expect_any_instance_of(described_class).not_to receive(:set_focus_to)
         provider.action_quit
       end
+    end
 
-      it 'updates new_resource' do
-        p = provider
-        p.action_quit
-        expect(p.new_resource.updated).to eq(true)
+    context 'a saved original focus' do
+      let(:original_focus) { 'thing' }
+
+      it_behaves_like 'any prior state'
+
+      it 'resets focus' do
+        expect_any_instance_of(described_class).to receive(:set_focus_to)
+          .with('thing')
+        provider.action_quit
       end
+    end
+  end
+
+  describe '#quit_app_store' do
+    let(:app_store_running?) { nil }
+
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:app_store_running?)
+        .and_return(app_store_running?)
+      allow_any_instance_of(described_class).to receive(:quit!)
     end
 
     context 'App Store not running' do
       let(:app_store_running?) { false }
 
-      it_behaves_like 'any running state'
-
-      it 'does not quit the App Store' do
-        expect_any_instance_of(described_class).not_to receive(:quit!)
-        provider.action_quit
-      end
-
-      it 'does not update new_resource' do
+      it 'does nothing' do
         p = provider
-        p.action_quit
+        expect(p).not_to receive(:quit!)
+        p.send(:quit_app_store)
+        expect(p.new_resource.updated).to eq(false)
+      end
+    end
+
+    context 'App Store running' do
+      let(:app_store_running?) { true }
+
+      it 'quits' do
+        p = provider
+        expect(p).to receive(:quit!)
+        p.send(:quit_app_store)
+        expect(p.new_resource.updated).to eq(true)
+      end
+    end
+  end
+
+  describe '#open_app_store' do
+    let(:app_store_running?) { nil }
+
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:app_store_running?)
+        .and_return(app_store_running?)
+      allow_any_instance_of(described_class).to receive(:app_store)
+    end
+
+    context 'App Store not running' do
+      let(:app_store_running?) { false }
+
+      it 'opens the App Store' do
+        p = provider
+        expect(p).to receive(:app_store)
+        p.send(:open_app_store)
+        expect(p.new_resource.updated).to eq(true)
+      end
+    end
+
+    context 'App Store running' do
+      let(:app_store_running?) { true }
+
+      it 'changes focus to the App Store' do
+        p = provider
+        expect(p).to receive(:app_store)
+        p.send(:open_app_store)
         expect(p.new_resource.updated).to eq(false)
       end
     end
   end
 
+  describe '#prep' do
+    it 'installs Xcode and AXE and sets up Accessibility rights' do
+      p = provider
+      expect(p).to receive(:install_xcode_tools)
+      expect(p).to receive(:install_axe_gem)
+      expect(p).to receive(:trust_app)
+      p.send(:prep)
+    end
+  end
+
   describe '#trust_app' do
     let(:current_application_name) { 'com.example.app' }
+    let(:ma_resource) { double(run_action: true) }
 
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:trust_app)
-        .and_call_original
-      allow_any_instance_of(described_class)
-        .to receive(:macosx_accessibility)
       allow_any_instance_of(described_class)
         .to receive(:current_application_name)
         .and_return(current_application_name)
+      allow_any_instance_of(described_class).to receive(:macosx_accessibility)
     end
 
     it 'grants accessibility rights to the current running application' do
@@ -271,26 +236,37 @@ describe Chef::Provider::MacAppStore do
       expect(p).to receive(:macosx_accessibility)
         .with(current_application_name).and_yield
       expect(p).to receive(:items).with([current_application_name])
-      expect(p).to receive(:action).with([:insert, :enable])
+        .and_return(ma_resource)
+      expect(ma_resource).to receive(:run_action).with(:insert)
+      expect(ma_resource).to receive(:run_action).with(:enable)
       p.send(:trust_app)
     end
   end
 
   describe '#install_axe_gem' do
-    let(:chef_gem) { double(version: true, action: true) }
-
-    before(:each) do
-      allow_any_instance_of(described_class).to receive(:chef_gem)
-        .with('AXElements').and_yield
-    end
+    let(:chef_gem_resource) { double(run_action: true) }
 
     it 'installs the AXElements gem' do
       p = provider
-      allow(p).to receive(:install_axe_gem).and_call_original
-      expect(p).to receive(:compile_time).with(true)
+      expect(p).to receive(:chef_gem).with('AXElements').and_yield
+      expect(p).to receive(:compile_time).with(false)
       expect(p).to receive(:version).with('~> 7.0.0.pre')
-      expect(p).to receive(:action).with(:install)
+        .and_return(chef_gem_resource)
+      expect(chef_gem_resource).to receive(:run_action).with(:install)
       p.send(:install_axe_gem)
+    end
+  end
+
+  describe '#install_xcode_tools' do
+    let(:xcode_command_line_tools_resource) { double(run_action: true) }
+
+    it 'installs the Xcode command line tools' do
+      p = provider
+      expect(p).to receive(:xcode_command_line_tools).with('default')
+        .and_return(xcode_command_line_tools_resource)
+      expect(xcode_command_line_tools_resource).to receive(:run_action)
+        .with(:install)
+      p.send(:install_xcode_tools)
     end
   end
 end

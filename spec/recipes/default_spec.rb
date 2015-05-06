@@ -16,10 +16,13 @@ describe 'mac-app-store::default' do
     let(:platform) { { platform: 'mac_os_x', version: '10.9.2' } }
 
     shared_examples_for 'any attribute set' do
-      it 'installs the required dev tools at compile time' do
-        cr = chef_run
-        expect(cr).to include_recipe('build-essential')
-        expect(cr.node['build-essential']['compile_time']).to eq(true)
+      it 'opens the Mac App Store' do
+        expect(chef_run).to open_mac_app_store('default')
+      end
+
+      it 'notifies the App Store to quit when done' do
+        expect(chef_run.mac_app_store('default'))
+          .to notify('mac_app_store[default]').to(:quit).delayed
       end
     end
 
@@ -32,15 +35,6 @@ describe 'mac-app-store::default' do
     end
 
     shared_examples_for 'given a set of apps to install' do
-      it 'opens the Mac App Store' do
-        expect(chef_run).to open_mac_app_store('default')
-      end
-
-      it 'notifies the App Store to quit when done' do
-        expect(chef_run.mac_app_store('default'))
-          .to notify('mac_app_store[default]').to(:quit).delayed
-      end
-
       it 'installs the specified apps' do
         r = chef_run
         overrides[:mac_app_store][:apps].each do |a|
@@ -56,10 +50,6 @@ describe 'mac-app-store::default' do
 
     context 'default attributes' do
       it_behaves_like 'any attribute set'
-
-      it 'does not open the App Store' do
-        expect(chef_run).not_to open_mac_app_store('default')
-      end
 
       it 'installs no apps' do
         expect(chef_run.find_resources(:mac_app_store_app)).to be_empty

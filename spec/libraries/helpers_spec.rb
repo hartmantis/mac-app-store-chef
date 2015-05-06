@@ -890,6 +890,7 @@ describe MacAppStoreCookbook::Helpers do
     before(:each) do
       allow(AX::Application).to receive(:new).with('com.apple.appstore')
         .and_return(app_store)
+      allow_any_instance_of(described_class).to receive(:set_focus_to)
       allow_any_instance_of(described_class).to receive(:wait_for)
         .with(:standard_window, app_store).and_return(main_window)
       allow_any_instance_of(described_class).to receive(:wait_for)
@@ -913,6 +914,12 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'returns an AX::Application object' do
         expect(test_obj.app_store).to eq(app_store)
+      end
+
+      it 'sets focus to the App Store application' do
+        expect_any_instance_of(described_class).to receive(:set_focus_to)
+          .with(app_store)
+        test_obj.app_store
       end
 
       it 'waits for the main window to load' do
@@ -961,16 +968,19 @@ describe MacAppStoreCookbook::Helpers do
   end
 
   describe '#app_store_running?' do
-    let(:running_applications) { [] }
+    let(:app_store_running?) { nil }
+    let(:stdout) do
+      app_store_running? ? 'some output' : ''
+    end
 
     before(:each) do
-      allow(NSRunningApplication)
-        .to receive(:runningApplicationsWithBundleIdentifier)
-        .with('com.apple.appstore').and_return(running_applications)
+      allow_any_instance_of(described_class).to receive(:shell_out)
+        .with('ps -A -c -o command | grep ^App\ Store$')
+        .and_return(double(stdout: stdout))
     end
 
     context 'App Store not running' do
-      let(:running_applications) { [] }
+      let(:app_store_running?) { false }
 
       it 'returns false' do
         expect(test_obj.app_store_running?).to eq(false)
@@ -978,7 +988,7 @@ describe MacAppStoreCookbook::Helpers do
     end
 
     context 'App Store running' do
-      let(:running_applications) { %w(some_app) }
+      let(:app_store_running?) { true }
 
       it 'returns true' do
         expect(test_obj.app_store_running?).to eq(true)
