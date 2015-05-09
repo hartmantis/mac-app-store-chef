@@ -1,6 +1,9 @@
 Mac App Store Cookbook CHANGELOG
 ================================
 
+v?.?.? (????-??-??)
+-------------------
+
 v1.0.0 (2015-05-08)
 -------------------
 - Pin to a newer (albeit prerelease) version of the AXElements gem that doesn't
