@@ -21,22 +21,20 @@ describe Chef::Resource::MacAppStore do
 
   describe '#initialize' do
     it 'sets the correct resource name' do
-      exp = :mac_app_store
-      expect(resource.instance_variable_get(:@resource_name)).to eq(exp)
+      expect(resource.resource_name).to eq(:mac_app_store)
     end
 
     it 'sets the correct supported actions' do
-      expected = [:nothing, :open, :quit]
-      expect(resource.instance_variable_get(:@allowed_actions)).to eq(expected)
+      expect(resource.allowed_actions).to eq([:nothing, :open, :quit])
     end
 
     it 'defaults the running state to nil' do
-      expect(resource.instance_variable_get(:@running)).to eq(nil)
+      expect(resource.running).to eq(nil)
     end
 
     it 'defaults the Apple ID to nil' do
-      expect(resource.instance_variable_get(:@username)).to eq(nil)
-      expect(resource.instance_variable_get(:@password)).to eq(nil)
+      expect(resource.username).to eq(nil)
+      expect(resource.password).to eq(nil)
     end
   end
 
