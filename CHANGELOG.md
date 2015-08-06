@@ -1,8 +1,9 @@
 Mac App Store Cookbook CHANGELOG
 ================================
 
-v?.?.? (????-??-??)
+v1.0.1 (2015-08-06)
 -------------------
+- Replace references to App Store "Purchases" tab (now named "Purchased")
 
 v1.0.0 (2015-05-08)
 -------------------
