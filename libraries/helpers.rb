@@ -69,7 +69,7 @@ module MacAppStoreCookbook
     #
     # Check whether an app is currently installed or not based on the presence
     # of an 'OPEN' button (rather than 'DOWNLOAD' or 'INSTALL') in the
-    # 'Purchases' list
+    # 'Purchased' list
     #
     # @param [String] app_name
     #
@@ -104,7 +104,7 @@ module MacAppStoreCookbook
     end
 
     #
-    # If not already at it, follow the app link in the Purchases list to
+    # If not already at it, follow the app link in the Purchased list to
     # navigate to the app's main page, and return the Application instance
     # whose state was just altered
     #
@@ -160,11 +160,11 @@ module MacAppStoreCookbook
     # @return [AX::Row, NilClass]
     #
     def row(app_name)
-      purchases.main_window.search(:row, link: { title: app_name })
+      purchased.main_window.search(:row, link: { title: app_name })
     end
 
     #
-    # If not already at it, navigate to the 'Purchases' page and return the
+    # If not already at it, navigate to the 'Purchased' page and return the
     # Application object whose state may have just been altered.
     #
     # @return [AX::Application]
@@ -172,13 +172,13 @@ module MacAppStoreCookbook
     # @raise [MacAppStoreCookbook::Exceptions::Timeout]
     # @raise [MacAppStoreCookbook::Exceptions::UserNotSignedIn]
     #
-    def purchases
+    def purchased
       signed_in? || fail(Exceptions::UserNotSignedIn)
-      unless app_store.main_window.web_area.description == 'Purchases'
-        select_menu_item(app_store, 'Store', 'Purchases')
+      unless app_store.main_window.web_area.description == 'Purchased'
+        select_menu_item(app_store, 'Store', 'Purchased')
       end
-      unless wait_for(:table, app_store.main_window, description: 'Purchases')
-        fail(Exceptions::Timeout, 'Purchases list')
+      unless wait_for(:table, app_store.main_window, description: 'Purchased')
+        fail(Exceptions::Timeout, 'Purchased list')
       end
       app_store
     end
@@ -425,7 +425,7 @@ module MacAppStoreCookbook
     # @author Jonathan Hartman <j@p4nt5.com>
     class AppNotPurchased < StandardError
       def initialize(name)
-        super("App '#{name}' is not in the Purchases list")
+        super("App '#{name}' is not in the Purchased list")
       end
     end
 
