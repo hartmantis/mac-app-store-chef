@@ -21,7 +21,7 @@ describe Chef::Provider::MacAppStore do
 
   describe 'AXE_VERSION' do
     it 'pins AXE to 7 prerelease' do
-      expect(described_class::AXE_VERSION).to eq('~> 7.0.0.pre')
+      expect(described_class::AXE_VERSION).to eq('~> 7.0')
     end
   end
 
@@ -250,7 +250,7 @@ describe Chef::Provider::MacAppStore do
       p = provider
       expect(p).to receive(:chef_gem).with('AXElements').and_yield
       expect(p).to receive(:compile_time).with(false)
-      expect(p).to receive(:version).with('~> 7.0.0.pre')
+      expect(p).to receive(:version).with('~> 7.0')
         .and_return(chef_gem_resource)
       expect(chef_gem_resource).to receive(:run_action).with(:install)
       p.send(:install_axe_gem)

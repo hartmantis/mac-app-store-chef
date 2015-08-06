@@ -301,7 +301,7 @@ describe MacAppStoreCookbook::Helpers do
         .and_return(row)
     end
 
-    context 'already on the app page, past the Purchases list' do
+    context 'already on the app page, past the Purchased list' do
       let(:on_app_page) { true }
 
       context 'app already installed' do
@@ -332,7 +332,7 @@ describe MacAppStoreCookbook::Helpers do
       end
     end
 
-    context 'on the Purchases list page' do
+    context 'on the Purchased list page' do
       let(:on_app_page) { false }
 
       context 'app already installed' do
@@ -367,11 +367,11 @@ describe MacAppStoreCookbook::Helpers do
   describe '#row' do
     let(:search) { nil }
     let(:main_window) { double }
-    let(:purchases) { double(main_window: main_window) }
+    let(:purchased) { double(main_window: main_window) }
 
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:purchases)
-        .and_return(purchases)
+      allow_any_instance_of(described_class).to receive(:purchased)
+        .and_return(purchased)
       allow(main_window).to receive(:search)
         .with(:row, link: { title: app_name }).and_return(search)
     end
@@ -393,14 +393,14 @@ describe MacAppStoreCookbook::Helpers do
     end
   end
 
-  describe '#purchases' do
+  describe '#purchased' do
     let(:already_there?) { false }
     let(:signed_in?) { true }
     let(:wait_for) { nil }
     let(:main_window) do
       double(
         web_area: double(
-          description: already_there? ? 'Purchases' : 'Elsewhere'
+          description: already_there? ? 'Purchased' : 'Elsewhere'
         )
       )
     end
@@ -408,22 +408,22 @@ describe MacAppStoreCookbook::Helpers do
 
     before(:each) do
       allow_any_instance_of(described_class).to receive(:select_menu_item)
-        .with(app_store, 'Store', 'Purchases').and_return(true)
+        .with(app_store, 'Store', 'Purchased').and_return(true)
       %i(signed_in? app_store).each do |m|
         allow_any_instance_of(described_class).to receive(m)
           .and_return(send(m))
       end
       allow_any_instance_of(described_class).to receive(:wait_for)
-        .with(:table, main_window, description: 'Purchases')
+        .with(:table, main_window, description: 'Purchased')
         .and_return(wait_for)
     end
 
     shared_examples_for 'user signed in' do
-      it 'waits for the Purchases table to load' do
+      it 'waits for the Purchased table to load' do
         expect_any_instance_of(described_class).to receive(:wait_for)
-          .with(:table, main_window, description: 'Purchases')
+          .with(:table, main_window, description: 'Purchased')
           .and_return(wait_for)
-        test_obj.purchases
+        test_obj.purchased
       end
     end
 
@@ -432,7 +432,7 @@ describe MacAppStoreCookbook::Helpers do
 
       it 'raises an exception' do
         expected = MacAppStoreCookbook::Exceptions::UserNotSignedIn
-        expect { test_obj.purchases }.to raise_error(expected)
+        expect { test_obj.purchased }.to raise_error(expected)
       end
     end
 
@@ -442,28 +442,28 @@ describe MacAppStoreCookbook::Helpers do
 
       it_behaves_like 'user signed in'
 
-      it 'selects Purchases from the dropdown menu'do
+      it 'selects Purchased from the dropdown menu'do
         expect_any_instance_of(described_class).to receive(:select_menu_item)
-          .with(app_store, 'Store', 'Purchases')
-        test_obj.purchases
+          .with(app_store, 'Store', 'Purchased')
+        test_obj.purchased
       end
 
       it 'returns the App Store object' do
-        expect(test_obj.purchases).to eq(app_store)
+        expect(test_obj.purchased).to eq(app_store)
       end
     end
 
-    context 'user signed in, purchases list loading timeout' do
+    context 'user signed in, purchased list loading timeout' do
       let(:wait_for) { nil }
       let(:signed_in?) { true }
 
       it 'raises an exception' do
         expected = MacAppStoreCookbook::Exceptions::Timeout
-        expect { test_obj.purchases }.to raise_error(expected)
+        expect { test_obj.purchased }.to raise_error(expected)
       end
     end
 
-    context 'App Store already at the Purchases page' do
+    context 'App Store already at the Purchased page' do
       let(:wait_for) { true }
       let(:signed_in?) { true }
       let(:already_there?) { true }
@@ -473,11 +473,11 @@ describe MacAppStoreCookbook::Helpers do
       it 'does nothing to modify App Store state' do
         expect_any_instance_of(described_class)
           .not_to receive(:select_menu_item)
-        test_obj.purchases
+        test_obj.purchased
       end
 
       it 'returns the App Store object' do
-        expect(test_obj.purchases).to eq(app_store)
+        expect(test_obj.purchased).to eq(app_store)
       end
     end
   end

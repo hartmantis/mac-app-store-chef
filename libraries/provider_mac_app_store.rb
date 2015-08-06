@@ -31,7 +31,7 @@ class Chef
     class MacAppStore < Provider::LWRPBase
       include MacAppStoreCookbook::Helpers
 
-      AXE_VERSION ||= '~> 7.0.0.pre'
+      AXE_VERSION ||= '~> 7.0'
 
       use_inline_resources
 
