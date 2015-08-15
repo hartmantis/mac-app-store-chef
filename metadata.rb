@@ -10,7 +10,8 @@ long_description 'Automates installation of Mac App Store apps'
 version          '1.0.2'
 
 depends          'build-essential', '~> 2.1'
-depends          'macosx_accessibility', '~> 1.0'
+depends          'now', '~> 0.3'
+depends          'privacy_services_manager', '~> 1.0'
 
 supports         'mac_os_x'
 # rubocop:enable SingleSpaceBeforeFirstArg
