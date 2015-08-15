@@ -19,6 +19,7 @@
 #
 
 require 'chef/provider/lwrp_base'
+require 'chef/dsl/include_recipe'
 require 'chef/resource/chef_gem'
 require_relative 'helpers'
 require_relative 'resource_mac_app_store'
@@ -29,6 +30,7 @@ class Chef
     #
     # @author Jonathan Hartman <j@p4nt5.com>
     class MacAppStore < Provider::LWRPBase
+      include Chef::DSL::IncludeRecipe
       include MacAppStoreCookbook::Helpers
 
       AXE_VERSION ||= '~> 7.0'
@@ -118,12 +120,14 @@ class Chef
       # ruby_block resources.
       #
       def trust_app
+        include_recipe_now 'privacy_services_manager'
         app = current_application_name
-        ma = macosx_accessibility app do
-          items [app]
+        psm = privacy_services_manager "Grant Accessibility rights to #{app}" do
+          service 'accessibility'
+          applications [app]
+          admin true
         end
-        ma.run_action(:insert)
-        ma.run_action(:enable)
+        psm.run_action(:add)
       end
 
       #
