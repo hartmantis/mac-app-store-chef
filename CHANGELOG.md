@@ -1,6 +1,9 @@
 Mac App Store Cookbook CHANGELOG
 ================================
 
+v?.?.? (????-??-??)
+-------------------
+
 v1.1.0 (2015-08-16)
 -------------------
 - Update to Chef 12-style provider mapping (drops compatibility with Chef 11).
