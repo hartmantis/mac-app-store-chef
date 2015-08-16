@@ -37,6 +37,8 @@ class Chef
 
       use_inline_resources
 
+      provides :mac_app_store, platform_family: 'mac_os_x'
+
       attr_reader :original_focus
 
       #

@@ -32,6 +32,8 @@ class Chef
       include MacAppStoreCookbook::Helpers
       include Chef::Mixin::ShellOut
 
+      provides :mac_app_store_app, platform_family: 'mac_os_x'
+
       #
       # WhyRun is supported by this provider
       #

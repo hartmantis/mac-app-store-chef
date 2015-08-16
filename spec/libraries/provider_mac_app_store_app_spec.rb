@@ -16,6 +16,20 @@ describe Chef::Provider::MacAppStoreApp do
   end
   let(:provider) { described_class.new(new_resource, nil) }
 
+  describe '.provides?' do
+    let(:platform) { nil }
+    let(:node) { ChefSpec::Macros.stub_node('node.example', platform) }
+    let(:res) { described_class.provides?(node, new_resource) }
+
+    context 'Mac OS X' do
+      let(:platform) { { platform: 'mac_os_x', version: '10.10' } }
+
+      it 'returns true' do
+        expect(res).to eq(true)
+      end
+    end
+  end
+
   describe '#whyrun_supported?' do
     it 'returns true' do
       expect(provider.whyrun_supported?).to eq(true)

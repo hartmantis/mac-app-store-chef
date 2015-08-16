@@ -3,10 +3,13 @@ Mac App Store Cookbook CHANGELOG
 
 v?.?.? (????-??-??)
 -------------------
+- Update to Chef 12-style provider mapping (breaks compatibility with Chef 11).
+- Replace dependency on macosx_accessibility (deprecated) with
+  privacy_services_manager.
 
 v1.0.1 (2015-08-06)
 -------------------
-- Replace references to App Store "Purchases" tab (now named "Purchased")
+- Replace references to App Store "Purchases" tab (now named "Purchased").
 
 v1.0.0 (2015-05-08)
 -------------------
