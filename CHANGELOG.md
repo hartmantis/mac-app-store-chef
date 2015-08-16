@@ -1,9 +1,9 @@
 Mac App Store Cookbook CHANGELOG
 ================================
 
-v?.?.? (????-??-??)
+v1.1.0 (2015-08-16)
 -------------------
-- Update to Chef 12-style provider mapping (breaks compatibility with Chef 11).
+- Update to Chef 12-style provider mapping (drops compatibility with Chef 11).
 - Replace dependency on macosx_accessibility (deprecated) with
   privacy_services_manager.
 

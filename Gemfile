@@ -37,7 +37,7 @@ group :deploy do
 end
 
 group :production do
-  gem 'chef', '>= 11'
+  gem 'chef', '>= 12'
   gem 'berkshelf', '>= 3'
   gem 'AXElements', '~> 7.0'
 end
