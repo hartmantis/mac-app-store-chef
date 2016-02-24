@@ -33,7 +33,7 @@ class Chef
       include Chef::DSL::IncludeRecipe
       include MacAppStoreCookbook::Helpers
 
-      AXE_VERSION ||= '~> 7.0'
+      AXE_VERSION ||= '~> 7.0'.freeze
 
       use_inline_resources
 

@@ -58,7 +58,7 @@ module MacAppStoreCookbook
     #
     def wait_for_install(app_name, timeout)
       # Button might be 'Installed' or 'Open' depending on OS X version
-      fail(Exceptions::Timeout, "'#{app_name}' installation") unless wait_for(
+      raise(Exceptions::Timeout, "'#{app_name}' installation") unless wait_for(
         :button,
         app_page(app_name),
         description: /^(Installed,|Open,)/,
@@ -76,7 +76,7 @@ module MacAppStoreCookbook
     # @return [TrueClass, FalseClass]
     #
     def app_installed?(app_name)
-      app_page_button(app_name).description.match(/^Open,/) ? true : false
+      app_page_button(app_name).description =~ /^Open,/ ? true : false
     end
 
     #
@@ -89,7 +89,7 @@ module MacAppStoreCookbook
     #
     def latest_version(app_name)
       app_page(app_name).main_window.static_text(value: 'Version: ').parent
-        .static_text(value: /^[0-9]/).value
+                        .static_text(value: /^[0-9]/).value
     end
 
     #
@@ -121,7 +121,7 @@ module MacAppStoreCookbook
         unless wait_for(:button,
                         app_store.main_window,
                         description: /^(Install,|Download,|Installed,|Open,)/)
-          fail(Exceptions::Timeout, "'#{app_name}' app page")
+          raise(Exceptions::Timeout, "'#{app_name}' app page")
         end
       end
       app_store
@@ -133,7 +133,7 @@ module MacAppStoreCookbook
     # @raise [MacAppStoreCookbook::Exceptions::AppNotPurchased]
     #
     def fail_unless_purchased(app_name)
-      purchased?(app_name) || fail(Exceptions::AppNotPurchased, app_name)
+      purchased?(app_name) || raise(Exceptions::AppNotPurchased, app_name)
     end
 
     #
@@ -173,12 +173,12 @@ module MacAppStoreCookbook
     # @raise [MacAppStoreCookbook::Exceptions::UserNotSignedIn]
     #
     def purchased
-      signed_in? || fail(Exceptions::UserNotSignedIn)
+      signed_in? || raise(Exceptions::UserNotSignedIn)
       unless app_store.main_window.web_area.description == 'Purchased'
         select_menu_item(app_store, 'Store', 'Purchased')
       end
       unless wait_for(:table, app_store.main_window, description: 'Purchased')
-        fail(Exceptions::Timeout, 'Purchased list')
+        raise(Exceptions::Timeout, 'Purchased list')
       end
       app_store
     end
@@ -201,7 +201,7 @@ module MacAppStoreCookbook
     #
     def sign_in!(username, password)
       return if signed_in? && current_user? == username
-      fail(Exceptions::AppleIDInfoMissing) unless username && password
+      raise(Exceptions::AppleIDInfoMissing) unless username && password
       sign_out!
       sign_in_menu
       set(username_field, username)
@@ -216,7 +216,7 @@ module MacAppStoreCookbook
     # @raise [MacAppStoreCookbook::Exceptions::Timeout]
     #
     def wait_for_sign_in
-      fail(Exceptions::Timeout, 'sign in') unless wait_for(
+      raise(Exceptions::Timeout, 'sign in') unless wait_for(
         :menu_item,
         app_store.menu_bar_item(title: 'Store'),
         title: 'Sign Out'
@@ -275,7 +275,7 @@ module MacAppStoreCookbook
         unless wait_for(:button,
                         app_store.main_window,
                         title: 'Sign In')
-          fail(Exceptions::Timeout, 'Sign In window')
+          raise(Exceptions::Timeout, 'Sign In window')
         end
       end
       app_store
@@ -290,8 +290,8 @@ module MacAppStoreCookbook
     def current_user?
       return nil unless signed_in?
       app_store.menu_bar_item(title: 'Store')
-        .menu_item(title: /^View My Account /)
-        .title[/^View My Account \((.*)\)/, 1]
+               .menu_item(title: /^View My Account /)
+               .title[/^View My Account \((.*)\)/, 1]
     end
 
     #
@@ -326,11 +326,11 @@ module MacAppStoreCookbook
       # The page loading can be funky, especially on a slow machine. Some
       # elements don't even load in a consistent order, so try to wait until
       # everything we need to interact with is loaded.
-      wait_for(:standard_window, as) || fail(Exceptions::Timeout, 'App Store')
-      fail(Exceptions::Timeout, 'App Store') unless wait_for(:web_area,
-                                                             as.main_window)
+      wait_for(:standard_window, as) || raise(Exceptions::Timeout, 'App Store')
+      raise(Exceptions::Timeout, 'App Store') unless wait_for(:web_area,
+                                                              as.main_window)
       unless wait_for(:radio_button, as.main_window.toolbar, id: 'purchased')
-        fail(Exceptions::Timeout, 'App Store toolbar nav buttons')
+        raise(Exceptions::Timeout, 'App Store toolbar nav buttons')
       end
       as
     end

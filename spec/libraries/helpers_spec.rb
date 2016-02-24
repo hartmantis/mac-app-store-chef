@@ -442,7 +442,7 @@ describe MacAppStoreCookbook::Helpers do
 
       it_behaves_like 'user signed in'
 
-      it 'selects Purchased from the dropdown menu'do
+      it 'selects Purchased from the dropdown menu' do
         expect_any_instance_of(described_class).to receive(:select_menu_item)
           .with(app_store, 'Store', 'Purchased')
         test_obj.purchased

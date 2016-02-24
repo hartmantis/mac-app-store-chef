@@ -36,7 +36,7 @@ class Chef
       attribute :running,
                 kind_of: [NilClass, TrueClass, FalseClass],
                 default: nil
-      alias_method :running?, :running
+      alias running? running
 
       #
       # An optional Apple ID username

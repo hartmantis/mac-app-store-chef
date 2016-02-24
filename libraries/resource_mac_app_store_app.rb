@@ -36,7 +36,7 @@ class Chef
       attribute :installed,
                 kind_of: [NilClass, TrueClass, FalseClass],
                 default: nil
-      alias_method :installed?, :installed
+      alias installed? installed
 
       #
       # The name of the app to be installed (defaults to the resource name).

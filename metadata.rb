@@ -1,6 +1,5 @@
 # Encoding: UTF-8
-#
-# rubocop:disable SingleSpaceBeforeFirstArg
+
 name             'mac-app-store'
 maintainer       'Jonathan Hartman'
 maintainer_email 'j@p4nt5.com'
@@ -14,4 +13,3 @@ depends          'now', '~> 0.3'
 depends          'privacy_services_manager', '~> 1.0'
 
 supports         'mac_os_x'
-# rubocop:enable SingleSpaceBeforeFirstArg

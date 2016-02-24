@@ -19,7 +19,7 @@
 #
 
 unless node['platform'] == 'mac_os_x'
-  fail(Chef::Exceptions::UnsupportedPlatform, node['platform'])
+  raise(Chef::Exceptions::UnsupportedPlatform, node['platform'])
 end
 
 apps = (node['mac_app_store']['apps'] || []).map do |a|
@@ -28,7 +28,7 @@ apps = (node['mac_app_store']['apps'] || []).map do |a|
   elsif a.is_a?(String)
     { name: a, bundle_id: nil }
   else
-    fail(Chef::Exceptions::ValidationFailed, "Invalid app entry '#{a}'")
+    raise(Chef::Exceptions::ValidationFailed, "Invalid app entry '#{a}'")
   end
 end
 
