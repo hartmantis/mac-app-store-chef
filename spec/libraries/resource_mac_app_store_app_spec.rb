@@ -6,8 +6,9 @@ require_relative '../../libraries/resource_mac_app_store_app'
 describe Chef::Resource::MacAppStoreApp do
   let(:name) { 'Some App' }
   %i(app_name timeout bundle_id).each { |a| let(a) { nil } }
+  let(:run_context) { ChefSpec::SoloRunner.new.converge.run_context }
   let(:resource) do
-    r = described_class.new(name, nil)
+    r = described_class.new(name, run_context)
     %i(app_name timeout bundle_id).each { |a| r.send(a, send(a)) }
     r
   end

@@ -125,9 +125,9 @@ class Chef
         include_recipe_now 'privacy_services_manager'
         app = current_application_name
         psm = privacy_services_manager "Grant Accessibility rights to #{app}" do
+          admin true if app.start_with?('/')
           service 'accessibility'
           applications [app]
-          admin true if app.start_with?('/')
         end
         psm.run_action(:add)
       end

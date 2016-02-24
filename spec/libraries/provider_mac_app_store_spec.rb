@@ -10,14 +10,16 @@ describe Chef::Provider::MacAppStore do
   let(:system_wide) { double(focused_application: 'focused app') }
   let(:app_store_running?) { false }
   let(:sign_in!) { true }
+  let(:name) { 'default' }
+  let(:run_context) { ChefSpec::SoloRunner.new.converge.run_context }
   let(:new_resource) do
-    r = Chef::Resource::MacAppStore.new(nil)
+    r = Chef::Resource::MacAppStore.new(name, run_context)
     %i(username password).each do |m|
       r.send(m, send(m))
     end
     r
   end
-  let(:provider) { described_class.new(new_resource, nil) }
+  let(:provider) { described_class.new(new_resource, run_context) }
 
   describe 'AXE_VERSION' do
     it 'pins AXE to 7 prerelease' do
@@ -254,9 +256,9 @@ describe Chef::Provider::MacAppStore do
         expect(p).to receive(:privacy_services_manager)
           .with("Grant Accessibility rights to #{current_application_name}")
           .and_yield
+        expect(p).to_not receive(:admin)
         expect(p).to receive(:service).with('accessibility')
         expect(p).to receive(:applications).with([current_application_name])
-        expect(p).to receive(:admin).with(true)
           .and_return(psm_resource)
         expect(psm_resource).to receive(:run_action).with(:add)
         p.send(:trust_app)
@@ -273,10 +275,10 @@ describe Chef::Provider::MacAppStore do
         expect(p).to receive(:privacy_services_manager)
           .with("Grant Accessibility rights to #{current_application_name}")
           .and_yield
+        expect(p).to receive(:admin).with(true)
         expect(p).to receive(:service).with('accessibility')
         expect(p).to receive(:applications).with([current_application_name])
           .and_return(psm_resource)
-        expect(p).to_not receive(:admin)
         expect(psm_resource).to receive(:run_action).with(:add)
         p.send(:trust_app)
       end
