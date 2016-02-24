@@ -127,7 +127,7 @@ class Chef
         psm = privacy_services_manager "Grant Accessibility rights to #{app}" do
           service 'accessibility'
           applications [app]
-          admin true
+          admin true if app.start_with?('/')
         end
         psm.run_action(:add)
       end
