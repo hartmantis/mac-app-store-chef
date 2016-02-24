@@ -3,7 +3,7 @@
 # Cookbook Name:: mac-app-store
 # Recipe:: default
 #
-# Copyright 2015 Jonathan Hartman
+# Copyright 2015-2016, Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 #
 
 unless node['platform'] == 'mac_os_x'
-  fail(Chef::Exceptions::UnsupportedPlatform, node['platform'])
+  raise(Chef::Exceptions::UnsupportedPlatform, node['platform'])
 end
 
 apps = (node['mac_app_store']['apps'] || []).map do |a|
@@ -28,7 +28,7 @@ apps = (node['mac_app_store']['apps'] || []).map do |a|
   elsif a.is_a?(String)
     { name: a, bundle_id: nil }
   else
-    fail(Chef::Exceptions::ValidationFailed, "Invalid app entry '#{a}'")
+    raise(Chef::Exceptions::ValidationFailed, "Invalid app entry '#{a}'")
   end
 end
 

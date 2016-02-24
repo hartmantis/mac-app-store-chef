@@ -12,24 +12,21 @@ end
 
 group :test do
   gem 'rake'
-  gem 'cane'
-  gem 'countloc'
   gem 'rubocop'
   gem 'foodcritic'
-  gem 'rspec', '>= 3'
-  gem 'chefspec', '>= 4'
+  gem 'rspec'
+  gem 'chefspec'
   gem 'simplecov'
   gem 'simplecov-console'
   gem 'coveralls'
   gem 'fauxhai'
   gem 'test-kitchen'
   gem 'kitchen-localhost'
-  gem 'kitchen-vagrant', '>= 0.16.0'
+  gem 'kitchen-vagrant'
 end
 
 group :integration do
-  gem 'serverspec', '>= 2'
-  gem 'cucumber'
+  gem 'serverspec'
 end
 
 group :deploy do
@@ -38,6 +35,6 @@ end
 
 group :production do
   gem 'chef', '>= 12'
-  gem 'berkshelf', '>= 3'
+  gem 'berkshelf'
   gem 'AXElements', '~> 7.0'
 end

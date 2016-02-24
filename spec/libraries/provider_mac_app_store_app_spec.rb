@@ -9,12 +9,13 @@ describe Chef::Provider::MacAppStoreApp do
   %i(app_name timeout bundle_id).each { |a| let(a) { nil } }
   let(:timeout) { nil }
   let(:bundle_id) { nil }
+  let(:run_context) { ChefSpec::SoloRunner.new.converge.run_context }
   let(:new_resource) do
-    r = Chef::Resource::MacAppStoreApp.new(name, nil)
+    r = Chef::Resource::MacAppStoreApp.new(name, run_context)
     %i(app_name timeout bundle_id).each { |a| r.send(a, send(a)) }
     r
   end
-  let(:provider) { described_class.new(new_resource, nil) }
+  let(:provider) { described_class.new(new_resource, run_context) }
 
   describe '.provides?' do
     let(:platform) { nil }

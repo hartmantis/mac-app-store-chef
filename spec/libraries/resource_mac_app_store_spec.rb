@@ -5,8 +5,10 @@ require_relative '../../libraries/resource_mac_app_store'
 
 describe Chef::Resource::MacAppStore do
   %i(username password).each { |i| let(i) { nil } }
+  let(:name) { 'default' }
+  let(:run_context) { ChefSpec::SoloRunner.new.converge.run_context }
   let(:resource) do
-    r = described_class.new(nil)
+    r = described_class.new(name, run_context)
     %i(username password).each do |a|
       r.send(a, send(a))
     end

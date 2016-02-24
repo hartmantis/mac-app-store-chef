@@ -1,8 +1,9 @@
 Mac App Store Cookbook CHANGELOG
 ================================
 
-v?.?.? (????-??-??)
--------------------
+Unreleased
+----------
+- Fix issue with bundled apps not getting accessibility rights
 
 v1.1.0 (2015-08-16)
 -------------------

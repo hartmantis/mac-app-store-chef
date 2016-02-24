@@ -3,7 +3,7 @@
 # Cookbook Name:: mac-app-store
 # Library:: resource_mac_app_store_app
 #
-# Copyright 2015 Jonathan Hartman
+# Copyright 2015-2016, Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ class Chef
       attribute :installed,
                 kind_of: [NilClass, TrueClass, FalseClass],
                 default: nil
-      alias_method :installed?, :installed
+      alias installed? installed
 
       #
       # The name of the app to be installed (defaults to the resource name).

@@ -3,7 +3,7 @@
 # Cookbook Name:: mac-app-store
 # Library:: provider_mac_app_store
 #
-# Copyright 2015 Jonathan Hartman
+# Copyright 2015-2016, Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ class Chef
       include Chef::DSL::IncludeRecipe
       include MacAppStoreCookbook::Helpers
 
-      AXE_VERSION ||= '~> 7.0'
+      AXE_VERSION ||= '~> 7.0'.freeze
 
       use_inline_resources
 
@@ -125,9 +125,9 @@ class Chef
         include_recipe_now 'privacy_services_manager'
         app = current_application_name
         psm = privacy_services_manager "Grant Accessibility rights to #{app}" do
+          admin true if app.start_with?('/')
           service 'accessibility'
           applications [app]
-          admin true
         end
         psm.run_action(:add)
       end
