@@ -9,7 +9,9 @@ describe Chef::Resource::MacAppStoreApp do
   let(:run_context) { ChefSpec::SoloRunner.new.converge.run_context }
   let(:resource) do
     r = described_class.new(name, run_context)
-    %i(app_name timeout bundle_id).each { |a| r.send(a, send(a)) }
+    %i(app_name timeout bundle_id).each do |a|
+      r.send(a, send(a)) unless send(a).nil?
+    end
     r
   end
 

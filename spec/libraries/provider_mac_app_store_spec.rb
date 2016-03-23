@@ -15,7 +15,7 @@ describe Chef::Provider::MacAppStore do
   let(:new_resource) do
     r = Chef::Resource::MacAppStore.new(name, run_context)
     %i(username password).each do |m|
-      r.send(m, send(m))
+      r.send(m, send(m)) unless send(m).nil?
     end
     r
   end
