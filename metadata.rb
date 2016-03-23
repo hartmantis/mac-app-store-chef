@@ -8,7 +8,7 @@ description      'Automates installation of Mac App Store apps'
 long_description 'Automates installation of Mac App Store apps'
 version          '1.1.2'
 
-depends          'build-essential', '~> 2.1'
+depends          'build-essential', '~> 3.0'
 depends          'now', '~> 0.3'
 depends          'privacy_services_manager', '~> 1.0'
 
