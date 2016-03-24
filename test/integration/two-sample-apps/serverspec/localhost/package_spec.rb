@@ -10,7 +10,7 @@ describe 'mac-app-store::two-sample-apps::package' do
       end
     end
 
-    describe file('/Applications/Microsoft Remote Desktop.app') do
+    describe file('/Applications/MicrosoftRemoteDesktop.app') do
       it 'is present on the filesystem' do
         expect(subject).to be_directory
       end
