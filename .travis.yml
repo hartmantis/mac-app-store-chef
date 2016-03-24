@@ -9,14 +9,7 @@ install:
   - chef exec bundle install --without=development integration
 
 before_script:
-  # Pending ENV support in Kitchen's Rake tasks and not just the CLI
   - cp .kitchen.travis.yml .kitchen.local.yml
 
 script:
-  - chef exec rake && chef exec rake kitchen:all
-
-after_script:
-
-env:
-  global:
-    # - KITCHEN_LOCAL_YAML=.kitchen.travis.yml
+  - chef exec rake && chef exec kitchen test
