@@ -10,7 +10,7 @@ describe Chef::Resource::MacAppStore do
   let(:resource) do
     r = described_class.new(name, run_context)
     %i(username password).each do |a|
-      r.send(a, send(a))
+      r.send(a, send(a)) unless send(a).nil?
     end
     r
   end

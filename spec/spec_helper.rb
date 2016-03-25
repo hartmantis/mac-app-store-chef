@@ -50,12 +50,14 @@ RSpec.configure do |c|
   c.after(:suite) { FileUtils.rm_r(COOKBOOK_PATH) }
 end
 
-SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
-  Coveralls::SimpleCov::Formatter,
-  SimpleCov::Formatter::HTMLFormatter,
-  SimpleCov::Formatter::Console
-]
-SimpleCov.minimum_coverage 90
+SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
+  [
+    Coveralls::SimpleCov::Formatter,
+    SimpleCov::Formatter::HTMLFormatter,
+    SimpleCov::Formatter::Console
+  ]
+)
+SimpleCov.minimum_coverage(100)
 SimpleCov.start
 
 at_exit { ChefSpec::Coverage.report! }

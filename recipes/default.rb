@@ -32,16 +32,18 @@ apps = (node['mac_app_store']['apps'] || []).map do |a|
   end
 end
 
+user = node['mac_app_store']['username']
+pass = node['mac_app_store']['password']
 mac_app_store 'default' do
-  username node['mac_app_store']['username']
-  password node['mac_app_store']['password']
+  username user unless user.nil?
+  password pass unless pass.nil?
   action :open
   notifies :quit, 'mac_app_store[default]'
 end
 
 apps.each do |a|
   mac_app_store_app a[:name] do
-    bundle_id a[:bundle_id]
+    bundle_id a[:bundle_id] unless a[:bundle_id].nil?
     action :install
   end
 end

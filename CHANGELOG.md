@@ -3,6 +3,7 @@ Mac App Store Cookbook CHANGELOG
 
 Unreleased
 ----------
+- Update build-essential dep to v3.x
 
 v1.1.1 (2016-02-24)
 -------------------
