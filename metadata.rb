@@ -1,15 +1,16 @@
 # Encoding: UTF-8
 
-name             'mac-app-store'
-maintainer       'Jonathan Hartman'
+name 'mac-app-store'
+maintainer 'Jonathan Hartman'
 maintainer_email 'j@p4nt5.com'
-license          'Apache v2.0'
-description      'Automates installation of Mac App Store apps'
+license 'Apache v2.0'
+description 'Automates installation of Mac App Store apps'
 long_description 'Automates installation of Mac App Store apps'
-version          '1.2.1'
+version '1.2.1'
 
-depends          'build-essential', '~> 3.0'
-depends          'now', '~> 0.3'
-depends          'privacy_services_manager', '~> 1.0'
+source_url 'https://github.com/roboticcheese/mac-app-store-chef'
+issues_url 'https://github.com/roboticcheese/mac-app-store-chef/issues'
 
-supports         'mac_os_x'
+depends 'homebrew', '~> 2.1'
+
+supports 'mac_os_x'
