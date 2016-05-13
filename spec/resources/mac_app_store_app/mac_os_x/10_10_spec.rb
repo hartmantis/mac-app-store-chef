@@ -5,8 +5,7 @@ describe 'resource_mac_app_store_app::mac_os_x::10_10' do
   %i(name app_name action).each do |p|
     let(p) { nil }
   end
-  let(:installed) { nil }
-  let(:searchable) { nil }
+  %i(installed searchable upgradable).each { |i| let(i) { nil } }
   let(:list) do
     lines = [
       '407370605 FaxFresh',
@@ -23,6 +22,15 @@ describe 'resource_mac_app_store_app::mac_os_x::10_10' do
       "123456780 wwwdot#{app_name || name}dotbiz"
     ]
     lines.insert(2, "#{id} #{app_name || name}") if searchable
+    double(stdout: lines.join("\n"))
+  end
+  let(:outdated) do
+    lines = [
+      "123456789 Other #{app_name || name} Thing (1.2.3)",
+      '503936035 The 7th Guest (4.5.6)',
+      "123456780 wwwdot#{app_name || name}dotbiz (7.8.9)"
+    ]
+    lines.insert(2, "#{id} #{app_name || name} (3.3.3)") if upgradable
     double(stdout: lines.join("\n"))
   end
   let(:user) { 'vagrant' }
@@ -44,6 +52,8 @@ describe 'resource_mac_app_store_app::mac_os_x::10_10' do
       .with('mas list').and_return(list)
     allow_any_instance_of(Chef::Resource::MacAppStoreApp).to receive(:shell_out)
       .with("mas search '#{app_name || name}'").and_return(search)
+    allow_any_instance_of(Chef::Resource::MacAppStoreApp).to receive(:shell_out)
+      .with('mas outdated').and_return(outdated)
     allow(Etc).to receive(:getlogin).and_return(user)
   end
 
@@ -122,34 +132,6 @@ describe 'resource_mac_app_store_app::mac_os_x::10_10' do
           expected = Chef::Resource::MacAppStoreApp::Exceptions::InvalidAppName
           expect { chef_run }.to raise_error(expected)
         end
-      end
-    end
-  end
-
-  context 'the :upgrade action' do
-    let(:action) { :upgrade }
-
-    context 'no extra properties' do
-      let(:name) { 'Some App' }
-      let(:id) { 'abc123' }
-      cached(:chef_run) { converge }
-
-      it 'upgrades the app' do
-        pending
-        expect(chef_run).to run_execute("Upgrade #{name} with Mas")
-          .with(command: "mas upgrade #{id}", user: user)
-      end
-    end
-
-    context 'an overridden app_name property' do
-      let(:name) { 'Some App' }
-      let(:app_name) { 'Other App' }
-      let(:id) { 'abc123' }
-
-      it 'upgrades the app' do
-        pending
-        expect(chef_run).to run_execute("Upgrade #{app_name} with Mas")
-          .with(command: "mas upgrade #{id}")
       end
     end
   end

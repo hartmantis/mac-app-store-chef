@@ -37,12 +37,28 @@ class Chef
       #
       property :app_name, String, name_property: true
 
+      #
+      # A state property for whether the app is installed.
+      #
+      property :installed, [TrueClass, FalseClass]
+
+      #
+      # A state property for whether an upgrade is available.
+      #
+      property :upgradable, [TrueClass, FalseClass], desired_state: false
+
       default_action :install
 
+      load_current_value do |desired|
+        installed(installed?(desired.app_name))
+        upgradable(upgradable?(desired.app_name))
+      end
+
       action :install do
-        app_id = app_id_for(new_resource.app_name)
-        raise(Exceptions::InvalidAppName, new_resource.app_name) unless app_id
-        unless installed?(new_resource.app_name)
+        new_resource.installed(true)
+        converge_if_changed :installed do
+          app_id = app_id_for(new_resource.app_name)
+          raise(Exceptions::InvalidAppName, new_resource.app_name) unless app_id
           execute "Install #{new_resource.app_name} with Mas" do
             command "mas install #{app_id}"
             user Etc.getlogin
@@ -50,10 +66,30 @@ class Chef
         end
       end
 
-      action :upgrade do
-        raise 'Not yet implemented'
+      #
+      # Check whether a given app has upgrades available.
+      #
+      # @param name [String] an app name to search for
+      #
+      # @return [TrueClass, FalseClass] whether the app has an upgrade
+      #
+      def upgradable?(name)
+        outdated_apps = shell_out('mas outdated').stdout.lines.map do |l|
+          {
+            id: l.split(' ')[0],
+            name: l.split(' ')[1..-2].join(' ')
+          }
+        end
+        outdated_apps.find { |a| a[:name] == name } ? true : false
       end
 
+      #
+      # Chef whether a given app is currently installed.
+      #
+      # @param name [String] an app name to search for
+      #
+      # @return [TrueClass, FalseClass] whether the app is installed
+      #
       def installed?(name)
         installed_apps = shell_out('mas list').stdout.lines.map do |l|
           {
@@ -64,6 +100,13 @@ class Chef
         installed_apps.find { |a| a[:name] == name } ? true : false
       end
 
+      #
+      # Search for an app's ID by its name.
+      #
+      # @param name [String] an app name to search for
+      #
+      # @return [String] the app's corresponding ID
+      #
       def app_id_for(name)
         search = shell_out("mas search '#{name}'").stdout
         app_line = search.lines.find do |l|
