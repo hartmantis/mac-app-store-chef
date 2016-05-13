@@ -22,5 +22,4 @@ suites:
         password: <%= ENV['APPLE_ID_PASSWORD'] %>
         apps:
           - Microsoft Remote Desktop
-          - name: White Noise Free
-            bundle_id: com.tmsoft.mac.WhiteNoiseLite
+          - White Noise Free

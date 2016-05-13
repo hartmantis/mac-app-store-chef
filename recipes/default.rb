@@ -22,28 +22,12 @@ unless node['platform'] == 'mac_os_x'
   raise(Chef::Exceptions::UnsupportedPlatform, node['platform'])
 end
 
-apps = (node['mac_app_store']['apps'] || []).map do |a|
-  if a.is_a?(Hash)
-    a
-  elsif a.is_a?(String)
-    { name: a, bundle_id: nil }
-  else
-    raise(Chef::Exceptions::ValidationFailed, "Invalid app entry '#{a}'")
-  end
+mac_app_store_mas 'default' do
+  username node['mac_app_store']['username']
+  password node['mac_app_store']['password']
+  action %i(install sign_in)
 end
 
-user = node['mac_app_store']['username']
-pass = node['mac_app_store']['password']
-mac_app_store 'default' do
-  username user unless user.nil?
-  password pass unless pass.nil?
-  action :open
-  notifies :quit, 'mac_app_store[default]'
-end
-
-apps.each do |a|
-  mac_app_store_app a[:name] do
-    bundle_id a[:bundle_id] unless a[:bundle_id].nil?
-    action :install
-  end
+node['mac_app_store']['apps'].to_a.each do |a|
+  mac_app_store_app a
 end

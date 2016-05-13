@@ -33,25 +33,31 @@ class Chef
 
       provides :mac_app_store_mas, platform_family: 'mac_os_x'
 
-      default_action :install
-
-      #
-      # Mas can be installed either from Homebrew or a direct binary download.
-      #
       property :install_method,
                Symbol,
                equal_to: %i(direct homebrew),
                default: :direct
+      property :username, [String, nil]
+      property :password, String, desired_state: false
+      property :version, String
 
-      property :version, [String, nil], default: nil
+      default_action %i(install sign_in)
 
       #
       # Shell out to figure out if Mas is installed already and, if so, what
       # version it is.
       #
       load_current_value do
-        res = shell_out('mas version || echo 0').stdout.strip
-        version(res == '0' ? nil : res)
+        res = shell_out('mas version || true').stdout.strip
+        unless res.empty?
+          version(res)
+
+          acct = shell_out('mas account').stdout.strip
+          username(acct) unless acct == 'Not signed in'
+
+          brew = shell_out('brew list argon/mas/mas || true').stdout.strip
+          install_method(brew.empty? ? :direct : :homebrew)
+        end
       end
 
       #
@@ -61,9 +67,11 @@ class Chef
       action :install do
         if current_resource.version.nil? && new_resource.version.nil?
           new_resource.version(latest_version)
+        elsif current_resource.version && new_resource.version.nil?
+          new_resource.version(current_resource.version)
         end
 
-        converge_if_changed do
+        converge_if_changed :version do
           case new_resource.install_method
           when :direct
             path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
@@ -87,7 +95,7 @@ class Chef
       #
       action :upgrade do
         new_resource.version(latest_version) unless new_resource.version
-        converge_if_changed do
+        converge_if_changed :install_method, :version do
           case new_resource.install_method
           when :direct
             path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
@@ -122,6 +130,30 @@ class Chef
       end
 
       #
+      # Log in via Mas with an Apple ID and password.
+      #
+      action :sign_in do
+        execute "Sign in to Mas as #{new_resource.username}" do
+          command "mas signin #{new_resource.username}" \
+                  " #{new_resource.password}"
+          only_if { current_resource.username }
+        end
+      end
+
+      #
+      # Log out of Mas.
+      #
+      action :sign_out do
+        new_resource.username(nil)
+
+        converge_if_changed :username do
+          execute 'Sign out of Mas' do
+            command 'mas signout'
+          end
+        end
+      end
+
+      #
       # Check the GitHub API and fetch the latest released version of Mas.
       #
       # @return [String] the most recent version of the Mas CLI
@@ -132,6 +164,15 @@ class Chef
             URI('https://api.github.com/repos/argon/mas/releases')
           )
         ).first['tag_name'].gsub(/^v/, '')
+      end
+
+      #
+      # Override resource's text rendering to remove password information.
+      #
+      # @return [String]
+      #
+      def to_text
+        password.nil? ? super : super.gsub(password, '****************')
       end
     end
   end

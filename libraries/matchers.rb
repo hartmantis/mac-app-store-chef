@@ -19,17 +19,16 @@
 #
 
 if defined?(ChefSpec)
-  [:mac_app_store, :mac_app_store_app].each do |r|
-    ChefSpec.define_matcher(r)
-  end
+  {
+    mac_app_store_mas: %i(install upgrade remove sign_in sign_out),
+    mac_app_store_app: %i(install)
+  }.each do |resource, actions|
+    ChefSpec.define_matcher(resource)
 
-  [:open, :quit].each do |a|
-    define_method("#{a}_mac_app_store") do |name|
-      ChefSpec::Matchers::ResourceMatcher.new(:mac_app_store, a, name)
+    actions.each do |action|
+      define_method("#{action}_#{resource}") do |name|
+        ChefSpec::Matchers::ResourceMatcher.new(resource, action, name)
+      end
     end
-  end
-
-  def install_mac_app_store_app(name)
-    ChefSpec::Matchers::ResourceMatcher.new(:mac_app_store_app, :install, name)
   end
 end

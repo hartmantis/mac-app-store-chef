@@ -18,44 +18,71 @@
 # limitations under the License.
 #
 
-require 'chef/resource/lwrp_base'
+require 'etc'
+require 'chef/resource'
+require 'chef/mixin/shell_out'
 
 class Chef
   class Resource
     # A Chef resource for Mac App Store applications.
     #
     # @author Jonathan Hartman <j@p4nt5.com>
-    class MacAppStoreApp < Resource::LWRPBase
-      self.resource_name = :mac_app_store_app
-      actions :install
-      default_action :install
+    class MacAppStoreApp < Resource
+      include Chef::Mixin::ShellOut
 
-      #
-      # Attribute for the app's installed status.
-      #
-      attribute :installed,
-                kind_of: [NilClass, TrueClass, FalseClass],
-                default: nil
-      alias installed? installed
+      provides :mac_app_store_app, platform_family: 'mac_os_x'
 
       #
       # The name of the app to be installed (defaults to the resource name).
       #
-      attribute :app_name, kind_of: String, name_attribute: true
+      property :app_name, String, name_property: true
 
-      #
-      # Timeout value for app download + install.
-      #
-      attribute :timeout, kind_of: Fixnum, default: 600
+      default_action :install
 
-      #
-      # An optional bundle identifier for the app, as seen in the package-id
-      # field in the output of `pkgutil --pkg-info`. If one is provided, it
-      # makes checking the installed status of an app much easier--it can be
-      # be done by shelling out to pkgutil instead of having to wait for
-      # multiple App Store page loads.
-      #
-      attribute :bundle_id, kind_of: String, default: nil
+      action :install do
+        app_id = app_id_for(new_resource.app_name)
+        raise(Exceptions::InvalidAppName, new_resource.app_name) unless app_id
+        unless installed?(new_resource.app_name)
+          execute "Install #{new_resource.app_name} with Mas" do
+            command "mas install #{app_id}"
+            user Etc.getlogin
+          end
+        end
+      end
+
+      action :upgrade do
+        raise 'Not yet implemented'
+      end
+
+      def installed?(name)
+        installed_apps = shell_out('mas list').stdout.lines.map do |l|
+          {
+            id: l.split(' ')[0],
+            name: l.rstrip.split(' ')[1..-1].join(' ')
+          }
+        end
+        installed_apps.find { |a| a[:name] == name } ? true : false
+      end
+
+      def app_id_for(name)
+        search = shell_out("mas search '#{name}'").stdout
+        app_line = search.lines.find do |l|
+          l.rstrip.split(' ')[1..-1].join(' ') == name
+        end
+        app_line && app_line.split(' ')[0]
+      end
+
+      class Exceptions
+        # An exception class for app names that don't turn up in `mas search`.
+        #
+        # @author Jonathan Hartman <j@p4nt5.com>
+        class InvalidAppName < StandardError
+          def initialize(app_name)
+            super("Could not find '#{app_name}' in the Mac App Store. " \
+                  'Is the name correct and do you own the app?')
+          end
+        end
+      end
     end
   end
 end

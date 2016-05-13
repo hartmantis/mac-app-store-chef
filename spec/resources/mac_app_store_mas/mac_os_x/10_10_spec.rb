@@ -1,19 +1,22 @@
 require_relative '../../../spec_helper'
 
 describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
-  let(:action) { nil }
-  let(:install_method) { nil }
-  let(:version) { nil }
+  let(:name) { 'default' }
+  %i(install_method version username password action).each do |p|
+    let(p) { nil }
+  end
   let(:runner) do
-    ChefSpec::SoloRunner.new(step_into: 'mac_app_store_mas',
-                             platform: 'mac_os_x',
-                             version: '10.10')
+    ChefSpec::SoloRunner.new(
+      step_into: 'mac_app_store_mas', platform: 'mac_os_x', version: '10.10'
+    ) do |node|
+      %i(name install_method version username password action).each do |p|
+        unless send(p).nil?
+          node.set['resource_mac_app_store_mas_test'][p] = send(p)
+        end
+      end
+    end
   end
-  let(:converge) do
-    runner.converge(
-      "resource_mac_app_store_mas_test::#{action}_#{install_method}"
-    )
-  end
+  let(:converge) { runner.converge('resource_mac_app_store_mas_test') }
 
   before(:each) do
     stub_command('which git').and_return('/usr/bin/git')
@@ -23,10 +26,10 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
   end
 
   context 'the default action (:install)' do
-    let(:action) { :default }
+    let(:action) { nil }
 
     context 'the default install method (:direct)' do
-      let(:install_method) { :default }
+      let(:install_method) { nil }
       cached(:chef_run) { converge }
 
       it 'downloads mas-cli.zip from GitHub' do
@@ -62,7 +65,7 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
     let(:action) { :upgrade }
 
     context 'the default install method (:direct)' do
-      let(:install_method) { :default }
+      let(:install_method) { nil }
       cached(:chef_run) { converge }
 
       it 'downloads mas-cli.zip from GitHub' do
@@ -98,7 +101,7 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
     let(:action) { :remove }
 
     context 'the default install method (:direct)' do
-      let(:install_method) { :default }
+      let(:install_method) { nil }
       cached(:chef_run) { converge }
 
       it 'deletes the mas file' do
@@ -117,6 +120,27 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
       it 'removes Mas via Homebrew' do
         expect(chef_run).to remove_homebrew_package('argon/mas/mas')
       end
+    end
+  end
+
+  context 'the :sign_in action' do
+    let(:action) { :sign_in }
+    let(:username) { 'example@example.com' }
+    let(:password) { 'abc123' }
+
+    it 'signs into Mas' do
+      expect(chef_run).to execite("Sign in to Mas as #{username}")
+        .with(command: "mas signin #{username} #{password}")
+    end
+  end
+
+  context 'the :sign_out action' do
+    let(:action) { :sign_out }
+    cached(:chef_run) { converge }
+
+    it 'signs out of Mas' do
+      expect(chef_run).to run_execute('Sign out of Mas')
+        .with(command: 'mas signout')
     end
   end
 end

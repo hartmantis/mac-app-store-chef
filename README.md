@@ -22,6 +22,10 @@ by automating GUI window switches and button clicks.
 Nothing in this cookbook will attempt to purchase an app for you--it can only
 install ones that are already in your purchase history.
 
+As of v2.0, this cookbook requires Chef 12.5 or higher (or Chef 12.x and the
+[compat_resource](https://supermarket.chef.io/cookbooks/compat_resource)
+cookbook.
+
 Usage
 =====
 

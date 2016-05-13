@@ -3,6 +3,7 @@ Mac App Store Cookbook CHANGELOG
 
 Unreleased
 ----------
+- Completely rewrite to use Mas CLI instead of mouse control
 
 v1.2.0 (2016-03-25)
 -------------------
