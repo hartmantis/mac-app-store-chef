@@ -28,7 +28,7 @@ class Chef
     # Mac App Store.
     #
     # @author Jonathan Hartman <j@p4nt5.com>
-    class Mas < Resource
+    class MacAppStoreMas < Resource
       include Chef::Mixin::ShellOut
 
       provides :mac_app_store_mas, platform_family: 'mac_os_x'
@@ -39,24 +39,17 @@ class Chef
                default: :direct
       property :username, [String, nil]
       property :password, String, desired_state: false
+      property :installed, [TrueClass, FalseClass]
       property :version, String
 
       default_action %i(install sign_in)
 
-      #
-      # Shell out to figure out if Mas is installed already and, if so, what
-      # version it is.
-      #
       load_current_value do
-        res = shell_out('mas version || true').stdout.strip
-        unless res.empty?
-          version(res)
-
-          acct = shell_out('mas account').stdout.strip
-          username(acct) unless acct == 'Not signed in'
-
-          brew = shell_out('brew list argon/mas/mas || true').stdout.strip
-          install_method(brew.empty? ? :direct : :homebrew)
+        installed(installed?)
+        if installed
+          version(installed_version?)
+          username(signed_in_as?)
+          install_method(installed_by?)
         end
       end
 
@@ -65,13 +58,10 @@ class Chef
       # it or the most recent one.
       #
       action :install do
-        if current_resource.version.nil? && new_resource.version.nil?
-          new_resource.version(latest_version)
-        elsif current_resource.version && new_resource.version.nil?
-          new_resource.version(current_resource.version)
-        end
+        new_resource.installed(true)
+        new_resource.version(latest_version?) if new_resource.version.nil?
 
-        converge_if_changed :version do
+        converge_if_changed :installed do
           case new_resource.install_method
           when :direct
             path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
@@ -94,8 +84,9 @@ class Chef
       # installed.
       #
       action :upgrade do
-        new_resource.version(latest_version) unless new_resource.version
-        converge_if_changed :install_method, :version do
+        new_resource.version(latest_version?) unless new_resource.version
+
+        converge_if_changed :version do
           case new_resource.install_method
           when :direct
             path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
@@ -133,10 +124,11 @@ class Chef
       # Log in via Mas with an Apple ID and password.
       #
       action :sign_in do
-        execute "Sign in to Mas as #{new_resource.username}" do
-          command "mas signin #{new_resource.username}" \
-                  " #{new_resource.password}"
-          only_if { current_resource.username }
+        converge_if_changed :username do
+          execute "Sign in to Mas as #{new_resource.username}" do
+            command "mas signin #{new_resource.username}" \
+                    " #{new_resource.password}"
+          end
         end
       end
 
@@ -154,11 +146,53 @@ class Chef
       end
 
       #
+      # Return the user currently signed in.
+      #
+      # @return [String, NilClass] the current user or nil
+      #
+      def signed_in_as?
+        acct = shell_out('mas account').stdout.strip
+        acct == 'Not signed in' ? nil : acct
+      end
+
+      #
+      # Return the current install method.
+      #
+      # @return [Symbol, NilClass] :direct, :homebrew, or nil
+      #
+      def installed_by?
+        return nil unless installed?
+        brew = shell_out('brew list argon/mas/mas || true').stdout.strip
+        brew.empty? ? :direct : :homebrew
+      end
+
+      #
+      # Return the currently installed version of Mas or nil if it's not
+      # installed.
+      #
+      # @return [String, NilClass] the version of Mas installed
+      #
+      def installed_version?
+        res = shell_out('mas version || true').stdout.strip
+        res.empty? ? nil : res
+      end
+
+      #
+      # Check whether Mas is currently installed.
+      #
+      # @return [TrueClass, FalseClass] whether Mas is installed
+      #
+      def installed?
+        res = shell_out('mas version || true').stdout.strip
+        res.empty? ? false : true
+      end
+
+      #
       # Check the GitHub API and fetch the latest released version of Mas.
       #
       # @return [String] the most recent version of the Mas CLI
       #
-      def latest_version
+      def latest_version?
         @latest_version ||= JSON.parse(
           Net::HTTP.get(
             URI('https://api.github.com/repos/argon/mas/releases')
