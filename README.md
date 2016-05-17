@@ -29,157 +29,87 @@ cookbook.
 Usage
 =====
 
-A new resource is defined as well as an attribute-driven default recipe, either
-of which can be used.
-
-Any reference to an application name means the name displayed in the App Store
-(e.g. even though the app is named "Tweetbot" its App Store entry calls it
-"Tweetbot for Twitter"). Any reference to the bundle or package ID means the
-package's ID as shown in the output of the `pkgutil` command.
-
-Some example app names and their corresponding bundle IDs, as of 2015-04-18
-(some of them seem to change over time to correspond to their versions):
-
-| App Name                                       | Bundle ID                         |
-|------------------------------------------------|-----------------------------------|
-| 1Password - Password Manager and Secure Wallet | com.agilebits.onepassword-osx     |
-| Airmail                                        | it.bloop.airmail                  |
-| Dash - API Docs & Snippets                     | com.kapeli.dash                   |
-| Divvy - Window Manager                         | com.mizage.Divvy                  |
-| Evernote                                       | com.evernote.Evernote             |
-| Fantastical - Calendar and Reminders           | com.flexibits.fantastical         |
-| Fantastical 2 - Calendar and Reminders         | com.flexibits.fantastical2.mac    |
-| FaxFresh                                       | com.purplecover.faxfresh          |
-| GarageBand 6.0.5                               | com.apple.pkg.GarageBand_AppStore |
-| GIF Brewery                                    | com.helloresolven.CineGIF         |
-| Growl                                          | com.Growl.GrowlHelperApp          |
-| iBooks Author                                  | com.apple.pkg.iBooksAuthor        |
-| iMovie                                         | com.apple.pkg.iMovie_AppStore     |
-| iPhoto                                         | com.apple.pkg.iPhoto_AppStore     |
-| Keynote                                        | com.apple.pkg.Keynote6            |
-| Kindle                                         | com.amazon.Kindle                 |
-| Lock Me Now                                    | com.bymaster.lockmenow            |
-| Mail Pilot                                     | co.mindsense.MailPilotMac         |
-| Markdown Pro                                   | com.radsense.markdown             |
-| Marked                                         | com.brettterpstra.marky           |
-| Microsoft OneNote                              | com.microsoft.onenote.mac         |
-| Microsoft Remote Desktop                       | com.microsoft.rdc.mac             |
-| MPlayerX                                       | org.niltsh.MPlayerX               |
-| Numbers                                        | com.apple.pkg.Numbers3            |
-| OceanBar                                       | com.stylemac.OceanBar             |
-| Osfoora for Twitter                            | osfoora.osfooramac                |
-| Pages                                          | com.apple.pkg.Pages5              |
-| Reeder                                         | com.reederapp.mac                 |
-| Slack                                          | com.tinyspeck.slackmacgap         |
-| SourceTree (Git/Hg)                            | com.torusknot.SourceTree          |
-| Sunrise Calendar                               | m.sunrise.mac                     |
-| Textual                                        | com.codeux.irc.textual            |
-| The 7th Guest                                  | com.trilobytegames.the7thguestosx |
-| Trillian                                       | com.ceruleanstudios.trillian.osx  |
-| Tweetbot for Twitter                           | com.tapbots.TweetbotMac           |
-| Twitter                                        | com.twitter.twitter-mac           |
-| Visual JSON                                    | org.3rddev.VisualJSON             |
-| White Noise Lite                               | com.tmsoft.mac.WhiteNoiseLite     |
-| WiFi Explorer                                  | wifiexplorer                      |
-| Xcode                                          | com.apple.pkg.Xcode               |
+Apps can be installed by using the included custom resources in recipes of your
+own, or with the predefined recipe and set of attributes.
 
 Known Limitations
 -----------------
 
-* Your Chef run may be slow, especially if bundle IDs aren't provided for the
-apps being installed. This is due to all the page loads that have to be waited
-on while navigating the App Store.
-* A successful run requires Chef to have control over OS X's UI--moving your
-mouse or pressing Cmd+Tab during a run may result in undesirable behavior.
-* The UI actions performed by this cookbook require a running window server--a
-user must be logged into OS X.
-* OS X uses a permission system where individual apps are granted access to
-its Accessibility API. This cookbook will make a best effort to authorize the
-app running Chef, but any errors will result in a failed Chef run and a GUI
-warning popup asking for permission.
-* The Accessibility API, and the App Store in particular, are suceptible to
-assorted race conditions. Attempts have been made to catch most of these, but
-any errors and stack traces can be reported on the
-[issues page](https://github.com/RoboticCheese/mac-app-store-chef/issues).
+* A user must be logged into OS X for Mas (the underlying utility we use to
+  manage installed apps) can function.
 
 Recipes
 =======
 
 ***default***
 
-* Installs the OS X command line tools (via the `build-essential` cookbook)
-* Opens the Mac App Store
-* Signs into the App Store with a given Apple ID
-* Installs each of an attribute-derived list of apps
+Installs the Mas CLI tool and an attribute-derived set of App Store apps.
 
 Attributes
 ==========
 
 ***default***
 
-An attribute is supplied to represent a set of apps to install:
-
-    default['mac_app_store']['apps'] = nil
-
-It can be overridden with an array of app names (as displayed in the App Store):
-
-    default['mac_app_store']['apps'] = ['Tweetbot for Twitter']
-
-Optionally, the bundle IDs for the apps (as displayed in pkgutil) can also be
-provided to speed up the Chef run:
-
-    default['mac_app_store']['apps'] = [
-      { name: 'Tweetbot for Twitter', bundle_id: 'com.tapbots.TweetbotMac' }
-    ]
-
-By default, the main recipe assumes an Apple ID is already signed into the App
-Store, but a set of credentials can be provided:
-
     default['mac_app_store']['username'] = nil
     default['mac_app_store']['password'] = nil
+
+Set these two attributes with the Apple ID user and password you wish to log
+into the App Store as.
+
+    default['mac_app_store']['apps'] = {}
+
+Set apps as keys+values under this space, where the key is the full app name
+and value is true to install it or false to not. For example:
+
+    default[['mac_app_store']['apps']['Growl'] = true
 
 Resources
 =========
 
-***mac_app_store***
+***mac_app_store_mas***
 
-A singleton resource, there can be only one. Used to start and configure the
-App Store application itself.
+A custom resource to manage installation of the Mas CLI tool for interacting
+with the App Store.
 
 Syntax:
 
-    mac_app_store 'default' do
+    mac_app_store_mas 'default' do
+      install_method :direct
       username 'example@example.com'
       password 'abc123'
-      action :open
+      version: '1.2.3'
+      action %i(install sign_in)
     end
 
 Actions:
 
-| Action     | Description                     |
-|------------|---------------------------------|
-| `:open`    | Default; starts the App Store   |
-| `:quit`    | Quits the App Store             |
+| Action      | Description                        |
+|-------------|------------------------------------|
+| `:install`  | Default; install the Mas CLI       |
+| `:upgrade`  | Upgrade Mas, if available          |
+| `:remove`   | Uninstall Mas                      |
+| `:sign_in`  | Use Mas to sign into the App Store |
+| `:sign_out` | Sign out of the App Store          |
 
 Attributes:
 
-| Attribute  | Default        | Description                                  |
-|------------|----------------|----------------------------------------------|
-| username   | `nil`          | An Apple ID username                         |
-| password   | `nil`          | An Apple ID password                         |
-| action     | `:open`        | Action(s) to perform                         |
+| Attribute      | Default               | Description                                    |
+|----------------|-----------------------|------------------------------------------------|
+| install_method | `:direct`             | Install from GitHub (`:direct`) or `:homebrew` |
+| username       | `nil`                 | An Apple ID username                           |
+| password       | `nil`                 | An Apple ID password                           |
+| version        | `nil`                 | The version of Mas to install                  |
+| action         | `%i(install sign_in)` | Action(s) to perform                           |
 
 ***mac_app_store_app***
 
-Used to install a single app from the App Store. Requires that the App Store
-be running and an Apple ID signed into.
+Used to install a single App Store app via Mas. Requires that an Apple ID be
+signed into.
 
 Syntax:
 
     mac_app_store_app 'Some App' do
       app_name 'Some App'
-      timeout 1200
-      bundle_id 'com.example.someapp'
       action :install
     end
 
@@ -191,23 +121,10 @@ Actions:
 
 Attributes:
 
-| Attribute | Default       | Description                                  |
-|-----------|---------------|----------------------------------------------|
-| app_name  | resource name | App name if it doesn't match resource name   |
-| timeout   | `600`         | Time to wait on a download + install         |
-| bundle_id | `nil`         | Optionally specify the app ID (from pkgutil) |
-| action    | `:install`    | Action(s) to perform                         |
-
-Providers
-=========
-
-***Chef::Provider::MacAppStore***
-
-Provider for interactions with the App Store itself.
-
-***Chef::Provider::MacAppStoreApp***
-
-All the logic for app installs.
+| Attribute | Default       | Description                                |
+|-----------|---------------|--------------------------------------------|
+| app_name  | resource name | App name if it doesn't match resource name |
+| action    | `:install`    | Action(s) to perform                       |
 
 Contributing
 ============
