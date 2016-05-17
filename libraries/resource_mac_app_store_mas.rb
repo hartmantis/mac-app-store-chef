@@ -55,14 +55,14 @@ class Chef
       property :password, String, desired_state: false
 
       #
-      # A property to track the installed state of Mas.
-      #
-      property :installed, [TrueClass, FalseClass]
-
-      #
       # Optionally specify a version of Mas to install.
       #
       property :version, String
+
+      #
+      # A property to track the installed state of Mas.
+      #
+      property :installed, [TrueClass, FalseClass]
 
       default_action %i(install sign_in)
 

@@ -21,5 +21,5 @@ suites:
         username: <%= ENV['APPLE_ID_USERNAME'] %>
         password: <%= ENV['APPLE_ID_PASSWORD'] %>
         apps:
-          - Microsoft Remote Desktop
-          - White Noise Free
+          Microsoft Remote Desktop: true
+          White Noise Free: true

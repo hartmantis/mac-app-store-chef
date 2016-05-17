@@ -31,8 +31,8 @@ describe 'mac-app-store::default' do
 
       it 'installs the specified apps' do
         if apps
-          apps.each do |a|
-            expect(chef_run).to install_mac_app_store_app(a)
+          apps.each do |k, v|
+            expect(chef_run).to install_mac_app_store_app(k) if v == true
           end
         else
           expect(chef_run.find_resources(:mac_app_store_app)).to be_empty
@@ -54,8 +54,8 @@ describe 'mac-app-store::default' do
       it_behaves_like 'any attribute set'
     end
 
-    context 'an overridden apps list attribute' do
-      let(:apps) { ['App 1', 'App 2'] }
+    context 'an overridden apps attribute' do
+      let(:apps) { { 'App 1' => true, 'App 2' => true, 'App 3' => false } }
       cached(:chef_run) { converge }
 
       it_behaves_like 'any attribute set'

@@ -28,6 +28,6 @@ mac_app_store_mas 'default' do
   action %i(install sign_in)
 end
 
-node['mac_app_store']['apps'].to_a.each do |a|
-  mac_app_store_app a
+node['mac_app_store']['apps'].to_h.each do |k, v|
+  mac_app_store_app(k) if v == true
 end
