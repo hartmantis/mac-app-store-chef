@@ -20,7 +20,7 @@
 
 require 'etc'
 require 'chef/resource'
-require 'chef/mixin/shell_out'
+require_relative 'helpers_app'
 
 class Chef
   class Resource
@@ -50,69 +50,20 @@ class Chef
       default_action :install
 
       load_current_value do |desired|
-        installed(installed?(desired.app_name))
-        upgradable(upgradable?(desired.app_name))
+        installed(MacAppStore::Helpers::App.installed?(desired.app_name))
+        upgradable(MacAppStore::Helpers::App.upgradable?(desired.app_name))
       end
 
       action :install do
         new_resource.installed(true)
         converge_if_changed :installed do
-          app_id = app_id_for(new_resource.app_name)
+          app_id = MacAppStore::Helpers::App.app_id_for?(new_resource.app_name)
           raise(Exceptions::InvalidAppName, new_resource.app_name) unless app_id
           execute "Install #{new_resource.app_name} with Mas" do
             command "mas install #{app_id}"
             user Etc.getlogin
           end
         end
-      end
-
-      #
-      # Check whether a given app has upgrades available.
-      #
-      # @param name [String] an app name to search for
-      #
-      # @return [TrueClass, FalseClass] whether the app has an upgrade
-      #
-      def upgradable?(name)
-        outdated_apps = shell_out('mas outdated').stdout.lines.map do |l|
-          {
-            id: l.split(' ')[0],
-            name: l.split(' ')[1..-2].join(' ')
-          }
-        end
-        outdated_apps.find { |a| a[:name] == name } ? true : false
-      end
-
-      #
-      # Chef whether a given app is currently installed.
-      #
-      # @param name [String] an app name to search for
-      #
-      # @return [TrueClass, FalseClass] whether the app is installed
-      #
-      def installed?(name)
-        installed_apps = shell_out('mas list').stdout.lines.map do |l|
-          {
-            id: l.split(' ')[0],
-            name: l.rstrip.split(' ')[1..-1].join(' ')
-          }
-        end
-        installed_apps.find { |a| a[:name] == name } ? true : false
-      end
-
-      #
-      # Search for an app's ID by its name.
-      #
-      # @param name [String] an app name to search for
-      #
-      # @return [String] the app's corresponding ID
-      #
-      def app_id_for(name)
-        search = shell_out("mas search '#{name}'").stdout
-        app_line = search.lines.find do |l|
-          l.rstrip.split(' ')[1..-1].join(' ') == name
-        end
-        app_line && app_line.split(' ')[0]
       end
 
       class Exceptions

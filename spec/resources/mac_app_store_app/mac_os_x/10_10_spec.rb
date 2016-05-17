@@ -1,38 +1,11 @@
 require_relative '../../../spec_helper'
-require_relative '../../../../libraries/resource_mac_app_store_app'
+require_relative '../../../../libraries/helpers_app'
 
 describe 'resource_mac_app_store_app::mac_os_x::10_10' do
   %i(name app_name action).each do |p|
     let(p) { nil }
   end
-  %i(installed searchable upgradable).each { |i| let(i) { nil } }
-  let(:list) do
-    lines = [
-      '407370605 FaxFresh',
-      '503936035 The 7th Guest',
-      '435989461 GIFBrewery'
-    ]
-    lines.insert(2, "#{id} #{app_name || name}") if installed
-    double(stdout: lines.join("\n"))
-  end
-  let(:search) do
-    lines = [
-      "123456789 Other #{app_name || name} Thing",
-      '503936035 The 7th Guest',
-      "123456780 wwwdot#{app_name || name}dotbiz"
-    ]
-    lines.insert(2, "#{id} #{app_name || name}") if searchable
-    double(stdout: lines.join("\n"))
-  end
-  let(:outdated) do
-    lines = [
-      "123456789 Other #{app_name || name} Thing (1.2.3)",
-      '503936035 The 7th Guest (4.5.6)',
-      "123456780 wwwdot#{app_name || name}dotbiz (7.8.9)"
-    ]
-    lines.insert(2, "#{id} #{app_name || name} (3.3.3)") if upgradable
-    double(stdout: lines.join("\n"))
-  end
+  %i(installed? upgradable? app_id_for?).each { |i| let(i) { nil } }
   let(:user) { 'vagrant' }
   let(:runner) do
     ChefSpec::SoloRunner.new(
@@ -48,12 +21,16 @@ describe 'resource_mac_app_store_app::mac_os_x::10_10' do
   let(:converge) { runner.converge('resource_mac_app_store_app_test') }
 
   before(:each) do
-    allow_any_instance_of(Chef::Resource::MacAppStoreApp).to receive(:shell_out)
-      .with('mas list').and_return(list)
-    allow_any_instance_of(Chef::Resource::MacAppStoreApp).to receive(:shell_out)
-      .with("mas search '#{app_name || name}'").and_return(search)
-    allow_any_instance_of(Chef::Resource::MacAppStoreApp).to receive(:shell_out)
-      .with('mas outdated').and_return(outdated)
+    allow(Kernel).to receive(:load).and_call_original
+    allow(Kernel).to receive(:load)
+      .with(%r{mac-app-store/libraries/helpers_app\.rb}).and_return(true)
+    {
+      installed?: installed?,
+      upgradable?: upgradable?,
+      app_id_for?: app_id_for?
+    }.each do |k, v|
+      allow(MacAppStore::Helpers::App).to receive(k).and_return(v)
+    end
     allow(Etc).to receive(:getlogin).and_return(user)
   end
 
@@ -62,22 +39,21 @@ describe 'resource_mac_app_store_app::mac_os_x::10_10' do
 
     context 'no extra properties' do
       let(:name) { 'Some App' }
-      let(:id) { 'abc123' }
 
       context 'app not already installed' do
-        let(:searchable) { true }
-        let(:installed) { false }
+        let(:installed?) { false }
+        let(:app_id_for?) { 'abc123' }
         cached(:chef_run) { converge }
 
         it 'installs the app' do
           expect(chef_run).to run_execute("Install #{name} with Mas")
-            .with(command: "mas install #{id}", user: user)
+            .with(command: "mas install #{app_id_for?}", user: user)
         end
       end
 
       context 'app already installed' do
-        let(:searchable) { true }
-        let(:installed) { true }
+        let(:installed?) { true }
+        let(:app_id_for?) { 'abc123' }
         cached(:chef_run) { converge }
 
         it 'does not install the app' do
@@ -86,8 +62,8 @@ describe 'resource_mac_app_store_app::mac_os_x::10_10' do
       end
 
       context 'app not installed and non-existent' do
-        let(:searchable) { false }
-        let(:installed) { false }
+        let(:installed?) { false }
+        let(:app_id_for?) { nil }
         cached(:chef_run) { converge }
 
         it 'raises an error' do
@@ -100,22 +76,21 @@ describe 'resource_mac_app_store_app::mac_os_x::10_10' do
     context 'an overridden app_name property' do
       let(:name) { 'Some App' }
       let(:app_name) { 'Other App' }
-      let(:id) { 'abc123' }
 
       context 'app not already installed' do
-        let(:searchable) { true }
-        let(:installed) { false }
+        let(:installed?) { false }
+        let(:app_id_for?) { 'abc123' }
         cached(:chef_run) { converge }
 
         it 'installs the app' do
           expect(chef_run).to run_execute("Install #{app_name} with Mas")
-            .with(command: "mas install #{id}", user: user)
+            .with(command: "mas install #{app_id_for?}", user: user)
         end
       end
 
       context 'app already installed' do
-        let(:searchable) { true }
-        let(:installed) { true }
+        let(:installed?) { true }
+        let(:app_id_for?) { 'abc123' }
         cached(:chef_run) { converge }
 
         it 'does not install the app' do
@@ -124,8 +99,8 @@ describe 'resource_mac_app_store_app::mac_os_x::10_10' do
       end
 
       context 'app not installed and non-existent' do
-        let(:searchable) { false }
-        let(:installed) { false }
+        let(:installed?) { false }
+        let(:app_id_for?) { nil }
         cached(:chef_run) { converge }
 
         it 'raises an error' do
