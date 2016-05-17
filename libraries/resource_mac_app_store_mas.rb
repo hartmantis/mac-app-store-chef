@@ -20,7 +20,7 @@
 
 require 'net/http'
 require 'chef/resource'
-require 'chef/mixin/shell_out'
+require_relative 'helpers_mas'
 
 class Chef
   class Resource
@@ -33,23 +33,45 @@ class Chef
 
       provides :mac_app_store_mas, platform_family: 'mac_os_x'
 
+      #
+      # The method of installation for Mas, either :direct (GitHub) or :homebrew
+      #
       property :install_method,
                Symbol,
                equal_to: %i(direct homebrew),
                default: :direct
-      property :username, [String, nil]
+
+      #
+      # The Apple ID user to sign in as, or false for none. The
+      # converge_if_changed method does not detect a state change if a property
+      # is being changed to nil, so we must use false here instead to support
+      # "signed out" as a desired state.
+      #
+      property :username, [String, FalseClass]
+
+      #
+      # The password for the Apple ID user.
+      #
       property :password, String, desired_state: false
+
+      #
+      # A property to track the installed state of Mas.
+      #
       property :installed, [TrueClass, FalseClass]
+
+      #
+      # Optionally specify a version of Mas to install.
+      #
       property :version, String
 
       default_action %i(install sign_in)
 
       load_current_value do
-        installed(installed?)
+        installed(MacAppStore::Helpers::Mas.installed?)
         if installed
-          version(installed_version?)
-          username(signed_in_as?)
-          install_method(installed_by?)
+          version(MacAppStore::Helpers::Mas.installed_version?)
+          username(MacAppStore::Helpers::Mas.signed_in_as? || false)
+          install_method(MacAppStore::Helpers::Mas.installed_by?)
         end
       end
 
@@ -59,7 +81,9 @@ class Chef
       #
       action :install do
         new_resource.installed(true)
-        new_resource.version(latest_version?) if new_resource.version.nil?
+        unless new_resource.version
+          new_resource.version(MacAppStore::Helpers::Mas.latest_version?)
+        end
 
         converge_if_changed :installed do
           case new_resource.install_method
@@ -84,7 +108,10 @@ class Chef
       # installed.
       #
       action :upgrade do
-        new_resource.version(latest_version?) unless new_resource.version
+        new_resource.installed(true)
+        unless new_resource.version
+          new_resource.version(MacAppStore::Helpers::Mas.latest_version?)
+        end
 
         converge_if_changed :version do
           case new_resource.install_method
@@ -111,12 +138,16 @@ class Chef
       # package.
       #
       action :remove do
-        case new_resource.install_method
-        when :direct
-          file('/usr/local/bin/mas') { action :delete }
-        when :homebrew
-          include_recipe 'homebrew'
-          homebrew_package('argon/mas/mas') { action :remove }
+        new_resource.installed(false)
+
+        converge_if_changed :installed do
+          case new_resource.install_method
+          when :direct
+            file('/usr/local/bin/mas') { action :delete }
+          when :homebrew
+            include_recipe 'homebrew'
+            homebrew_package('argon/mas/mas') { action :remove }
+          end
         end
       end
 
@@ -136,68 +167,13 @@ class Chef
       # Log out of Mas.
       #
       action :sign_out do
-        new_resource.username(nil)
+        new_resource.username(false)
 
         converge_if_changed :username do
           execute 'Sign out of Mas' do
             command 'mas signout'
           end
         end
-      end
-
-      #
-      # Return the user currently signed in.
-      #
-      # @return [String, NilClass] the current user or nil
-      #
-      def signed_in_as?
-        acct = shell_out('mas account').stdout.strip
-        acct == 'Not signed in' ? nil : acct
-      end
-
-      #
-      # Return the current install method.
-      #
-      # @return [Symbol, NilClass] :direct, :homebrew, or nil
-      #
-      def installed_by?
-        return nil unless installed?
-        brew = shell_out('brew list argon/mas/mas || true').stdout.strip
-        brew.empty? ? :direct : :homebrew
-      end
-
-      #
-      # Return the currently installed version of Mas or nil if it's not
-      # installed.
-      #
-      # @return [String, NilClass] the version of Mas installed
-      #
-      def installed_version?
-        res = shell_out('mas version || true').stdout.strip
-        res.empty? ? nil : res
-      end
-
-      #
-      # Check whether Mas is currently installed.
-      #
-      # @return [TrueClass, FalseClass] whether Mas is installed
-      #
-      def installed?
-        res = shell_out('mas version || true').stdout.strip
-        res.empty? ? false : true
-      end
-
-      #
-      # Check the GitHub API and fetch the latest released version of Mas.
-      #
-      # @return [String] the most recent version of the Mas CLI
-      #
-      def latest_version?
-        @latest_version ||= JSON.parse(
-          Net::HTTP.get(
-            URI('https://api.github.com/repos/argon/mas/releases')
-          )
-        ).first['tag_name'].gsub(/^v/, '')
       end
 
       #

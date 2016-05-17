@@ -1,5 +1,5 @@
 require_relative '../../../spec_helper'
-require_relative '../../../../libraries/resource_mac_app_store_mas'
+require_relative '../../../../libraries/helpers_mas'
 
 describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
   let(:name) { 'default' }
@@ -7,17 +7,10 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
     let(p) { nil }
   end
   %i(
-    installed installed_version installed_by signed_in_as latest_version
+    installed? installed_version? installed_by? signed_in_as? latest_version?
   ).each do |p|
     let(p) { nil }
   end
-  let(:mas_version) do
-    double(stdout: installed ? "#{installed_version}\n" : "\n")
-  end
-  let(:brew_list) do
-    double(stdout: installed_by.nil? || installed_by == :direct ? '' : 'hi')
-  end
-  let(:mas_account) { double(stdout: "#{signed_in_as}\n") }
   let(:runner) do
     ChefSpec::SoloRunner.new(
       step_into: 'mac_app_store_mas', platform: 'mac_os_x', version: '10.10'
@@ -32,29 +25,29 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
   let(:converge) { runner.converge('resource_mac_app_store_mas_test') }
 
   before(:each) do
-    stub_command('which git').and_return('/usr/bin/git')
-    allow(Net::HTTP).to receive(:get).with(
-      URI('https://api.github.com/repos/argon/mas/releases')
-    ).and_return(
-      %Q([{"tag_name": "v#{latest_version}"}, {"tag_name": "v0.1.0"}])
-    )
-    allow_any_instance_of(Chef::Resource::MacAppStoreMas).to receive(:shell_out)
-      .with('mas version || true').and_return(mas_version)
-    allow_any_instance_of(Chef::Resource::MacAppStoreMas).to receive(:shell_out)
-      .with('brew list argon/mas/mas || true').and_return(brew_list)
-    allow_any_instance_of(Chef::Resource::MacAppStoreMas).to receive(:shell_out)
-      .with('mas account').and_return(mas_account)
+    allow(Kernel).to receive(:load).and_call_original
+    allow(Kernel).to receive(:load)
+      .with(%r{mac-app-store/libraries/helpers_mas\.rb}).and_return(true)
+    {
+      latest_version?: latest_version?,
+      installed?: installed?,
+      installed_version?: installed_version?,
+      installed_by?: installed_by?,
+      signed_in_as?: signed_in_as?
+    }.each do |k, v|
+      allow(MacAppStore::Helpers::Mas).to receive(k).and_return(v)
+    end
   end
 
   context 'the default action (:install)' do
     let(:action) { nil }
-    let(:latest_version) { '1.3.0' }
+    let(:latest_version?) { '1.3.0' }
 
     context 'the default install method (:direct)' do
       let(:install_method) { nil }
 
       context 'not already installed' do
-        let(:installed) { false }
+        let(:installed?) { false }
         cached(:chef_run) { converge }
 
         it 'downloads mas-cli.zip from GitHub' do
@@ -73,8 +66,9 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
       end
 
       context 'already installed' do
-        let(:installed) { true }
-        let(:installed_version) { '1.1.0' }
+        let(:installed?) { true }
+        let(:installed_version?) { '1.1.0' }
+        let(:installed_by?) { :direct }
         cached(:chef_run) { converge }
 
         it 'does not download mas-cli.zip from GitHub' do
@@ -93,8 +87,12 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
       let(:install_method) { :homebrew }
 
       context 'not already installed' do
-        let(:installed) { false }
+        let(:installed?) { false }
         cached(:chef_run) { converge }
+
+        before(:each) do
+          stub_command('which git').and_return('git')
+        end
 
         it 'includes the homebrew default recipe' do
           expect(chef_run).to include_recipe('homebrew')
@@ -106,8 +104,9 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
       end
 
       context 'already installed' do
-        let(:installed) { true }
-        let(:installed_version) { '1.1.0' }
+        let(:installed?) { true }
+        let(:installed_version?) { '1.1.0' }
+        let(:installed_by?) { :direct }
         cached(:chef_run) { converge }
 
         it 'does not include the homebrew default recipe' do
@@ -123,13 +122,13 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
 
   context 'the :upgrade action' do
     let(:action) { :upgrade }
-    let(:latest_version) { '1.5.0' }
+    let(:latest_version?) { '1.5.0' }
 
     context 'the default install method (:direct)' do
       let(:install_method) { nil }
 
       context 'not already installed' do
-        let(:installed) { false }
+        let(:installed?) { false }
         cached(:chef_run) { converge }
 
         it 'downloads mas-cli.zip from GitHub' do
@@ -148,8 +147,9 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
       end
 
       context 'already installed' do
-        let(:installed) { true }
-        let(:installed_version) { '1.5.0' }
+        let(:installed?) { true }
+        let(:installed_version?) { '1.5.0' }
+        let(:installed_by?) { :direct }
         cached(:chef_run) { converge }
 
         it 'does not download mas-cli.zip from GitHub' do
@@ -164,10 +164,10 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
       end
 
       context 'installed but in need of an upgrade' do
-        let(:installed) { true }
-        let(:installed_version) { '1.4.0' }
+        let(:installed?) { true }
+        let(:installed_version?) { '1.4.0' }
+        let(:installed_by?) { :direct }
         cached(:chef_run) { converge }
-
 
         it 'downloads mas-cli.zip from GitHub' do
           expect(chef_run).to create_remote_file(
@@ -189,8 +189,12 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
       let(:install_method) { :homebrew }
 
       context 'not already installed' do
-        let(:installed) { false }
+        let(:installed?) { false }
         cached(:chef_run) { converge }
+
+        before(:each) do
+          stub_command('which git').and_return('git')
+        end
 
         it 'includes the homebrew default recipe' do
           expect(chef_run).to include_recipe('homebrew')
@@ -202,8 +206,9 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
       end
 
       context 'already installed' do
-        let(:installed) { true }
-        let(:installed_version) { '1.5.0' }
+        let(:installed?) { true }
+        let(:installed_version?) { '1.5.0' }
+        let(:installed_by?) { :direct }
         cached(:chef_run) { converge }
 
         it 'does not include the homebrew default recipe' do
@@ -216,9 +221,14 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
       end
 
       context 'installed but in need of an upgrade' do
-        let(:installed) { true }
-        let(:installed_version) { '1.4.0' }
+        let(:installed?) { true }
+        let(:installed_version?) { '1.4.0' }
+        let(:installed_by?) { :direct }
         cached(:chef_run) { converge }
+
+        before(:each) do
+          stub_command('which git').and_return('git')
+        end
 
         it 'includes the homebrew default recipe' do
           expect(chef_run).to include_recipe('homebrew')
@@ -247,6 +257,10 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
       let(:install_method) { :homebrew }
       cached(:chef_run) { converge }
 
+      before(:each) do
+        stub_command('which git').and_return('git')
+      end
+
       it 'includes the homebrew default recipe' do
         expect(chef_run).to include_recipe('homebrew')
       end
@@ -259,12 +273,14 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
 
   context 'the :sign_in action' do
     let(:action) { :sign_in }
-    let(:installed) { true }
+    let(:installed?) { true }
+    let(:installed_version?) { '1.2.3' }
+    let(:installed_by?) { :direct }
     let(:username) { 'example@example.com' }
     let(:password) { 'abc123' }
 
     context 'not signed in' do
-      let(:signed_in_as) { nil }
+      let(:signed_in_as?) { nil }
       cached(:chef_run) { converge }
 
       it 'signs into Mas' do
@@ -274,7 +290,7 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
     end
 
     context 'already signed in' do
-      let(:signed_in_as) { 'example@example.com' }
+      let(:signed_in_as?) { 'example@example.com' }
       cached(:chef_run) { converge }
 
       it 'does not sign into Mas' do
@@ -283,7 +299,7 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
     end
 
     context 'signed in as someone else' do
-      let(:signed_in_as) { '2@example.com' }
+      let(:signed_in_as?) { '2@example.com' }
       cached(:chef_run) { converge }
 
       it 'signs into Mas' do
@@ -295,10 +311,12 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
 
   context 'the :sign_out action' do
     let(:action) { :sign_out }
-    let(:installed) { true }
+    let(:installed?) { true }
+    let(:installed_version?) { '1.2.3' }
+    let(:installed_by?) { :direct }
 
     context 'signed in' do
-      let(:signed_in_as) { 'example@example.com' }
+      let(:signed_in_as?) { 'example@example.com' }
       cached(:chef_run) { converge }
 
       it 'signs out of Mas' do
@@ -308,7 +326,7 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
     end
 
     context 'not signed in' do
-      let(:signed_in_as) { nil }
+      let(:signed_in_as?) { nil }
       cached(:chef_run) { converge }
 
       it 'does not sign out of Mas' do
