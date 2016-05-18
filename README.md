@@ -61,7 +61,11 @@ into the App Store as.
 Set apps as keys+values under this space, where the key is the full app name
 and value is true to install it or false to not. For example:
 
-    default[['mac_app_store']['apps']['Growl'] = true
+    default['mac_app_store']['apps']['Growl'] = true
+
+If desired, a specific version of Mas can be installed rather than the latest:
+
+    default['mac_app_store']['mas']['version'] = nil
 
 Resources
 =========
