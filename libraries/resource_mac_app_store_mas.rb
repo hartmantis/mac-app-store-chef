@@ -19,7 +19,6 @@
 #
 
 require 'etc'
-require 'net/http'
 require 'chef/resource'
 require_relative 'helpers_mas'
 
@@ -37,10 +36,7 @@ class Chef
       #
       # The method of installation for Mas, either :direct (GitHub) or :homebrew
       #
-      property :install_method,
-               Symbol,
-               equal_to: %i(direct homebrew),
-               default: :direct
+      property :source, Symbol, equal_to: %i(direct homebrew), default: :direct
 
       #
       # The Apple ID user to sign in as, or false for none. The
@@ -77,7 +73,7 @@ class Chef
         if installed
           version(MacAppStore::Helpers::Mas.installed_version?)
           username(MacAppStore::Helpers::Mas.signed_in_as? || false)
-          install_method(MacAppStore::Helpers::Mas.installed_by?)
+          source(MacAppStore::Helpers::Mas.installed_by?)
           upgradable_apps(MacAppStore::Helpers::Mas.upgradable_apps?)
         end
       end
@@ -93,7 +89,7 @@ class Chef
         end
 
         converge_if_changed :installed do
-          case new_resource.install_method
+          case new_resource.source
           when :direct
             path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
             remote_file path do
@@ -121,7 +117,7 @@ class Chef
         end
 
         converge_if_changed :version do
-          case new_resource.install_method
+          case new_resource.source
           when :direct
             path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
             remote_file path do
@@ -146,7 +142,7 @@ class Chef
         new_resource.installed(false)
 
         converge_if_changed :installed do
-          case new_resource.install_method
+          case new_resource.source
           when :direct
             file('/usr/local/bin/mas') { action :delete }
           when :homebrew
@@ -160,10 +156,10 @@ class Chef
       # Log in via Mas with an Apple ID and password.
       #
       action :sign_in do
-        unless new_resource.username && new_resource.password
-          raise(Chef::Exceptions::ValidationFailed,
-                'A username and password are required to sign into Mas')
-        end
+        new_resource.username && new_resource.password || raise(
+          Chef::Exceptions::ValidationFailed,
+          'A username and password are required to sign into Mas'
+        )
 
         converge_if_changed :username do
           execute "Sign in to Mas as #{new_resource.username}" do
@@ -181,9 +177,7 @@ class Chef
         new_resource.username(false)
 
         converge_if_changed :username do
-          execute 'Sign out of Mas' do
-            command 'mas signout'
-          end
+          execute('Sign out of Mas') { command 'mas signout' }
         end
       end
 

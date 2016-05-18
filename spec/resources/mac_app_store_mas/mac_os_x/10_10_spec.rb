@@ -3,7 +3,7 @@ require_relative '../../../../libraries/helpers_mas'
 
 describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
   let(:name) { 'default' }
-  %i(install_method version username password action).each do |p|
+  %i(source version username password action).each do |p|
     let(p) { nil }
   end
   %i(
@@ -21,7 +21,7 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
     ChefSpec::SoloRunner.new(
       step_into: 'mac_app_store_mas', platform: 'mac_os_x', version: '10.10'
     ) do |node|
-      %i(name install_method version username password action).each do |p|
+      %i(name source version username password action).each do |p|
         unless send(p).nil?
           node.set['resource_mac_app_store_mas_test'][p] = send(p)
         end
@@ -53,8 +53,8 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
     let(:password) { 'abc123' }
     let(:latest_version?) { '1.3.0' }
 
-    context 'the default install method (:direct)' do
-      let(:install_method) { nil }
+    context 'the default source (:direct)' do
+      let(:source) { nil }
 
       context 'not already installed' do
         let(:installed?) { false }
@@ -93,8 +93,8 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
       end
     end
 
-    context 'the :homebrew install method' do
-      let(:install_method) { :homebrew }
+    context 'the :homebrew source' do
+      let(:source) { :homebrew }
 
       context 'not already installed' do
         let(:installed?) { false }
@@ -152,8 +152,8 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
     let(:action) { :upgrade }
     let(:latest_version?) { '1.5.0' }
 
-    context 'the default install method (:direct)' do
-      let(:install_method) { nil }
+    context 'the default source (:direct)' do
+      let(:source) { nil }
 
       context 'not already installed' do
         let(:installed?) { false }
@@ -213,8 +213,8 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
       end
     end
 
-    context 'the :homebrew install method' do
-      let(:install_method) { :homebrew }
+    context 'the :homebrew source' do
+      let(:source) { :homebrew }
 
       context 'not already installed' do
         let(:installed?) { false }
@@ -272,8 +272,8 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
   context 'the :remove action' do
     let(:action) { :remove }
 
-    context 'the default install method (:direct)' do
-      let(:install_method) { nil }
+    context 'the default source (:direct)' do
+      let(:source) { nil }
       cached(:chef_run) { converge }
 
       it 'deletes the mas file' do
@@ -281,8 +281,8 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
       end
     end
 
-    context 'the :homebrew install method' do
-      let(:install_method) { :homebrew }
+    context 'the :homebrew source' do
+      let(:source) { :homebrew }
       cached(:chef_run) { converge }
 
       before(:each) do

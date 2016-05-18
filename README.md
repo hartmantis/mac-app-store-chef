@@ -74,7 +74,7 @@ with the App Store.
 Syntax:
 
     mac_app_store_mas 'default' do
-      install_method :direct
+      source :direct
       username 'example@example.com'
       password 'abc123'
       version: '1.2.3'
@@ -91,15 +91,15 @@ Actions:
 | `:sign_in`  | Use Mas to sign into the App Store |
 | `:sign_out` | Sign out of the App Store          |
 
-Attributes:
+Properties:
 
-| Attribute      | Default               | Description                                    |
-|----------------|-----------------------|------------------------------------------------|
-| install_method | `:direct`             | Install from GitHub (`:direct`) or `:homebrew` |
-| username       | `nil`                 | An Apple ID username                           |
-| password       | `nil`                 | An Apple ID password                           |
-| version        | `nil`                 | The version of Mas to install                  |
-| action         | `%i(install sign_in)` | Action(s) to perform                           |
+| Property | Default               | Description                                    |
+|----------|-----------------------|------------------------------------------------|
+| source   | `:direct`             | Install from GitHub (`:direct`) or `:homebrew` |
+| username | `nil`                 | An Apple ID username                           |
+| password | `nil`                 | An Apple ID password                           |
+| version  | `nil`                 | The version of Mas to install                  |
+| action   | `%i(install sign_in)` | Action(s) to perform                           |
 
 ***mac_app_store_app***
 
@@ -119,12 +119,12 @@ Actions:
 |------------|---------------------------------|
 | `:install` | Default; installs the given app |
 
-Attributes:
+Properties:
 
-| Attribute | Default       | Description                                |
-|-----------|---------------|--------------------------------------------|
-| app_name  | resource name | App name if it doesn't match resource name |
-| action    | `:install`    | Action(s) to perform                       |
+| Property | Default       | Description                                |
+|----------|---------------|--------------------------------------------|
+| app_name | resource name | App name if it doesn't match resource name |
+| action   | `:install`    | Action(s) to perform                       |
 
 Contributing
 ============
