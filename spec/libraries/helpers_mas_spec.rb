@@ -4,6 +4,44 @@ require_relative '../spec_helper'
 require_relative '../../libraries/helpers_mas'
 
 describe MacAppStore::Helpers::Mas do
+  describe '.upgradable_apps?' do
+    let(:installed) { nil }
+    let(:stdout) { nil }
+    let(:mas_outdated) { double(stdout: "#{stdout}\n") }
+
+    before(:each) do
+      allow(described_class).to receive(:installed?).and_return(installed)
+      allow(described_class).to receive(:shell_out).with('mas outdated')
+        .and_return(mas_outdated)
+    end
+
+    context 'upgrades available' do
+      let(:installed) { true }
+      let(:stdout) { "123456789 App 1\n234567890 App 2" }
+
+      it 'returns true' do
+        expect(described_class.upgradable_apps?).to eq(true)
+      end
+    end
+
+    context 'no upgrades available' do
+      let(:installed) { true }
+      let(:stdout) { nil }
+
+      it 'returns false' do
+        expect(described_class.upgradable_apps?).to eq(false)
+      end
+    end
+
+    context 'Mas not installed' do
+      let(:installed) { false }
+
+      it 'returns nil' do
+        expect(described_class.upgradable_apps?).to eq(nil)
+      end
+    end
+  end
+
   describe '.signed_in_as?' do
     let(:installed) { nil }
     let(:user) { nil }

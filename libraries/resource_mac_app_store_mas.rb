@@ -18,6 +18,7 @@
 # limitations under the License.
 #
 
+require 'etc'
 require 'net/http'
 require 'chef/resource'
 require_relative 'helpers_mas'
@@ -64,6 +65,11 @@ class Chef
       #
       property :installed, [TrueClass, FalseClass]
 
+      #
+      # A property to track whether any app upgrades are available.
+      #
+      property :upgradable_apps, [TrueClass, FalseClass]
+
       default_action %i(install sign_in)
 
       load_current_value do
@@ -72,6 +78,7 @@ class Chef
           version(MacAppStore::Helpers::Mas.installed_version?)
           username(MacAppStore::Helpers::Mas.signed_in_as? || false)
           install_method(MacAppStore::Helpers::Mas.installed_by?)
+          upgradable_apps(MacAppStore::Helpers::Mas.upgradable_apps?)
         end
       end
 
@@ -176,6 +183,20 @@ class Chef
         converge_if_changed :username do
           execute 'Sign out of Mas' do
             command 'mas signout'
+          end
+        end
+      end
+
+      #
+      # Upgrade all installed apps.
+      #
+      action :upgrade_apps do
+        new_resource.upgradable_apps(false)
+
+        converge_if_changed :upgradable_apps do
+          execute 'Upgrade all installed apps' do
+            command 'mas upgrade'
+            user Etc.getlogin
           end
         end
       end

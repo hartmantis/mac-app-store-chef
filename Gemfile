@@ -36,5 +36,4 @@ end
 group :production do
   gem 'chef', '>= 12'
   gem 'berkshelf'
-  gem 'AXElements', '~> 7.0'
 end

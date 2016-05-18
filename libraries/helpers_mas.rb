@@ -32,6 +32,17 @@ module MacAppStore
         include Chef::Mixin::ShellOut
 
         #
+        # Check whether any installed apps are outdated.
+        #
+        # @return [TrueClass, FalseClass, NilClass] any available upgrades
+        #
+        def upgradable_apps?
+          return nil unless installed?
+          outdated = shell_out('mas outdated').stdout.strip
+          outdated.empty? ? false : true
+        end
+
+        #
         # Return the user currently signed in.
         #
         # @return [String, NilClass] the current user or nil

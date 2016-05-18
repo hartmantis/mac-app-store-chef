@@ -7,10 +7,16 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
     let(p) { nil }
   end
   %i(
-    installed? installed_version? installed_by? signed_in_as? latest_version?
+    installed?
+    installed_version?
+    installed_by?
+    signed_in_as?
+    latest_version?
+    upgradable_apps?
   ).each do |p|
     let(p) { nil }
   end
+  let(:user) { 'vagrant' }
   let(:runner) do
     ChefSpec::SoloRunner.new(
       step_into: 'mac_app_store_mas', platform: 'mac_os_x', version: '10.10'
@@ -33,10 +39,12 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
       installed?: installed?,
       installed_version?: installed_version?,
       installed_by?: installed_by?,
-      signed_in_as?: signed_in_as?
+      signed_in_as?: signed_in_as?,
+      upgradable_apps?: upgradable_apps?
     }.each do |k, v|
       allow(MacAppStore::Helpers::Mas).to receive(k).and_return(v)
     end
+    allow(Etc).to receive(:getlogin).and_return(user)
   end
 
   context 'the default action (:install)' do
@@ -369,6 +377,32 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
 
       it 'does not sign out of Mas' do
         expect(chef_run).to_not run_execute('Sign out of Mas')
+      end
+    end
+  end
+
+  context 'the :upgrade_apps action' do
+    let(:action) { :upgrade_apps }
+    let(:installed?) { true }
+    let(:installed_version?) { '1.1.0' }
+    let(:installed_by?) { :direct }
+
+    context 'upgrades available' do
+      let(:upgradable_apps?) { true }
+      cached(:chef_run) { converge }
+
+      it 'runs a Mas upgrade' do
+        expect(chef_run).to run_execute('Upgrade all installed apps')
+          .with(command: 'mas upgrade', user: user)
+      end
+    end
+
+    context 'no upgrades available' do
+      let(:upgradable_apps?) { false }
+      cached(:chef_run) { converge }
+
+      it 'does not run a Mas upgrade' do
+        expect(chef_run).to_not run_execute('Upgrade all installed apps')
       end
     end
   end
