@@ -43,7 +43,8 @@ module MacAppStore
               name: l.split(' ')[1..-2].join(' ')
             }
           end
-          outdated_apps.find { |a| a[:name] == name } ? true : false
+          app_id = app_id_for?(name)
+          outdated_apps.find { |a| a[:id] == app_id } ? true : false
         end
 
         #
@@ -60,7 +61,8 @@ module MacAppStore
               name: l.rstrip.split(' ')[1..-1].join(' ')
             }
           end
-          installed_apps.find { |a| a[:name] == name } ? true : false
+          app_id = app_id_for?(name)
+          installed_apps.find { |a| a[:id] == app_id } ? true : false
         end
 
         #

@@ -5,7 +5,8 @@ require_relative '../../libraries/helpers_app'
 
 describe MacAppStore::Helpers::App do
   describe '.upgradable?' do
-    let(:name) { 'Xcode' }
+    let(:name) { 'Xcode for OS X' }
+    let(:id) { '123456789' }
     let(:upgradable) { nil }
     let(:stdout) do
       lines = [
@@ -15,7 +16,7 @@ describe MacAppStore::Helpers::App do
         '448925439 Marked (5.6.7)',
         '403012667 Textual (6.7.8)'
       ]
-      lines.insert(2, '123456789 Xcode (7.8.9)') if upgradable
+      lines.insert(2, "#{id} #{name.tr(' ', '')} (7.8.9)") if upgradable
       lines.join("\n")
     end
     let(:mas_outdated) { double(stdout: stdout) }
@@ -24,6 +25,7 @@ describe MacAppStore::Helpers::App do
     before(:each) do
       allow(described_class).to receive(:shell_out).with('mas outdated')
         .and_return(mas_outdated)
+      allow(described_class).to receive(:app_id_for?).with(name).and_return(id)
     end
 
     context 'not upgradable' do
@@ -44,7 +46,8 @@ describe MacAppStore::Helpers::App do
   end
 
   describe '.installed?' do
-    let(:name) { 'Xcode' }
+    let(:name) { 'Xcode for OS X' }
+    let(:id) { '123456789' }
     let(:installed) { nil }
     let(:stdout) do
       lines = [
@@ -54,7 +57,7 @@ describe MacAppStore::Helpers::App do
         '448925439 Marked',
         '403012667 Textual'
       ]
-      lines.insert(2, '123456789 Xcode') if installed
+      lines.insert(2, "#{id} #{name.tr(' ', '')}") if installed
       lines.join("\n")
     end
     let(:mas_list) { double(stdout: stdout) }
@@ -63,6 +66,7 @@ describe MacAppStore::Helpers::App do
     before(:each) do
       allow(described_class).to receive(:shell_out).with('mas list')
         .and_return(mas_list)
+      allow(described_class).to receive(:app_id_for?).with(name).and_return(id)
     end
 
     context 'not installed' do
