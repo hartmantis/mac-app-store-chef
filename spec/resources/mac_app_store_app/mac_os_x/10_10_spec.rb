@@ -110,4 +110,111 @@ describe 'resource_mac_app_store_app::mac_os_x::10_10' do
       end
     end
   end
+
+  context 'the :upgrade action' do
+    let(:action) { :upgrade }
+
+    context 'no extra properties' do
+      let(:name) { 'Some App' }
+
+      context 'app not already installed' do
+        let(:installed?) { false }
+        let(:upgradable?) { nil }
+        let(:app_id_for?) { 'abc123' }
+        cached(:chef_run) { converge }
+
+        it 'installs the app' do
+          expect(chef_run).to run_execute("Upgrade #{name} with Mas")
+            .with(command: "mas install #{app_id_for?}", user: user)
+        end
+      end
+
+      context 'app installed and upgradable' do
+        let(:installed?) { true }
+        let(:upgradable?) { true }
+        let(:app_id_for?) { 'abc123' }
+        cached(:chef_run) { converge }
+
+        it 'upgrades the app' do
+          expect(chef_run).to run_execute("Upgrade #{name} with Mas")
+            .with(command: "mas install #{app_id_for?}", user: user)
+        end
+      end
+
+      context 'app installed and not upgradable' do
+        let(:installed?) { true }
+        let(:upgradable?) { false }
+        let(:app_id_for?) { 'abc123' }
+        cached(:chef_run) { converge }
+
+        it 'does not upgrade the app' do
+          expect(chef_run).to_not run_execute("Upgrade #{name} with Mas")
+        end
+      end
+
+      context 'app not installed and non-existent' do
+        let(:installed?) { false }
+        let(:upgradable?) { nil }
+        let(:app_id_for?) { nil }
+        cached(:chef_run) { converge }
+
+        it 'raises an error' do
+          expected = Chef::Resource::MacAppStoreApp::Exceptions::InvalidAppName
+          expect { chef_run }.to raise_error(expected)
+        end
+      end
+    end
+
+    context 'an overridden app_name property' do
+      let(:name) { 'Some App' }
+      let(:app_name) { 'Other App' }
+
+      context 'app not already installed' do
+        let(:installed?) { false }
+        let(:upgradable?) { nil }
+        let(:app_id_for?) { 'abc123' }
+        cached(:chef_run) { converge }
+
+        it 'installs the app' do
+          expect(chef_run).to run_execute("Upgrade #{app_name} with Mas")
+            .with(command: "mas install #{app_id_for?}", user: user)
+        end
+      end
+
+      context 'app installed and upgradable' do
+        let(:installed?) { true }
+        let(:upgradable?) { true }
+        let(:app_id_for?) { 'abc123' }
+        cached(:chef_run) { converge }
+
+        it 'upgrades the app' do
+          expect(chef_run).to run_execute("Upgrade #{app_name} with Mas")
+            .with(command: "mas install #{app_id_for?}", user: user)
+        end
+      end
+
+      context 'app installed and not upgradable' do
+        let(:installed?) { true }
+        let(:upgradable?) { false }
+        let(:app_id_for?) { 'abc123' }
+        cached(:chef_run) { converge }
+
+        it 'does not upgrade the app' do
+          expect(chef_run).to_not run_execute("Upgrade #{app_name} with Mas")
+        end
+      end
+
+      context 'app not installed and non-existent' do
+        let(:installed?) { false }
+        let(:upgradable?) { nil }
+        let(:app_id_for?) { nil }
+        cached(:chef_run) { converge }
+
+        it 'raises an error' do
+          expected = Chef::Resource::MacAppStoreApp::Exceptions::InvalidAppName
+          expect { chef_run }.to raise_error(expected)
+        end
+      end
+    end
+  end
 end

@@ -56,10 +56,25 @@ class Chef
 
       action :install do
         new_resource.installed(true)
+
         converge_if_changed :installed do
           app_id = MacAppStore::Helpers::App.app_id_for?(new_resource.app_name)
           raise(Exceptions::InvalidAppName, new_resource.app_name) unless app_id
           execute "Install #{new_resource.app_name} with Mas" do
+            command "mas install #{app_id}"
+            user Etc.getlogin
+          end
+        end
+      end
+
+      action :upgrade do
+        new_resource.installed(true)
+        new_resource.upgradable(false)
+
+        converge_if_changed :installed, :upgradable do
+          app_id = MacAppStore::Helpers::App.app_id_for?(new_resource.app_name)
+          raise(Exceptions::InvalidAppName, new_resource.app_name) unless app_id
+          execute "Upgrade #{new_resource.app_name} with Mas" do
             command "mas install #{app_id}"
             user Etc.getlogin
           end
