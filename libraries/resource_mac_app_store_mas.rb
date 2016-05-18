@@ -126,9 +126,7 @@ class Chef
             end
           when :homebrew
             include_recipe 'homebrew'
-            homebrew_package 'argon/mas/mas' do
-              action :upgrade
-            end
+            homebrew_package('argon/mas/mas') { action :upgrade }
           end
         end
       end
@@ -164,6 +162,7 @@ class Chef
           execute "Sign in to Mas as #{new_resource.username}" do
             command "mas signin #{new_resource.username}" \
                     " #{new_resource.password}"
+            sensitive true
           end
         end
       end
