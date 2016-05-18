@@ -155,6 +155,11 @@ class Chef
       # Log in via Mas with an Apple ID and password.
       #
       action :sign_in do
+        unless new_resource.username && new_resource.password
+          raise(Chef::Exceptions::ValidationFailed,
+                'A username and password are required to sign into Mas')
+        end
+
         converge_if_changed :username do
           execute "Sign in to Mas as #{new_resource.username}" do
             command "mas signin #{new_resource.username}" \

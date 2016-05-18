@@ -41,6 +41,8 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
 
   context 'the default action (:install)' do
     let(:action) { nil }
+    let(:username) { 'example@example.com' }
+    let(:password) { 'abc123' }
     let(:latest_version?) { '1.3.0' }
 
     context 'the default install method (:direct)' do
@@ -116,6 +118,24 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
         it 'does not install Mas via Homebrew' do
           expect(chef_run).to_not install_homebrew_package('argon/mas/mas')
         end
+      end
+    end
+
+    context 'username property missing' do
+      let(:username) { nil }
+      cached(:chef_run) { converge }
+
+      it 'raises an error' do
+        expect { chef_run }.to raise_error(Chef::Exceptions::ValidationFailed)
+      end
+    end
+
+    context 'password property missing' do
+      let(:password) { nil }
+      cached(:chef_run) { converge }
+
+      it 'raises an error' do
+        expect { chef_run }.to raise_error(Chef::Exceptions::ValidationFailed)
       end
     end
   end
@@ -305,6 +325,24 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
       it 'signs into Mas' do
         expect(chef_run).to run_execute("Sign in to Mas as #{username}")
           .with(command: "mas signin #{username} #{password}")
+      end
+    end
+
+    context 'username property missing' do
+      let(:username) { nil }
+      cached(:chef_run) { converge }
+
+      it 'raises an error' do
+        expect { chef_run }.to raise_error(Chef::Exceptions::ValidationFailed)
+      end
+    end
+
+    context 'password property missing' do
+      let(:password) { nil }
+      cached(:chef_run) { converge }
+
+      it 'raises an error' do
+        expect { chef_run }.to raise_error(Chef::Exceptions::ValidationFailed)
       end
     end
   end
