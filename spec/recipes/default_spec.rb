@@ -3,116 +3,95 @@
 require 'spec_helper'
 
 describe 'mac-app-store::default' do
+  %i(username password apps source version).each do |a|
+    let(a) { nil }
+  end
   let(:platform) { { platform: nil, version: nil } }
-  let(:overrides) { {} }
   let(:runner) do
     ChefSpec::SoloRunner.new(platform) do |node|
-      overrides.each { |k, v| node.set[k] = v }
+      %i(username password apps).each do |a|
+        node.set['mac_app_store'][a] = send(a) unless send(a).nil?
+      end
+      %i(source version).each do |a|
+        node.set['mac_app_store']['mas'][a] = send(a) unless send(a).nil?
+      end
     end
   end
-  let(:chef_run) { runner.converge(described_recipe) }
+  let(:converge) { runner.converge(described_recipe) }
 
-  context 'OS X platform' do
-    let(:platform) { { platform: 'mac_os_x', version: '10.9.2' } }
+  context 'Mac OS X 10.10' do
+    let(:platform) { { platform: 'mac_os_x', version: '10.10' } }
 
     shared_examples_for 'any attribute set' do
-      it 'opens the Mac App Store' do
-        expect(chef_run).to open_mac_app_store('default')
+      it 'installs Mas' do
+        expect(chef_run).to install_mac_app_store_mas('default')
       end
 
-      it 'notifies the App Store to quit when done' do
-        expect(chef_run.mac_app_store('default'))
-          .to notify('mac_app_store[default]').to(:quit).delayed
+      it 'signs into Mas' do
+        expect(chef_run).to sign_in_mac_app_store_mas('default')
+          .with(username: username, password: password)
       end
-    end
 
-    shared_examples_for 'given an Apple ID' do
-      it 'uses the provided Apple ID' do
-        expect(chef_run).to open_mac_app_store('default')
-          .with(username: overrides[:mac_app_store][:username])
-          .with(password: overrides[:mac_app_store][:password])
-      end
-    end
-
-    shared_examples_for 'given a set of apps to install' do
       it 'installs the specified apps' do
-        r = chef_run
-        overrides[:mac_app_store][:apps].each do |a|
-          if a.is_a?(String)
-            expect(r).to install_mac_app_store_app(a)
-          else
-            expect(r).to install_mac_app_store_app(a[:name])
-              .with(bundle_id: a[:bundle_id])
+        if apps
+          apps.each do |k, v|
+            expect(chef_run).to install_mac_app_store_app(k) if v == true
           end
+        else
+          expect(chef_run.find_resources(:mac_app_store_app)).to be_empty
         end
       end
     end
 
-    context 'default attributes' do
+    context 'all default attributes' do
+      cached(:chef_run) { converge }
+
+      it_behaves_like 'any attribute set'
+    end
+
+    context 'overridden username and password attributes' do
+      let(:username) { 'example@example.com' }
+      let(:password) { 'abc123' }
+      cached(:chef_run) { converge }
+
+      it_behaves_like 'any attribute set'
+    end
+
+    context 'an overridden apps attribute' do
+      let(:apps) { { 'App 1' => true, 'App 2' => true, 'App 3' => false } }
+      cached(:chef_run) { converge }
+
+      it_behaves_like 'any attribute set'
+    end
+
+    context 'an overridden source attribute' do
+      let(:source) { 'homebrew' }
+      cached(:chef_run) { converge }
+
       it_behaves_like 'any attribute set'
 
-      it 'installs no apps' do
-        expect(chef_run.find_resources(:mac_app_store_app)).to be_empty
+      it 'installs Mas from the desired source' do
+        expect(chef_run).to install_mac_app_store_mas('default')
+          .with(source: :homebrew)
       end
     end
 
-    context 'an attribue array of app names only' do
-      let(:overrides) { { mac_app_store: { apps: %w(app1 app2) } } }
+    context 'an overridden version attribute' do
+      let(:version) { '1.2.3' }
+      cached(:chef_run) { converge }
 
-      context 'no Apple ID given' do
-        it_behaves_like 'any attribute set'
-        it_behaves_like 'given a set of apps to install'
-      end
+      it_behaves_like 'any attribute set'
 
-      context 'an Apple ID given' do
-        let(:overrides) do
-          o = super()
-          o[:mac_app_store][:username] = 'e@example.com'
-          o[:mac_app_store][:password] = 'abc123'
-          o
-        end
-
-        it_behaves_like 'any attribute set'
-        it_behaves_like 'given an Apple ID'
-        it_behaves_like 'given a set of apps to install'
-      end
-    end
-
-    context 'an attribute set of mixed array and hash apps' do
-      let(:overrides) do
-        {
-          mac_app_store: {
-            apps: [
-              'app1',
-              { name: 'app2', bundle_id: 'com.example.app2' },
-              { name: 'app3' }
-            ]
-          }
-        }
-      end
-
-      context 'no Apple ID given' do
-        it_behaves_like 'any attribute set'
-        it_behaves_like 'given a set of apps to install'
-      end
-
-      context 'an Apple ID given' do
-        let(:overrides) do
-          o = super()
-          o[:mac_app_store][:username] = 'e@example.com'
-          o[:mac_app_store][:password] = 'abc123'
-          o
-        end
-
-        it_behaves_like 'any attribute set'
-        it_behaves_like 'given an Apple ID'
-        it_behaves_like 'given a set of apps to install'
+      it 'installs the desired version of Mas' do
+        expect(chef_run).to install_mac_app_store_mas('default')
+          .with(version: '1.2.3')
       end
     end
   end
 
-  context 'Ubuntu platform' do
+  context 'Ubuntu 14.04' do
     let(:platform) { { platform: 'ubuntu', version: '14.04' } }
+    cached(:chef_run) { converge }
 
     it 'raises an error' do
       expect { chef_run }.to raise_error(Chef::Exceptions::UnsupportedPlatform)
