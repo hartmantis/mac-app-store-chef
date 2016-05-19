@@ -109,7 +109,7 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
         end
 
         it 'installs Mas via Homebrew' do
-          expect(chef_run).to install_homebrew_package('argon/mas/mas')
+          expect(chef_run).to install_homebrew_package('mas')
         end
       end
 
@@ -124,7 +124,7 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
         end
 
         it 'does not install Mas via Homebrew' do
-          expect(chef_run).to_not install_homebrew_package('argon/mas/mas')
+          expect(chef_run).to_not install_homebrew_package('mas')
         end
       end
     end
@@ -229,7 +229,7 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
         end
 
         it 'upgrades Mas via Homebrew' do
-          expect(chef_run).to upgrade_homebrew_package('argon/mas/mas')
+          expect(chef_run).to upgrade_homebrew_package('mas')
         end
       end
 
@@ -244,7 +244,7 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
         end
 
         it 'does not upgrade Mas via Homebrew' do
-          expect(chef_run).to_not upgrade_homebrew_package('argon/mas/mas')
+          expect(chef_run).to_not upgrade_homebrew_package('mas')
         end
       end
 
@@ -263,7 +263,7 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
         end
 
         it 'upgrades Mas via Homebrew' do
-          expect(chef_run).to upgrade_homebrew_package('argon/mas/mas')
+          expect(chef_run).to upgrade_homebrew_package('mas')
         end
       end
     end
@@ -294,7 +294,7 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
       end
 
       it 'removes Mas via Homebrew' do
-        expect(chef_run).to remove_homebrew_package('argon/mas/mas')
+        expect(chef_run).to remove_homebrew_package('mas')
       end
     end
   end

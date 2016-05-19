@@ -101,7 +101,7 @@ class Chef
             end
           when :homebrew
             include_recipe 'homebrew'
-            homebrew_package 'argon/mas/mas'
+            homebrew_package 'mas'
           end
         end
       end
@@ -129,7 +129,7 @@ class Chef
             end
           when :homebrew
             include_recipe 'homebrew'
-            homebrew_package('argon/mas/mas') { action :upgrade }
+            homebrew_package('mas') { action :upgrade }
           end
         end
       end
@@ -147,7 +147,7 @@ class Chef
             file('/usr/local/bin/mas') { action :delete }
           when :homebrew
             include_recipe 'homebrew'
-            homebrew_package('argon/mas/mas') { action :remove }
+            homebrew_package('mas') { action :remove }
           end
         end
       end
