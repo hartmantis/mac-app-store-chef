@@ -175,6 +175,7 @@ class Chef
             command "mas signin #{new_resource.username}" \
                     " #{new_resource.password}"
             user Etc.getlogin
+            returns [0, 6]
             sensitive true
           end
         end
