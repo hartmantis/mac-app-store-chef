@@ -37,6 +37,11 @@ class Chef
       #
       property :app_name, String, name_property: true
 
+      ######################################################################
+      # Every property below this point is for tracking resource state and #
+      # should *not* be overridden.                                        #
+      ######################################################################
+
       #
       # A state property for whether the app is installed.
       #

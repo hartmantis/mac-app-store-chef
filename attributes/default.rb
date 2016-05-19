@@ -23,4 +23,5 @@ default['mac_app_store']['password'] = nil
 
 default['mac_app_store']['apps'] = {}
 
+default['mac_app_store']['mas']['source'] = nil
 default['mac_app_store']['mas']['version'] = nil

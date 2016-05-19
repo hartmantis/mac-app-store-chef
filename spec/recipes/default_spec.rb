@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 describe 'mac-app-store::default' do
-  %i(username password apps version).each do |a|
+  %i(username password apps source version).each do |a|
     let(a) { nil }
   end
   let(:platform) { { platform: nil, version: nil } }
@@ -12,7 +12,9 @@ describe 'mac-app-store::default' do
       %i(username password apps).each do |a|
         node.set['mac_app_store'][a] = send(a) unless send(a).nil?
       end
-      node.set['mac_app_store']['mas']['version'] = version unless version.nil?
+      %i(source version).each do |a|
+        node.set['mac_app_store']['mas'][a] = send(a) unless send(a).nil?
+      end
     end
   end
   let(:converge) { runner.converge(described_recipe) }
@@ -60,6 +62,18 @@ describe 'mac-app-store::default' do
       cached(:chef_run) { converge }
 
       it_behaves_like 'any attribute set'
+    end
+
+    context 'an overridden source attribute' do
+      let(:source) { 'homebrew' }
+      cached(:chef_run) { converge }
+
+      it_behaves_like 'any attribute set'
+
+      it 'installs Mas from the desired source' do
+        expect(chef_run).to install_mac_app_store_mas('default')
+          .with(source: :homebrew)
+      end
     end
 
     context 'an overridden version attribute' do

@@ -25,6 +25,9 @@ end
 mac_app_store_mas 'default' do
   username node['mac_app_store']['username']
   password node['mac_app_store']['password']
+  unless node['mac_app_store']['mas']['source'].nil?
+    source node['mac_app_store']['mas']['source']
+  end
   unless node['mac_app_store']['mas']['version'].nil?
     version node['mac_app_store']['mas']['version']
   end

@@ -63,6 +63,11 @@ and value is true to install it or false to not. For example:
 
     default['mac_app_store']['apps']['Growl'] = true
 
+Mas can be installed via GitHub download (`:direct`, the default) or from
+`:homebrew`.
+
+    default['mac_app_store']['mas']['source'] = nil
+
 If desired, a specific version of Mas can be installed rather than the latest:
 
     default['mac_app_store']['mas']['version'] = nil

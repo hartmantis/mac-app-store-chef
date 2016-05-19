@@ -36,7 +36,16 @@ class Chef
       #
       # The method of installation for Mas, either :direct (GitHub) or :homebrew
       #
-      property :source, Symbol, equal_to: %i(direct homebrew), default: :direct
+      property :source,
+               Symbol,
+               coerce: proc { |v| v.to_sym },
+               equal_to: %i(direct homebrew),
+               default: :direct
+
+      #
+      # Optionally specify a version of Mas to install.
+      #
+      property :version, String
 
       #
       # The Apple ID user to sign in as, or false for none. The
@@ -51,10 +60,10 @@ class Chef
       #
       property :password, String, desired_state: false
 
-      #
-      # Optionally specify a version of Mas to install.
-      #
-      property :version, String
+      ######################################################################
+      # Every property below this point is for tracking resource state and #
+      # should *not* be overridden.                                        #
+      ######################################################################
 
       #
       # A property to track the installed state of Mas.
