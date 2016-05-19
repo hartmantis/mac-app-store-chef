@@ -313,7 +313,9 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
 
       it 'signs into Mas' do
         expect(chef_run).to run_execute("Sign in to Mas as #{username}")
-          .with(command: "mas signin #{username} #{password}", sensitive: true)
+          .with(command: "mas signin #{username} #{password}",
+                user: user,
+                sensitive: true)
       end
     end
 
@@ -332,7 +334,9 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
 
       it 'signs into Mas' do
         expect(chef_run).to run_execute("Sign in to Mas as #{username}")
-          .with(command: "mas signin #{username} #{password}", sensitive: true)
+          .with(command: "mas signin #{username} #{password}",
+                user: user,
+                sensitive: true)
       end
     end
 
@@ -367,7 +371,7 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
 
       it 'signs out of Mas' do
         expect(chef_run).to run_execute('Sign out of Mas')
-          .with(command: 'mas signout')
+          .with(command: 'mas signout', user: user)
       end
     end
 

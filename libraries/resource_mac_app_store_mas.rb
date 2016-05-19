@@ -174,6 +174,7 @@ class Chef
           execute "Sign in to Mas as #{new_resource.username}" do
             command "mas signin #{new_resource.username}" \
                     " #{new_resource.password}"
+            user Etc.getlogin
             sensitive true
           end
         end
@@ -186,7 +187,10 @@ class Chef
         new_resource.username(false)
 
         converge_if_changed :username do
-          execute('Sign out of Mas') { command 'mas signout' }
+          execute 'Sign out of Mas' do
+            command 'mas signout'
+            user Etc.getlogin
+          end
         end
       end
 
