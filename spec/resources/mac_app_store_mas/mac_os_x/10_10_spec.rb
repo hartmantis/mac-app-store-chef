@@ -3,7 +3,7 @@ require_relative '../../../../libraries/helpers_mas'
 
 describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
   let(:name) { 'default' }
-  %i(source version username password action).each do |p|
+  %i(source version username password system_user action).each do |p|
     let(p) { nil }
   end
   %i(
@@ -16,12 +16,12 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
   ).each do |p|
     let(p) { nil }
   end
-  let(:user) { 'vagrant' }
+  let(:getlogin) { 'vagrant' }
   let(:runner) do
     ChefSpec::SoloRunner.new(
       step_into: 'mac_app_store_mas', platform: 'mac_os_x', version: '10.10'
     ) do |node|
-      %i(name source version username password action).each do |p|
+      %i(name source version username password system_user action).each do |p|
         unless send(p).nil?
           node.set['resource_mac_app_store_mas_test'][p] = send(p)
         end
@@ -44,7 +44,7 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
     }.each do |k, v|
       allow(MacAppStore::Helpers::Mas).to receive(k).and_return(v)
     end
-    allow(Etc).to receive(:getlogin).and_return(user)
+    allow(Etc).to receive(:getlogin).and_return(getlogin)
   end
 
   context 'the default action (:install)' do
@@ -309,14 +309,31 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
 
     context 'not signed in' do
       let(:signed_in_as?) { nil }
-      cached(:chef_run) { converge }
 
-      it 'signs into Mas' do
-        expect(chef_run).to run_execute("Sign in to Mas as #{username}")
-          .with(command: "mas signin #{username} #{password}",
-                user: user,
-                returns: [0, 6],
-                sensitive: true)
+      context 'the default system_user property' do
+        let(:system_user) { nil }
+        let(:chef_run) { converge }
+
+        it 'signs into Mas with the correct system user' do
+          expect(chef_run).to run_execute("Sign in to Mas as #{username}")
+            .with(command: "mas signin #{username} #{password}",
+                  user: getlogin,
+                  returns: [0, 6],
+                  sensitive: true)
+        end
+      end
+
+      context 'an overridden system_user property' do
+        let(:system_user) { 'testme' }
+        cached(:chef_run) { converge }
+
+        it 'signs into Mas with the correct user' do
+          expect(chef_run).to run_execute("Sign in to Mas as #{username}")
+            .with(command: "mas signin #{username} #{password}",
+                  user: 'testme',
+                  returns: [0, 6],
+                  sensitive: true)
+        end
       end
     end
 
@@ -336,7 +353,7 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
       it 'signs into Mas' do
         expect(chef_run).to run_execute("Sign in to Mas as #{username}")
           .with(command: "mas signin #{username} #{password}",
-                user: user,
+                user: getlogin,
                 returns: [0, 6],
                 sensitive: true)
       end
@@ -369,11 +386,25 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
 
     context 'signed in' do
       let(:signed_in_as?) { 'example@example.com' }
-      cached(:chef_run) { converge }
 
-      it 'signs out of Mas' do
-        expect(chef_run).to run_execute('Sign out of Mas')
-          .with(command: 'mas signout', user: user)
+      context 'the default system_user property' do
+        let(:system_user) { nil }
+        cached(:chef_run) { converge }
+
+        it 'signs out of Mas with the correct system user' do
+          expect(chef_run).to run_execute('Sign out of Mas')
+            .with(command: 'mas signout', user: getlogin)
+        end
+      end
+
+      context 'an overridden system_user property' do
+        let(:system_user) { 'testme' }
+        cached(:chef_run) { converge }
+
+        it 'signs out of Mas with the correct system user' do
+          expect(chef_run).to run_execute('Sign out of Mas')
+            .with(command: 'mas signout', user: 'testme')
+        end
       end
     end
 
@@ -399,7 +430,7 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
 
       it 'runs a Mas upgrade' do
         expect(chef_run).to run_execute('Upgrade all installed apps')
-          .with(command: 'mas upgrade', user: user)
+          .with(command: 'mas upgrade', user: getlogin)
       end
     end
 

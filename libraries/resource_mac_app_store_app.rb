@@ -37,6 +37,11 @@ class Chef
       #
       property :app_name, String, name_property: true
 
+      #
+      # The system user to execute Mas commands as.
+      #
+      property :system_user, String, default: Etc.getlogin, desired_state: false
+
       ######################################################################
       # Every property below this point is for tracking resource state and #
       # should *not* be overridden.                                        #
@@ -67,7 +72,7 @@ class Chef
           raise(Exceptions::InvalidAppName, new_resource.app_name) unless app_id
           execute "Install #{new_resource.app_name} with Mas" do
             command "mas install #{app_id}"
-            user Etc.getlogin
+            user new_resource.system_user
           end
         end
       end
@@ -81,7 +86,7 @@ class Chef
           raise(Exceptions::InvalidAppName, new_resource.app_name) unless app_id
           execute "Upgrade #{new_resource.app_name} with Mas" do
             command "mas install #{app_id}"
-            user Etc.getlogin
+            user new_resource.system_user
           end
         end
       end

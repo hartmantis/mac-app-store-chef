@@ -10,33 +10,24 @@ Mac App Store Cookbook
 [codeclimate]: https://codeclimate.com/github/RoboticCheese/mac-app-store-chef
 [coveralls]: https://coveralls.io/r/RoboticCheese/mac-app-store-chef
 
-A Chef cookbook for installation of Mac App Store apps.
+A Chef cookbook for installation of Mac App Store apps via the
+[Mas](https://github.com/argon/mas) CLI tool.
 
 Requirements
 ============
 
-Obviously, OS X is required. Some tempered expectations are as well--there is
-no documented public API for installing App Store apps, so this cookbook works
-by automating GUI window switches and button clicks.
-
-Nothing in this cookbook will attempt to purchase an app for you--it can only
-install ones that are already in your purchase history.
-
-As of v2.0, this cookbook requires Chef 12.5 or higher (or Chef 12.x and the
+Mas requires OS X 10.10+. As of v2.0, this cookbook requires Chef 12.5+ (or
+Chef 12.x and the
 [compat_resource](https://supermarket.chef.io/cookbooks/compat_resource)
 cookbook.
+
+A user must be logged into OS X for Mas to operate properly.
 
 Usage
 =====
 
 Apps can be installed by using the included custom resources in recipes of your
 own, or with the predefined recipe and set of attributes.
-
-Known Limitations
------------------
-
-* A user must be logged into OS X for Mas (the underlying utility we use to
-  manage installed apps) can function.
 
 Recipes
 =======
@@ -72,6 +63,11 @@ If desired, a specific version of Mas can be installed rather than the latest:
 
     default['mac_app_store']['mas']['version'] = nil
 
+By default, Mas will always be run as the current system user. That can be
+overridden:
+
+    default['mac_app_store']['mas']['system_user'] = nil
+
 Resources
 =========
 
@@ -84,31 +80,34 @@ Syntax:
 
     mac_app_store_mas 'default' do
       source :direct
+      version: '1.2.3'
       username 'example@example.com'
       password 'abc123'
-      version: '1.2.3'
+      system_user 'vagrant'
       action %i(install sign_in)
     end
 
 Actions:
 
-| Action      | Description                        |
-|-------------|------------------------------------|
-| `:install`  | Default; install the Mas CLI       |
-| `:upgrade`  | Upgrade Mas, if available          |
-| `:remove`   | Uninstall Mas                      |
-| `:sign_in`  | Use Mas to sign into the App Store |
-| `:sign_out` | Sign out of the App Store          |
+| Action          | Description                                 |
+|-----------------|---------------------------------------------|
+| `:install`      | Default; install the Mas CLI                |
+| `:upgrade`      | Upgrade Mas, if available                   |
+| `:remove`       | Uninstall Mas                               |
+| `:sign_in`      | Use Mas to sign into the App Store          |
+| `:sign_out`     | Sign out of the App Store                   |
+| `:upgrade_apps` | Install any upgrades for apps on the system |
 
 Properties:
 
-| Property | Default               | Description                                    |
-|----------|-----------------------|------------------------------------------------|
-| source   | `:direct`             | Install from GitHub (`:direct`) or `:homebrew` |
-| username | `nil`                 | An Apple ID username                           |
-| password | `nil`                 | An Apple ID password                           |
-| version  | `nil`                 | The version of Mas to install                  |
-| action   | `%i(install sign_in)` | Action(s) to perform                           |
+| Property    | Default               | Description                                    |
+|-------------|-----------------------|------------------------------------------------|
+| source      | `:direct`             | Install from GitHub (`:direct`) or `:homebrew` |
+| version     | `nil`                 | The version of Mas to install                  |
+| username    | `nil`                 | An Apple ID username                           |
+| password    | `nil`                 | An Apple ID password                           |
+| system_user | `Etc.getlogin`        | The user to execute Mas commands as            |
+| action      | `%i(install sign_in)` | Action(s) to perform                           |
 
 ***mac_app_store_app***
 
@@ -119,6 +118,7 @@ Syntax:
 
     mac_app_store_app 'Some App' do
       app_name 'Some App'
+      system_user 'vagrant'
       action :install
     end
 
@@ -127,23 +127,26 @@ Actions:
 | Action     | Description                     |
 |------------|---------------------------------|
 | `:install` | Default; installs the given app |
+| `:upgrade` | Upgrade or install the app      |
 
 Properties:
 
-| Property | Default       | Description                                |
-|----------|---------------|--------------------------------------------|
-| app_name | resource name | App name if it doesn't match resource name |
-| action   | `:install`    | Action(s) to perform                       |
+| Property    | Default        | Description                                |
+|-------------|----------------|--------------------------------------------|
+| app_name    | resource name  | App name if it doesn't match resource name |
+| system_user | `Etc.getlogin` | The user to execute Mas commands as        |
+| action      | `:install`     | Action(s) to perform                       |
 
 Contributing
 ============
 
 1. Fork it
 2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Add tests for the new feature; ensure they pass (`rake`)
+3. Add tests for the new feature; ensure they pass (`bundle exec rake`)
 4. Commit your changes (`git commit -am 'Add some feature'`)
 5. Push to the branch (`git push origin my-new-feature`)
 6. Create a new Pull Request
+7. Watch the pull request and ensure the build passes
 
 License & Authors
 =================

@@ -31,9 +31,17 @@ mac_app_store_mas 'default' do
   unless node['mac_app_store']['mas']['version'].nil?
     version node['mac_app_store']['mas']['version']
   end
+  unless node['mac_app_store']['mas']['system_user'].nil?
+    system_user node['mac_app_store']['mas']['system_user']
+  end
   action %i(install sign_in)
 end
 
 node['mac_app_store']['apps'].to_h.each do |k, v|
-  mac_app_store_app(k) if v == true
+  next unless v == true
+  mac_app_store_app k do
+    unless node['mac_app_store']['mas']['system_user'].nil?
+      system_user node['mac_app_store']['mas']['system_user']
+    end
+  end
 end

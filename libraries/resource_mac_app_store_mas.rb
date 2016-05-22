@@ -60,6 +60,11 @@ class Chef
       #
       property :password, String, desired_state: false
 
+      #
+      # The system user to execute Mas commands as,
+      #
+      property :system_user, String, default: Etc.getlogin, desired_state: false
+
       ######################################################################
       # Every property below this point is for tracking resource state and #
       # should *not* be overridden.                                        #
@@ -174,7 +179,7 @@ class Chef
           execute "Sign in to Mas as #{new_resource.username}" do
             command "mas signin #{new_resource.username}" \
                     " #{new_resource.password}"
-            user Etc.getlogin
+            user new_resource.system_user
             returns [0, 6]
             sensitive true
           end
@@ -190,7 +195,7 @@ class Chef
         converge_if_changed :username do
           execute 'Sign out of Mas' do
             command 'mas signout'
-            user Etc.getlogin
+            user new_resource.system_user
           end
         end
       end
@@ -204,7 +209,7 @@ class Chef
         converge_if_changed :upgradable_apps do
           execute 'Upgrade all installed apps' do
             command 'mas upgrade'
-            user Etc.getlogin
+            user new_resource.system_user
           end
         end
       end
