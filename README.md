@@ -63,6 +63,11 @@ If desired, a specific version of Mas can be installed rather than the latest:
 
     default['mac_app_store']['mas']['version'] = nil
 
+By default, Mas will always be run as the current system user. That can be
+overridden:
+
+    default['mac_app_store']['mas']['system_user'] = nil
+
 Resources
 =========
 
@@ -75,9 +80,10 @@ Syntax:
 
     mac_app_store_mas 'default' do
       source :direct
+      version: '1.2.3'
       username 'example@example.com'
       password 'abc123'
-      version: '1.2.3'
+      system_user 'vagrant'
       action %i(install sign_in)
     end
 
@@ -94,13 +100,14 @@ Actions:
 
 Properties:
 
-| Property | Default               | Description                                    |
-|----------|-----------------------|------------------------------------------------|
-| source   | `:direct`             | Install from GitHub (`:direct`) or `:homebrew` |
-| version  | `nil`                 | The version of Mas to install                  |
-| username | `nil`                 | An Apple ID username                           |
-| password | `nil`                 | An Apple ID password                           |
-| action   | `%i(install sign_in)` | Action(s) to perform                           |
+| Property    | Default               | Description                                    |
+|-------------|-----------------------|------------------------------------------------|
+| source      | `:direct`             | Install from GitHub (`:direct`) or `:homebrew` |
+| version     | `nil`                 | The version of Mas to install                  |
+| username    | `nil`                 | An Apple ID username                           |
+| password    | `nil`                 | An Apple ID password                           |
+| system_user | `Etc.getlogin`        | The user to execute Mas commands as            |
+| action      | `%i(install sign_in)` | Action(s) to perform                           |
 
 ***mac_app_store_app***
 
@@ -111,6 +118,7 @@ Syntax:
 
     mac_app_store_app 'Some App' do
       app_name 'Some App'
+      system_user 'vagrant'
       action :install
     end
 
@@ -123,10 +131,11 @@ Actions:
 
 Properties:
 
-| Property | Default       | Description                                |
-|----------|---------------|--------------------------------------------|
-| app_name | resource name | App name if it doesn't match resource name |
-| action   | `:install`    | Action(s) to perform                       |
+| Property    | Default        | Description                                |
+|-------------|----------------|--------------------------------------------|
+| app_name    | resource name  | App name if it doesn't match resource name |
+| system_user | `Etc.getlogin` | The user to execute Mas commands as        |
+| action      | `:install`     | Action(s) to perform                       |
 
 Contributing
 ============

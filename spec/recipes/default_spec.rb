@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 describe 'mac-app-store::default' do
-  %i(username password apps source version).each do |a|
+  %i(username password apps source version system_user).each do |a|
     let(a) { nil }
   end
   let(:platform) { { platform: nil, version: nil } }
@@ -12,7 +12,7 @@ describe 'mac-app-store::default' do
       %i(username password apps).each do |a|
         node.set['mac_app_store'][a] = send(a) unless send(a).nil?
       end
-      %i(source version).each do |a|
+      %i(source version system_user).each do |a|
         node.set['mac_app_store']['mas'][a] = send(a) unless send(a).nil?
       end
     end
@@ -35,7 +35,13 @@ describe 'mac-app-store::default' do
       it 'installs the specified apps' do
         if apps
           apps.each do |k, v|
-            expect(chef_run).to install_mac_app_store_app(k) if v == true
+            next unless v == true
+            if system_user
+              expect(chef_run).to install_mac_app_store_app(k)
+                .with(system_user: system_user)
+            else
+              expect(chef_run).to install_mac_app_store_app(k)
+            end
           end
         else
           expect(chef_run.find_resources(:mac_app_store_app)).to be_empty
@@ -86,6 +92,21 @@ describe 'mac-app-store::default' do
         expect(chef_run).to install_mac_app_store_mas('default')
           .with(version: '1.2.3')
       end
+    end
+
+    context 'an overridden system_user attribute' do
+      let(:system_user) { 'myself' }
+      cached(:chef_run) { converge }
+
+      it_behaves_like 'any attribute set'
+    end
+
+    context 'overridden apps and system_user attributes' do
+      let(:apps) { { 'App 1' => true, 'App 2' => true, 'App 3' => false } }
+      let(:system_user) { 'myself' }
+      cached(:chef_run) { converge }
+
+      it_behaves_like 'any attribute set'
     end
   end
 
