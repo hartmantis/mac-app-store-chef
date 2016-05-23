@@ -1,9 +1,10 @@
 Mac App Store Cookbook CHANGELOG
 ================================
 
-Unreleased
-----------
+v2.0.0 (2016-05-23)
+-------------------
 - Completely rewrite to use Mas CLI instead of mouse control
+- Update to use custom resources (breaking Chef 11 compatibility)
 
 v1.2.0 (2016-03-25)
 -------------------
