@@ -1,8 +1,8 @@
 Mac App Store Cookbook CHANGELOG
 ================================
 
-Unreleased
-----------
+v2.0.1 (2016-05-24)
+-------------------
 - Add a ChefSpec upgrade app matcher
 
 v2.0.0 (2016-05-23)
