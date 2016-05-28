@@ -3,6 +3,7 @@ Mac App Store Cookbook CHANGELOG
 
 Unreleased
 ----------
+- Quote passwords passed to mas CLI in log_in action
 
 v2.0.1 (2016-05-24)
 -------------------
