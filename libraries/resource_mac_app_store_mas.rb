@@ -177,8 +177,8 @@ class Chef
 
         converge_if_changed :username do
           execute "Sign in to Mas as #{new_resource.username}" do
-            command "mas signin #{new_resource.username}" \
-                    " #{new_resource.password}"
+            command "mas signin '#{new_resource.username}'" \
+                    " '#{new_resource.password}'"
             user new_resource.system_user
             returns [0, 6]
             sensitive true
