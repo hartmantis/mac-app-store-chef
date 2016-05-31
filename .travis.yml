@@ -7,7 +7,7 @@ branches:
     - master
 
 install:
-  - curl -L https://www.opscode.com/chef/install.sh | sudo bash -s -- -P chefdk
+  - curl -L https://www.chef.io/chef/install.sh | sudo bash -s -- -P chefdk
   - chef exec bundle install --without=development integration
 
 before_script:
