@@ -60,12 +60,14 @@ class Chef
       default_action :install
 
       load_current_value do |desired|
+        MacAppStore::Helpers::App.user = desired.system_user
         installed(MacAppStore::Helpers::App.installed?(desired.app_name))
         upgradable(MacAppStore::Helpers::App.upgradable?(desired.app_name))
       end
 
       action :install do
         new_resource.installed(true)
+        MacAppStore::Helpers::App.user = new_resource.system_user
 
         converge_if_changed :installed do
           app_id = MacAppStore::Helpers::App.app_id_for?(new_resource.app_name)
@@ -80,6 +82,7 @@ class Chef
       action :upgrade do
         new_resource.installed(true)
         new_resource.upgradable(false)
+        MacAppStore::Helpers::App.user = new_resource.system_user
 
         converge_if_changed :installed, :upgradable do
           app_id = MacAppStore::Helpers::App.app_id_for?(new_resource.app_name)

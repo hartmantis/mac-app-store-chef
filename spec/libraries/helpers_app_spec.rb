@@ -4,6 +4,12 @@ require_relative '../spec_helper'
 require_relative '../../libraries/helpers_app'
 
 describe MacAppStore::Helpers::App do
+  let(:user) { 'testme' }
+
+  before(:each) do
+    described_class.user = user
+  end
+
   describe '.upgradable?' do
     let(:name) { 'Xcode for OS X' }
     let(:id) { '123456789' }
@@ -23,8 +29,8 @@ describe MacAppStore::Helpers::App do
     let(:res) { described_class.upgradable?(name) }
 
     before(:each) do
-      allow(described_class).to receive(:shell_out).with('mas outdated')
-        .and_return(mas_outdated)
+      allow(described_class).to receive(:shell_out)
+        .with('mas outdated', user: user).and_return(mas_outdated)
       allow(described_class).to receive(:app_id_for?).with(name).and_return(id)
     end
 
@@ -64,8 +70,8 @@ describe MacAppStore::Helpers::App do
     let(:res) { described_class.installed?(name) }
 
     before(:each) do
-      allow(described_class).to receive(:shell_out).with('mas list')
-        .and_return(mas_list)
+      allow(described_class).to receive(:shell_out)
+        .with('mas list', user: user).and_return(mas_list)
       allow(described_class).to receive(:app_id_for?).with(name).and_return(id)
     end
 
@@ -93,8 +99,8 @@ describe MacAppStore::Helpers::App do
     let(:res) { described_class.app_id_for?(name) }
 
     before(:each) do
-      allow(described_class).to receive(:shell_out).with("mas search '#{name}'")
-        .and_return(mas_search)
+      allow(described_class).to receive(:shell_out)
+        .with("mas search '#{name}'", user: user).and_return(mas_search)
     end
 
     context 'no search results' do

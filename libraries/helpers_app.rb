@@ -29,6 +29,8 @@ module MacAppStore
       class << self
         include Chef::Mixin::ShellOut
 
+        attr_accessor :user
+
         #
         # Check whether a given app has upgrades available.
         #
@@ -37,14 +39,14 @@ module MacAppStore
         # @return [TrueClass, FalseClass] whether the app has an upgrade
         #
         def upgradable?(name)
-          outdated_apps = shell_out('mas outdated').stdout.lines.map do |l|
+          apps = shell_out('mas outdated', user: user).stdout.lines.map do |l|
             {
               id: l.split(' ')[0],
               name: l.split(' ')[1..-2].join(' ')
             }
           end
           app_id = app_id_for?(name)
-          outdated_apps.find { |a| a[:id] == app_id } ? true : false
+          apps.find { |a| a[:id] == app_id } ? true : false
         end
 
         #
@@ -55,14 +57,10 @@ module MacAppStore
         # @return [TrueClass, FalseClass] whether the app is installed
         #
         def installed?(name)
-          installed_apps = shell_out('mas list').stdout.lines.map do |l|
-            {
-              id: l.split(' ')[0],
-              name: l.rstrip.split(' ')[1..-1].join(' ')
-            }
+          apps = shell_out('mas list', user: user).stdout.lines.map do |l|
+            l.split(' ')[0]
           end
-          app_id = app_id_for?(name)
-          installed_apps.find { |a| a[:id] == app_id } ? true : false
+          apps.include?(app_id_for?(name))
         end
 
         #
@@ -73,7 +71,7 @@ module MacAppStore
         # @return [String] the app's corresponding ID
         #
         def app_id_for?(name)
-          search = shell_out("mas search '#{name}'").stdout
+          search = shell_out("mas search '#{name}'", user: user).stdout
           app_line = search.lines.find do |l|
             l.rstrip.split(' ')[1..-1].join(' ') == name
           end

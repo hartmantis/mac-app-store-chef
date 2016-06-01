@@ -3,6 +3,7 @@ Mac App Store Cookbook CHANGELOG
 
 Unreleased
 ----------
+- Shell out as the correct user in helper methods
 
 v2.0.2 (2016-05-31)
 -------------------
