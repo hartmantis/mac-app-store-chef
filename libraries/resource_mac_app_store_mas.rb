@@ -82,7 +82,8 @@ class Chef
 
       default_action %i(install sign_in)
 
-      load_current_value do
+      load_current_value do |desired|
+        MacAppStore::Helpers::Mas.user = desired.system_user
         installed(MacAppStore::Helpers::Mas.installed?)
         if installed
           version(MacAppStore::Helpers::Mas.installed_version?)
@@ -98,6 +99,8 @@ class Chef
       #
       action :install do
         new_resource.installed(true)
+        MacAppStore::Helpers::Mas.user = new_resource.system_user
+
         unless new_resource.version
           new_resource.version(MacAppStore::Helpers::Mas.latest_version?)
         end
@@ -126,6 +129,8 @@ class Chef
       #
       action :upgrade do
         new_resource.installed(true)
+        MacAppStore::Helpers::Mas.user = new_resource.system_user
+
         unless new_resource.version
           new_resource.version(MacAppStore::Helpers::Mas.latest_version?)
         end
