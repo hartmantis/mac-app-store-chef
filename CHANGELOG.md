@@ -1,6 +1,9 @@
 Mac App Store Cookbook CHANGELOG
 ================================
 
+Unreleased
+----------
+
 v2.0.3 (2016-06-02)
 -------------------
 - Shell out as the correct user in helper methods
