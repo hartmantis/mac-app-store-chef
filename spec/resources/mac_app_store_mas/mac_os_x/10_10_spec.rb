@@ -3,7 +3,7 @@ require_relative '../../../../libraries/helpers_mas'
 
 describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
   let(:name) { 'default' }
-  %i(source version username password system_user action).each do |p|
+  %i(source version username password system_user use_rtun action).each do |p|
     let(p) { nil }
   end
   %i(
@@ -21,7 +21,9 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
     ChefSpec::SoloRunner.new(
       step_into: 'mac_app_store_mas', platform: 'mac_os_x', version: '10.10'
     ) do |node|
-      %i(name source version username password system_user action).each do |p|
+      %i(
+        name source version username password system_user use_rtun action
+      ).each do |p|
         unless send(p).nil?
           node.set['resource_mac_app_store_mas_test'][p] = send(p)
         end
@@ -335,6 +337,24 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
                   sensitive: true)
         end
       end
+
+      context 'an overridden use_rtun property' do
+        let(:use_rtun) { true }
+        cached(:chef_run) { converge }
+
+        it 'ensures RtUN is installed' do
+          expect(chef_run).to include_recipe('reattach-to-user-namespace')
+        end
+
+        it 'signs into Mas using RtUN' do
+          expect(chef_run).to run_execute("Sign in to Mas as #{username}")
+            .with(command: 'reattach-to-user-namespace mas signin ' \
+                           "'#{username}' '#{password}'",
+                  user: getlogin,
+                  returns: [0, 6],
+                  sensitive: true)
+        end
+      end
     end
 
     context 'already signed in' do
@@ -406,6 +426,20 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
             .with(command: 'mas signout', user: 'testme')
         end
       end
+
+      context 'an overridden use_rtun property' do
+        let(:use_rtun) { true }
+        cached(:chef_run) { converge }
+
+        it 'ensures RtUN is installed' do
+          expect(chef_run).to include_recipe('reattach-to-user-namespace')
+        end
+
+        it 'signs out of Mas using RtUN' do
+          expect(chef_run).to run_execute('Sign out of Mas')
+            .with(command: 'reattach-to-user-namespace mas signout')
+        end
+      end
     end
 
     context 'not signed in' do
@@ -426,11 +460,29 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
 
     context 'upgrades available' do
       let(:upgradable_apps?) { true }
-      cached(:chef_run) { converge }
 
-      it 'runs a Mas upgrade' do
-        expect(chef_run).to run_execute('Upgrade all installed apps')
-          .with(command: 'mas upgrade', user: getlogin)
+      context 'all default properties' do
+        cached(:chef_run) { converge }
+
+        it 'runs a Mas upgrade' do
+          expect(chef_run).to run_execute('Upgrade all installed apps')
+            .with(command: 'mas upgrade', user: getlogin)
+        end
+      end
+
+      context 'an overridden use_rtun property' do
+        let(:use_rtun) { true }
+        cached(:chef_run) { converge }
+
+        it 'ensures RtUN is installed' do
+          expect(chef_run).to include_recipe('reattach-to-user-namespace')
+        end
+
+        it 'runs a Mas upgrade using RtUN' do
+          expect(chef_run).to run_execute('Upgrade all installed apps')
+            .with(command: 'reattach-to-user-namespace mas upgrade',
+                  user: getlogin)
+        end
       end
     end
 
