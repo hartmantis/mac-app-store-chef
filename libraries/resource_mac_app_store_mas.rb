@@ -65,6 +65,12 @@ class Chef
       #
       property :system_user, String, default: Etc.getlogin, desired_state: false
 
+      #
+      # If circumstances require, the reattach-to-user-namespace utility can be
+      # used every time we shell out to Mas.
+      #
+      property :use_rtun, [TrueClass, FalseClass], default: false
+
       ######################################################################
       # Every property below this point is for tracking resource state and #
       # should *not* be overridden.                                        #
@@ -181,9 +187,16 @@ class Chef
         )
 
         converge_if_changed :username do
+          cmd = if new_resource.use_rtun
+                  include_recipe 'reattach-to-user-namespace'
+                  'reattach-to-user-namespace mas signin ' \
+                    "'#{new_resource.username}' '#{new_resource.password}'"
+                else
+                  "mas signin '#{new_resource.username}' " \
+                    "'#{new_resource.password}'"
+                end
           execute "Sign in to Mas as #{new_resource.username}" do
-            command "mas signin '#{new_resource.username}'" \
-                    " '#{new_resource.password}'"
+            command cmd
             user new_resource.system_user
             returns [0, 6]
             sensitive true
@@ -198,8 +211,14 @@ class Chef
         new_resource.username(false)
 
         converge_if_changed :username do
+          cmd = if new_resource.use_rtun
+                  include_recipe 'reattach-to-user-namespace'
+                  'reattach-to-user-namespace mas signout'
+                else
+                  'mas signout'
+                end
           execute 'Sign out of Mas' do
-            command 'mas signout'
+            command cmd
             user new_resource.system_user
           end
         end
@@ -212,8 +231,14 @@ class Chef
         new_resource.upgradable_apps(false)
 
         converge_if_changed :upgradable_apps do
+          cmd = if new_resource.use_rtun
+                  include_recipe 'reattach-to-user-namespace'
+                  'reattach-to-user-namespace mas upgrade'
+                else
+                  'mas upgrade'
+                end
           execute 'Upgrade all installed apps' do
-            command 'mas upgrade'
+            command cmd
             user new_resource.system_user
           end
         end

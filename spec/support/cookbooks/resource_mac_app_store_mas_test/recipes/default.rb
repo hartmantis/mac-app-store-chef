@@ -8,5 +8,6 @@ mac_app_store_mas attrs['name'] do
   username attrs['username'] unless attrs['username'].nil?
   password attrs['password'] unless attrs['password'].nil?
   system_user attrs['system_user'] unless attrs['system_user'].nil?
+  use_rtun attrs['use_rtun'] unless attrs['use_rtun'].nil?
   action attrs['action'] unless attrs['action'].nil?
 end

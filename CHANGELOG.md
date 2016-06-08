@@ -3,6 +3,7 @@ Mac App Store Cookbook CHANGELOG
 
 Unreleased
 ----------
+- Add the option of using reattach-to-user-namespace
 
 v2.0.3 (2016-06-02)
 -------------------

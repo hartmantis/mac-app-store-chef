@@ -68,6 +68,11 @@ overridden:
 
     default['mac_app_store']['mas']['system_user'] = nil
 
+In certain circumstances-e.g. Chef running as root-it may be necessary to run
+Mas via the `reattach-to-user-namespace` utility:
+
+    default['mac_app_store']['mas']['use_rtun'] = nil
+
 Resources
 =========
 
@@ -84,6 +89,7 @@ Syntax:
       username 'example@example.com'
       password 'abc123'
       system_user 'vagrant'
+      use_rtun false
       action %i(install sign_in)
     end
 
@@ -107,6 +113,7 @@ Properties:
 | username    | `nil`                 | An Apple ID username                           |
 | password    | `nil`                 | An Apple ID password                           |
 | system_user | `Etc.getlogin`        | The user to execute Mas commands as            |
+| use_rtun    | `false`               | Use RtUN when shelling out to Mas              |
 | action      | `%i(install sign_in)` | Action(s) to perform                           |
 
 ***mac_app_store_app***
@@ -119,6 +126,7 @@ Syntax:
     mac_app_store_app 'Some App' do
       app_name 'Some App'
       system_user 'vagrant'
+      use_rtun false
       action :install
     end
 
@@ -135,6 +143,7 @@ Properties:
 |-------------|----------------|--------------------------------------------|
 | app_name    | resource name  | App name if it doesn't match resource name |
 | system_user | `Etc.getlogin` | The user to execute Mas commands as        |
+| use_rtun    | `false`        | Use RtUN when shelling out to Mas          |
 | action      | `:install`     | Action(s) to perform                       |
 
 Contributing

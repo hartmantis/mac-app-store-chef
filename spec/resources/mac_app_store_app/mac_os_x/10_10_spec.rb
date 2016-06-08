@@ -2,7 +2,7 @@ require_relative '../../../spec_helper'
 require_relative '../../../../libraries/helpers_app'
 
 describe 'resource_mac_app_store_app::mac_os_x::10_10' do
-  %i(name app_name system_user action).each do |p|
+  %i(name app_name system_user use_rtun action).each do |p|
     let(p) { nil }
   end
   %i(installed? upgradable? app_id_for?).each { |i| let(i) { nil } }
@@ -11,7 +11,7 @@ describe 'resource_mac_app_store_app::mac_os_x::10_10' do
     ChefSpec::SoloRunner.new(
       step_into: 'mac_app_store_app', platform: 'mac_os_x', version: '10.10'
     ) do |node|
-      %i(name app_name system_user action).each do |p|
+      %i(name app_name system_user use_rtun action).each do |p|
         unless send(p).nil?
           node.set['resource_mac_app_store_app_test'][p] = send(p)
         end
@@ -69,6 +69,18 @@ describe 'resource_mac_app_store_app::mac_os_x::10_10' do
         it 'installs the app with the correct system user' do
           expect(chef_run).to run_execute("Install #{name} with Mas")
             .with(command: "mas install #{app_id_for?}", user: system_user)
+        end
+      end
+
+      context 'an overridden use_rtun property' do
+        let(:use_rtun) { true }
+        cached(:chef_run) { converge }
+
+        it 'installs the app using RtUN' do
+          expect(chef_run).to run_execute("Install #{name} with Mas").with(
+            command: "reattach-to-user-namespace mas install #{app_id_for?}",
+            user: getlogin
+          )
         end
       end
 
@@ -131,6 +143,18 @@ describe 'resource_mac_app_store_app::mac_os_x::10_10' do
         end
       end
 
+      context 'an overridden use_rtun property' do
+        let(:use_rtun) { true }
+        cached(:chef_run) { converge }
+
+        it 'upgrades the app using RtUN' do
+          expect(chef_run).to run_execute("Upgrade #{name} with Mas").with(
+            command: "reattach-to-user-namespace mas install #{app_id_for?}",
+            user: getlogin
+          )
+        end
+      end
+
       context 'app non-existent' do
         let(:app_id_for?) { nil }
         cached(:chef_run) { converge }
@@ -174,6 +198,18 @@ describe 'resource_mac_app_store_app::mac_os_x::10_10' do
           it 'upgrades the app with the correct system user' do
             expect(chef_run).to run_execute("Upgrade #{name} with Mas")
               .with(command: "mas install #{app_id_for?}", user: system_user)
+          end
+        end
+
+        context 'an overridden use_rtun property' do
+          let(:use_rtun) { true }
+          cached(:chef_run) { converge }
+
+          it 'upgrades the app using RtUN' do
+            expect(chef_run).to run_execute("Upgrade #{name} with Mas").with(
+              command: "reattach-to-user-namespace mas install #{app_id_for?}",
+              user: getlogin
+            )
           end
         end
       end
