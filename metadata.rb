@@ -11,7 +11,6 @@ version '2.1.1'
 source_url 'https://github.com/roboticcheese/mac-app-store-chef'
 issues_url 'https://github.com/roboticcheese/mac-app-store-chef/issues'
 
-depends 'homebrew', '~> 2.1'
 depends 'reattach-to-user-namespace', '~> 0.1'
 
 supports 'mac_os_x'

@@ -106,10 +106,6 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
           stub_command('which git').and_return('git')
         end
 
-        it 'includes the homebrew default recipe' do
-          expect(chef_run).to include_recipe('homebrew')
-        end
-
         it 'installs Mas via Homebrew' do
           expect(chef_run).to install_homebrew_package('mas')
         end
@@ -120,10 +116,6 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
         let(:installed_version?) { '1.1.0' }
         let(:installed_by?) { :direct }
         cached(:chef_run) { converge }
-
-        it 'does not include the homebrew default recipe' do
-          expect(chef_run).to_not include_recipe('homebrew')
-        end
 
         it 'does not install Mas via Homebrew' do
           expect(chef_run).to_not install_homebrew_package('mas')
@@ -226,10 +218,6 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
           stub_command('which git').and_return('git')
         end
 
-        it 'includes the homebrew default recipe' do
-          expect(chef_run).to include_recipe('homebrew')
-        end
-
         it 'upgrades Mas via Homebrew' do
           expect(chef_run).to upgrade_homebrew_package('mas')
         end
@@ -240,10 +228,6 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
         let(:installed_version?) { '1.5.0' }
         let(:installed_by?) { :direct }
         cached(:chef_run) { converge }
-
-        it 'does not include the homebrew default recipe' do
-          expect(chef_run).to_not include_recipe('homebrew')
-        end
 
         it 'does not upgrade Mas via Homebrew' do
           expect(chef_run).to_not upgrade_homebrew_package('mas')
@@ -258,10 +242,6 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
 
         before(:each) do
           stub_command('which git').and_return('git')
-        end
-
-        it 'includes the homebrew default recipe' do
-          expect(chef_run).to include_recipe('homebrew')
         end
 
         it 'upgrades Mas via Homebrew' do
@@ -289,10 +269,6 @@ describe 'resource_mac_app_store_mas::mac_os_x::10_10' do
 
       before(:each) do
         stub_command('which git').and_return('git')
-      end
-
-      it 'includes the homebrew default recipe' do
-        expect(chef_run).to include_recipe('homebrew')
       end
 
       it 'removes Mas via Homebrew' do

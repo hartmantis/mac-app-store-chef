@@ -123,7 +123,6 @@ class Chef
               command "unzip -d /usr/local/bin/ -o #{path}"
             end
           when :homebrew
-            include_recipe 'homebrew'
             homebrew_package 'mas'
           end
         end
@@ -153,7 +152,6 @@ class Chef
               command "unzip -d /usr/local/bin/ -o #{path}"
             end
           when :homebrew
-            include_recipe 'homebrew'
             homebrew_package('mas') { action :upgrade }
           end
         end
@@ -171,7 +169,6 @@ class Chef
           when :direct
             file('/usr/local/bin/mas') { action :delete }
           when :homebrew
-            include_recipe 'homebrew'
             homebrew_package('mas') { action :remove }
           end
         end
