@@ -90,7 +90,6 @@ class Chef
       action :install do
         case new_resource.source
         when :homebrew
-          include_recipe 'homebrew'
           homebrew_package 'mas'
         when :direct
           return if current_resource && \
@@ -117,7 +116,6 @@ class Chef
       action :upgrade do
         case new_resource.source
         when :homebrew
-          include_recipe 'homebrew'
           homebrew_package('mas') { action :upgrade }
         when :direct
           ver = new_resource.version || \
@@ -144,7 +142,6 @@ class Chef
 
         case new_resource.source
         when :homebrew
-          include_recipe 'homebrew'
           homebrew_package('mas') { action :remove }
         when :direct
           file('/usr/local/bin/mas') { action :delete }
