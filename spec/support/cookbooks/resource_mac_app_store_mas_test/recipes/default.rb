@@ -1,4 +1,5 @@
-# Encoding: UTF-8
+# encoding: utf-8
+# frozen_string_literal: true
 
 attrs = node['resource_mac_app_store_mas_test']
 
