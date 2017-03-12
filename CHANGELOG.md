@@ -3,6 +3,7 @@ Mac App Store Cookbook CHANGELOG
 
 Unreleased
 ----------
+- Update the cookbook dependency pinned versions
 
 v2.1.0 (2016-06-08)
 -------------------
