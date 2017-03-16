@@ -11,10 +11,10 @@ describe 'mac-app-store::default' do
   let(:runner) do
     ChefSpec::SoloRunner.new(platform) do |node|
       %i(username password apps).each do |a|
-        node.set['mac_app_store'][a] = send(a) unless send(a).nil?
+        node.normal['mac_app_store'][a] = send(a) unless send(a).nil?
       end
       %i(source version system_user use_rtun).each do |a|
-        node.set['mac_app_store']['mas'][a] = send(a) unless send(a).nil?
+        node.normal['mac_app_store']['mas'][a] = send(a) unless send(a).nil?
       end
     end
   end

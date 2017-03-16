@@ -11,6 +11,7 @@ require_relative '../libraries/matchers'
 
 RSpec.configure do |c|
   c.color = true
+  c.file_cache_path = '/tmp'
 end
 
 SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
