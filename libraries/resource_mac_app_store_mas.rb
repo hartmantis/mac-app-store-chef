@@ -59,7 +59,7 @@ class Chef
       #
       # The password for the Apple ID user.
       #
-      property :password, String, desired_state: false
+      property :password, String, sensitive: true, desired_state: false
 
       #
       # The system user to execute Mas commands as,
@@ -243,15 +243,6 @@ class Chef
             user new_resource.system_user
           end
         end
-      end
-
-      #
-      # Override resource's text rendering to remove password information.
-      #
-      # @return [String]
-      #
-      def to_text
-        password.nil? ? super : super.gsub(password, '****************')
       end
     end
   end

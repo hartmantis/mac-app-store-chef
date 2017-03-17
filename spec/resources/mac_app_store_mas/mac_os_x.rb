@@ -292,7 +292,8 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
           include_context description
 
           it 'raises an error' do
-            expect { chef_run }.to raise_error(Chef::Exceptions::ValidationFailed)
+            expected = Chef::Exceptions::ValidationFailed
+            expect { chef_run }.to raise_error(expected)
           end
         end
 
@@ -300,7 +301,8 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
           include_context description
 
           it 'raises an error' do
-            expect { chef_run }.to raise_error(Chef::Exceptions::ValidationFailed)
+            expected = Chef::Exceptions::ValidationFailed
+            expect { chef_run }.to raise_error(expected)
           end
         end
       end
