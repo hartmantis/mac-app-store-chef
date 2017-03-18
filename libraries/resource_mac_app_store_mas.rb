@@ -209,19 +209,17 @@ class Chef
       # Log out of Mas.
       #
       action :sign_out do
-        new_resource.username(false)
+        return unless current_resource.username
 
-        converge_if_changed :username do
-          cmd = if new_resource.use_rtun
-                  include_recipe 'reattach-to-user-namespace'
-                  'reattach-to-user-namespace mas signout'
-                else
-                  'mas signout'
-                end
-          execute 'Sign out of Mas' do
-            command cmd
-            user new_resource.system_user
-          end
+        cmd = if new_resource.use_rtun
+                include_recipe 'reattach-to-user-namespace'
+                'reattach-to-user-namespace mas signout'
+              else
+                'mas signout'
+              end
+        execute 'Sign out of Mas' do
+          command cmd
+          user new_resource.system_user
         end
       end
 
