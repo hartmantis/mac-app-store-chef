@@ -196,23 +196,51 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
     context 'the :remove action' do
       include_context description
 
-      context 'all default properties' do
+      context 'already installed' do
         include_context description
 
-        it 'deletes the mas file' do
-          expect(chef_run).to delete_file('/usr/local/bin/mas')
+        context 'all default properties' do
+          include_context description
+
+          it 'deletes the mas file' do
+            expect(chef_run).to delete_file('/usr/local/bin/mas')
+          end
+        end
+
+        context 'an overridden source property' do
+          include_context description
+
+          it 'includes the homebrew default recipe' do
+            expect(chef_run).to include_recipe('homebrew')
+          end
+
+          it 'removes Mas via Homebrew' do
+            expect(chef_run).to remove_homebrew_package('mas')
+          end
         end
       end
 
-      context 'an overridden source property' do
+      context 'not already installed' do
         include_context description
 
-        it 'includes the homebrew default recipe' do
-          expect(chef_run).to include_recipe('homebrew')
+        context 'all default properties' do
+          include_context description
+
+          it 'does not delete the mas file' do
+            expect(chef_run).to_not delete_file('/usr/local/bin/mas')
+          end
         end
 
-        it 'removes Mas via Homebrew' do
-          expect(chef_run).to remove_homebrew_package('mas')
+        context 'an overridden source property' do
+          include_context description
+
+          it 'does not include the homebrew default recipe' do
+            expect(chef_run).to_not include_recipe('homebrew')
+          end
+
+          it 'does not remove Mas via Homebrew' do
+            expect(chef_run).to_not remove_homebrew_package('mas')
+          end
         end
       end
     end

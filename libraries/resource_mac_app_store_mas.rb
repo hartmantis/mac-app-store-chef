@@ -165,16 +165,14 @@ class Chef
       # package.
       #
       action :remove do
-        new_resource.installed(false)
+        return unless current_resource.installed
 
-        converge_if_changed :installed do
-          case new_resource.source
-          when :direct
-            file('/usr/local/bin/mas') { action :delete }
-          when :homebrew
-            include_recipe 'homebrew'
-            homebrew_package('mas') { action :remove }
-          end
+        case new_resource.source
+        when :direct
+          file('/usr/local/bin/mas') { action :delete }
+        when :homebrew
+          include_recipe 'homebrew'
+          homebrew_package('mas') { action :remove }
         end
       end
 
