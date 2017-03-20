@@ -186,6 +186,8 @@ class Chef
         )
 
         converge_if_changed :username do
+          action_sign_out if current_resource.username
+
           cmd = if new_resource.use_rtun
                   include_recipe 'reattach-to-user-namespace'
                   'reattach-to-user-namespace mas signin ' \

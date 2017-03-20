@@ -307,6 +307,12 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
         context 'signed in as someone else' do
           include_context description
 
+          it 'signs out of Mas' do
+            expect(chef_run).to run_execute('Sign out of Mas')
+              .with(command: 'mas signout',
+                    user: getlogin)
+          end
+
           it 'signs into Mas' do
             expect(chef_run).to run_execute("Sign in to Mas as #{username}")
               .with(command: "mas signin '#{username}' '#{password}'",

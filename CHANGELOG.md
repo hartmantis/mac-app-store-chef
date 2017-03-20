@@ -4,6 +4,7 @@ Mac App Store Cookbook CHANGELOG
 Unreleased
 ----------
 - Update the cookbook dependency pinned versions
+- Sign out of Mas before trying to sign in as another user
 
 v2.1.0 (2016-06-08)
 -------------------
