@@ -105,28 +105,27 @@ class Chef
       # it or the most recent one.
       #
       action :install do
-        new_resource.installed(true)
+        return if current_resource.installed
+
         MacAppStore::Helpers::Mas.user = new_resource.system_user
 
         unless new_resource.version
           new_resource.version(MacAppStore::Helpers::Mas.latest_version?)
         end
 
-        converge_if_changed :installed do
-          case new_resource.source
-          when :direct
-            path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
-            remote_file path do
-              source 'https://github.com/argon/mas/releases/download/' \
-                     "v#{new_resource.version}/mas-cli.zip"
-            end
-            execute 'Extract Mas-CLI zip file' do
-              command "unzip -d /usr/local/bin/ -o #{path}"
-            end
-          when :homebrew
-            include_recipe 'homebrew'
-            homebrew_package 'mas'
+        case new_resource.source
+        when :direct
+          path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
+          remote_file path do
+            source 'https://github.com/argon/mas/releases/download/' \
+                   "v#{new_resource.version}/mas-cli.zip"
           end
+          execute 'Extract Mas-CLI zip file' do
+            command "unzip -d /usr/local/bin/ -o #{path}"
+          end
+        when :homebrew
+          include_recipe 'homebrew'
+          homebrew_package 'mas'
         end
       end
 
