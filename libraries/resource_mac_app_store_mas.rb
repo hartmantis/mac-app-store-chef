@@ -134,7 +134,6 @@ class Chef
       # installed.
       #
       action :upgrade do
-        new_resource.installed(true)
         MacAppStore::Helpers::Mas.user = new_resource.system_user
 
         unless new_resource.version
