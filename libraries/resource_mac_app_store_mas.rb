@@ -225,19 +225,17 @@ class Chef
       # Upgrade all installed apps.
       #
       action :upgrade_apps do
-        new_resource.upgradable_apps(false)
+        return unless current_resource.upgradable_apps
 
-        converge_if_changed :upgradable_apps do
-          cmd = if new_resource.use_rtun
-                  include_recipe 'reattach-to-user-namespace'
-                  'reattach-to-user-namespace mas upgrade'
-                else
-                  'mas upgrade'
-                end
-          execute 'Upgrade all installed apps' do
-            command cmd
-            user new_resource.system_user
-          end
+        cmd = if new_resource.use_rtun
+                include_recipe 'reattach-to-user-namespace'
+                'reattach-to-user-namespace mas upgrade'
+              else
+                'mas upgrade'
+              end
+        execute 'Upgrade all installed apps' do
+          command cmd
+          user new_resource.system_user
         end
       end
     end
