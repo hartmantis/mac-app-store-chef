@@ -11,7 +11,7 @@ Mac App Store Cookbook
 [coveralls]: https://coveralls.io/r/RoboticCheese/mac-app-store-chef
 
 A Chef cookbook for installation of Mac App Store apps via the
-[Mas](https://github.com/argon/mas) CLI tool.
+[Mas](https://github.com/mas-cli/mas) CLI tool.
 
 Requirements
 ============

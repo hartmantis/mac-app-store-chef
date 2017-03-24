@@ -61,8 +61,7 @@ module MacAppStore
         #
         def installed_by?
           return nil unless installed?
-          brew = shell_out('brew list argon/mas/mas || true')
-                 .stdout.strip
+          brew = shell_out('brew list mas || true').stdout.strip
           brew.empty? ? :direct : :homebrew
         end
 

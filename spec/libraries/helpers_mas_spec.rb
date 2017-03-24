@@ -91,8 +91,7 @@ describe MacAppStore::Helpers::Mas do
     before(:each) do
       allow(described_class).to receive(:installed?).and_return(installed)
       allow(described_class).to receive(:shell_out)
-        .with('brew list argon/mas/mas || true')
-        .and_return(brew_list)
+        .with('brew list mas || true').and_return(brew_list)
     end
 
     context 'installed by Homebrew' do
@@ -182,7 +181,7 @@ describe MacAppStore::Helpers::Mas do
 
     before(:each) do
       allow(Net::HTTP).to receive(:get).with(
-        URI('https://api.github.com/repos/argon/mas/releases')
+        URI('https://api.github.com/repos/mas-cli/mas/releases')
       ).and_return(
         %([{"tag_name": "v#{version}"}, {"tag_name": "v0.1.0"}])
       )

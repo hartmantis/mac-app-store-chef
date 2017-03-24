@@ -109,7 +109,7 @@ class Chef
         when :direct
           path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
           remote_file path do
-            source 'https://github.com/argon/mas/releases/download/' \
+            source 'https://github.com/mas-cli/mas/releases/download/' \
                    "v#{new_resource.version}/mas-cli.zip"
           end
           execute 'Extract Mas-CLI zip file' do
@@ -135,7 +135,7 @@ class Chef
           when :direct
             path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
             remote_file path do
-              source 'https://github.com/argon/mas/releases/download/' \
+              source 'https://github.com/mas-cli/mas/releases/download/' \
                      "v#{new_resource.version}/mas-cli.zip"
             end
             execute 'Extract Mas-CLI zip file' do

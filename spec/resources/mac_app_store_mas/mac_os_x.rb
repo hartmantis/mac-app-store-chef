@@ -23,7 +23,7 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
           it 'downloads mas-cli.zip from GitHub' do
             expect(chef_run).to create_remote_file(
               "#{Chef::Config[:file_cache_path]}/mas-cli.zip"
-            ).with(source: 'https://github.com/argon/mas/releases/download/' \
+            ).with(source: 'https://github.com/mas-cli/mas/releases/download/' \
                            'v1.3.0/mas-cli.zip')
           end
 
@@ -107,7 +107,7 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
           it 'downloads mas-cli.zip from GitHub' do
             expect(chef_run).to create_remote_file(
               "#{Chef::Config[:file_cache_path]}/mas-cli.zip"
-            ).with(source: 'https://github.com/argon/mas/releases/download/' \
+            ).with(source: 'https://github.com/mas-cli/mas/releases/download/' \
                            'v1.3.0/mas-cli.zip')
           end
 
@@ -139,7 +139,7 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
           it 'downloads mas-cli.zip from GitHub' do
             expect(chef_run).to create_remote_file(
               "#{Chef::Config[:file_cache_path]}/mas-cli.zip"
-            ).with(source: 'https://github.com/argon/mas/releases/download/' \
+            ).with(source: 'https://github.com/mas-cli/mas/releases/download/' \
                            'v1.3.0/mas-cli.zip')
           end
 
