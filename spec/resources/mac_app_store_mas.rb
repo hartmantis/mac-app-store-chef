@@ -8,7 +8,7 @@ shared_context 'resources::mac_app_store_mas' do
 
   let(:resource) { 'mac_app_store_mas' }
   %w(
-    source version username password system_user use_rtun
+    source version username password use_rtun
   ).each { |p| let(p) { nil } }
   let(:properties) do
     {
@@ -16,7 +16,6 @@ shared_context 'resources::mac_app_store_mas' do
       version: version,
       username: username,
       password: password,
-      system_user: system_user,
       use_rtun: use_rtun
     }
   end
@@ -32,7 +31,6 @@ shared_context 'resources::mac_app_store_mas' do
   ).each do |p|
     let(p) { nil }
   end
-  let(:getlogin) { 'vagrant' }
 
   before(:each) do
     allow(Kernel).to receive(:load).and_call_original
@@ -48,7 +46,6 @@ shared_context 'resources::mac_app_store_mas' do
     }.each do |k, v|
       allow(MacAppStore::Helpers::Mas).to receive(k).and_return(v)
     end
-    allow(Etc).to receive(:getlogin).and_return(getlogin)
   end
 
   before(:each) do
@@ -92,10 +89,6 @@ shared_context 'resources::mac_app_store_mas' do
     before do
       stub_command('which git').and_return('/usr/bin/git')
     end
-  end
-
-  shared_context 'an overridden system_user property' do
-    let(:system_user) { 'testme' }
   end
 
   shared_context 'an overridden use_rtun property' do

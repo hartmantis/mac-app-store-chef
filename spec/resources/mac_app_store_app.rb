@@ -7,15 +7,14 @@ shared_context 'resources::mac_app_store_app' do
   include_context 'resources'
 
   let(:resource) { 'mac_app_store_app' }
-  %w(app_name system_user use_rtun).each { |p| let(p) { nil } }
+  %w(app_name use_rtun).each { |p| let(p) { nil } }
   let(:properties) do
-    { app_name: app_name, system_user: system_user, use_rtun: use_rtun }
+    { app_name: app_name, use_rtun: use_rtun }
   end
   let(:name) { 'Some App' }
 
   %i(installed? upgradable?).each { |i| let(i) { nil } }
   let(:app_id_for?) { 'abc123' }
-  let(:getlogin) { 'vagrant' }
 
   before(:each) do
     allow(Kernel).to receive(:load).and_call_original
@@ -28,7 +27,6 @@ shared_context 'resources::mac_app_store_app' do
     }.each do |k, v|
       allow(MacAppStore::Helpers::App).to receive(k).and_return(v)
     end
-    allow(Etc).to receive(:getlogin).and_return(getlogin)
   end
 
   shared_context 'the :install action' do
@@ -43,10 +41,6 @@ shared_context 'resources::mac_app_store_app' do
 
   shared_context 'an overridden app_name property' do
     let(:app_name) { 'Other App' }
-  end
-
-  shared_context 'an overridden system_user property' do
-    let(:system_user) { 'testme' }
   end
 
   shared_context 'an overridden use_rtun property' do

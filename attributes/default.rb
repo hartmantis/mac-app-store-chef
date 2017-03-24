@@ -26,5 +26,4 @@ default['mac_app_store']['apps'] = {}
 
 default['mac_app_store']['mas']['source'] = nil
 default['mac_app_store']['mas']['version'] = nil
-default['mac_app_store']['mas']['system_user'] = nil
 default['mac_app_store']['mas']['use_rtun'] = nil

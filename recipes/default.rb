@@ -32,9 +32,6 @@ mac_app_store_mas 'default' do
   unless node['mac_app_store']['mas']['version'].nil?
     version node['mac_app_store']['mas']['version']
   end
-  unless node['mac_app_store']['mas']['system_user'].nil?
-    system_user node['mac_app_store']['mas']['system_user']
-  end
   unless node['mac_app_store']['mas']['use_rtun'].nil?
     use_rtun node['mac_app_store']['mas']['use_rtun']
   end
@@ -44,9 +41,6 @@ end
 node['mac_app_store']['apps'].to_h.each do |k, v|
   next unless v == true
   mac_app_store_app k do
-    unless node['mac_app_store']['mas']['system_user'].nil?
-      system_user node['mac_app_store']['mas']['system_user']
-    end
     unless node['mac_app_store']['mas']['use_rtun'].nil?
       use_rtun node['mac_app_store']['mas']['use_rtun']
     end

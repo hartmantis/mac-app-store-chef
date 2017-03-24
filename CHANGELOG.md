@@ -5,6 +5,7 @@ Unreleased
 ----------
 - Update the cookbook dependency pinned versions
 - Sign out of Mas before trying to sign in as another user
+- Remove all system_user attributes and properties
 
 v2.1.0 (2016-06-08)
 -------------------

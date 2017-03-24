@@ -63,11 +63,6 @@ If desired, a specific version of Mas can be installed rather than the latest:
 
     default['mac_app_store']['mas']['version'] = nil
 
-By default, Mas will always be run as the current system user. That can be
-overridden:
-
-    default['mac_app_store']['mas']['system_user'] = nil
-
 In certain circumstances-e.g. Chef running as root-it may be necessary to run
 Mas via the `reattach-to-user-namespace` utility:
 
@@ -88,7 +83,6 @@ Syntax:
       version: '1.2.3'
       username 'example@example.com'
       password 'abc123'
-      system_user 'vagrant'
       use_rtun false
       action %i(install sign_in)
     end
@@ -112,7 +106,6 @@ Properties:
 | version     | `nil`                 | The version of Mas to install                  |
 | username    | `nil`                 | An Apple ID username                           |
 | password    | `nil`                 | An Apple ID password                           |
-| system_user | `Etc.getlogin`        | The user to execute Mas commands as            |
 | use_rtun    | `false`               | Use RtUN when shelling out to Mas              |
 | action      | `%i(install sign_in)` | Action(s) to perform                           |
 
@@ -125,7 +118,6 @@ Syntax:
 
     mac_app_store_app 'Some App' do
       app_name 'Some App'
-      system_user 'vagrant'
       use_rtun false
       action :install
     end
@@ -142,7 +134,6 @@ Properties:
 | Property    | Default        | Description                                |
 |-------------|----------------|--------------------------------------------|
 | app_name    | resource name  | App name if it doesn't match resource name |
-| system_user | `Etc.getlogin` | The user to execute Mas commands as        |
 | use_rtun    | `false`        | Use RtUN when shelling out to Mas          |
 | action      | `:install`     | Action(s) to perform                       |
 

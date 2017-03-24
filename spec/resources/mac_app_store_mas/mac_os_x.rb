@@ -260,20 +260,6 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
             it 'signs into Mas with the correct system user' do
               expect(chef_run).to run_execute("Sign in to Mas as #{username}")
                 .with(command: "mas signin '#{username}' '#{password}'",
-                      user: getlogin,
-                      returns: [0, 6],
-                      sensitive: true)
-            end
-          end
-
-          context 'an overridden system_user property' do
-            include_context description
-
-            it 'signs into Mas with the correct user' do
-              expect(chef_run).to run_execute("Sign in to Mas as #{username}")
-                .with(command: "mas signin '#{username}' '#{password}'",
-                      user: 'testme',
-                      returns: [0, 6],
                       sensitive: true)
             end
           end
@@ -289,8 +275,6 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
               expect(chef_run).to run_execute("Sign in to Mas as #{username}")
                 .with(command: 'reattach-to-user-namespace mas signin ' \
                                "'#{username}' '#{password}'",
-                      user: getlogin,
-                      returns: [0, 6],
                       sensitive: true)
             end
           end
@@ -309,15 +293,12 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
 
           it 'signs out of Mas' do
             expect(chef_run).to run_execute('Sign out of Mas')
-              .with(command: 'mas signout',
-                    user: getlogin)
+              .with(command: 'mas signout')
           end
 
           it 'signs into Mas' do
             expect(chef_run).to run_execute("Sign in to Mas as #{username}")
               .with(command: "mas signin '#{username}' '#{password}'",
-                    user: getlogin,
-                    returns: [0, 6],
                     sensitive: true)
           end
         end
@@ -363,16 +344,7 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
 
             it 'signs out of Mas with the correct system user' do
               expect(chef_run).to run_execute('Sign out of Mas')
-                .with(command: 'mas signout', user: getlogin)
-            end
-          end
-
-          context 'an overridden system_user property' do
-            include_context description
-
-            it 'signs out of Mas with the correct system user' do
-              expect(chef_run).to run_execute('Sign out of Mas')
-                .with(command: 'mas signout', user: 'testme')
+                .with(command: 'mas signout')
             end
           end
 
@@ -421,7 +393,7 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
 
             it 'runs a Mas upgrade' do
               expect(chef_run).to run_execute('Upgrade all installed apps')
-                .with(command: 'mas upgrade', user: getlogin)
+                .with(command: 'mas upgrade')
             end
           end
 
@@ -434,8 +406,7 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
 
             it 'runs a Mas upgrade using RtUN' do
               expect(chef_run).to run_execute('Upgrade all installed apps')
-                .with(command: 'reattach-to-user-namespace mas upgrade',
-                      user: getlogin)
+                .with(command: 'reattach-to-user-namespace mas upgrade')
             end
           end
         end

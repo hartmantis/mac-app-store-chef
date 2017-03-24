@@ -62,11 +62,6 @@ class Chef
       property :password, String, sensitive: true, desired_state: false
 
       #
-      # The system user to execute Mas commands as,
-      #
-      property :system_user, String, default: Etc.getlogin, desired_state: false
-
-      #
       # If circumstances require, the reattach-to-user-namespace utility can be
       # used every time we shell out to Mas.
       #
@@ -89,8 +84,7 @@ class Chef
 
       default_action %i(install sign_in)
 
-      load_current_value do |desired|
-        MacAppStore::Helpers::Mas.user = desired.system_user
+      load_current_value do
         installed(MacAppStore::Helpers::Mas.installed?)
         if installed
           version(MacAppStore::Helpers::Mas.installed_version?)
@@ -106,8 +100,6 @@ class Chef
       #
       action :install do
         return if current_resource.installed
-
-        MacAppStore::Helpers::Mas.user = new_resource.system_user
 
         unless new_resource.version
           new_resource.version(MacAppStore::Helpers::Mas.latest_version?)
@@ -134,8 +126,6 @@ class Chef
       # installed.
       #
       action :upgrade do
-        MacAppStore::Helpers::Mas.user = new_resource.system_user
-
         unless new_resource.version
           new_resource.version(MacAppStore::Helpers::Mas.latest_version?)
         end
@@ -196,8 +186,6 @@ class Chef
                 end
           execute "Sign in to Mas as #{new_resource.username}" do
             command cmd
-            user new_resource.system_user
-            returns [0, 6]
             sensitive true
           end
         end
@@ -217,7 +205,6 @@ class Chef
               end
         execute 'Sign out of Mas' do
           command cmd
-          user new_resource.system_user
         end
       end
 
@@ -235,7 +222,6 @@ class Chef
               end
         execute 'Upgrade all installed apps' do
           command cmd
-          user new_resource.system_user
         end
       end
     end

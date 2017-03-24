@@ -22,7 +22,7 @@ shared_context 'resources::mac_app_store_app::mac_os_x' do
 
           it 'installs the app' do
             expect(chef_run).to run_execute("Install #{name} with Mas")
-              .with(command: "mas install #{app_id_for?}", user: getlogin)
+              .with(command: "mas install #{app_id_for?}")
           end
         end
 
@@ -31,16 +31,7 @@ shared_context 'resources::mac_app_store_app::mac_os_x' do
 
           it 'installs the app with the correct name' do
             expect(chef_run).to run_execute("Install #{app_name} with Mas")
-              .with(command: "mas install #{app_id_for?}", user: getlogin)
-          end
-        end
-
-        context 'an overridden system_user property' do
-          include_context description
-
-          it 'installs the app with the correct system user' do
-            expect(chef_run).to run_execute("Install #{name} with Mas")
-              .with(command: "mas install #{app_id_for?}", user: system_user)
+              .with(command: "mas install #{app_id_for?}")
           end
         end
 
@@ -49,8 +40,7 @@ shared_context 'resources::mac_app_store_app::mac_os_x' do
 
           it 'installs the app using RtUN' do
             expect(chef_run).to run_execute("Install #{name} with Mas").with(
-              command: "reattach-to-user-namespace mas install #{app_id_for?}",
-              user: getlogin
+              command: "reattach-to-user-namespace mas install #{app_id_for?}"
             )
           end
         end
@@ -85,7 +75,7 @@ shared_context 'resources::mac_app_store_app::mac_os_x' do
 
           it 'installs the app' do
             expect(chef_run).to run_execute("Upgrade #{name} with Mas")
-              .with(command: "mas install #{app_id_for?}", user: getlogin)
+              .with(command: "mas install #{app_id_for?}")
           end
         end
 
@@ -94,16 +84,7 @@ shared_context 'resources::mac_app_store_app::mac_os_x' do
 
           it 'upgrades the app with the correct name' do
             expect(chef_run).to run_execute("Upgrade #{app_name} with Mas")
-              .with(command: "mas install #{app_id_for?}", user: getlogin)
-          end
-        end
-
-        context 'an overridden system_user property' do
-          include_context description
-
-          it 'upgrades the app with the correct system user' do
-            expect(chef_run).to run_execute("Upgrade #{name} with Mas")
-              .with(command: "mas install #{app_id_for?}", user: system_user)
+              .with(command: "mas install #{app_id_for?}")
           end
         end
 
@@ -112,8 +93,7 @@ shared_context 'resources::mac_app_store_app::mac_os_x' do
 
           it 'upgrades the app using RtUN' do
             expect(chef_run).to run_execute("Upgrade #{name} with Mas").with(
-              command: "reattach-to-user-namespace mas install #{app_id_for?}",
-              user: getlogin
+              command: "reattach-to-user-namespace mas install #{app_id_for?}"
             )
           end
         end
@@ -136,7 +116,7 @@ shared_context 'resources::mac_app_store_app::mac_os_x' do
 
           it 'upgrades the app' do
             expect(chef_run).to run_execute("Upgrade #{name} with Mas")
-              .with(command: "mas install #{app_id_for?}", user: getlogin)
+              .with(command: "mas install #{app_id_for?}")
           end
         end
 
@@ -145,16 +125,7 @@ shared_context 'resources::mac_app_store_app::mac_os_x' do
 
           it 'upgrades the app with the correct name' do
             expect(chef_run).to run_execute("Upgrade #{app_name} with Mas")
-              .with(command: "mas install #{app_id_for?}", user: getlogin)
-          end
-        end
-
-        context 'an overridden system_user property' do
-          include_context description
-
-          it 'upgrades the app with the correct system user' do
-            expect(chef_run).to run_execute("Upgrade #{name} with Mas")
-              .with(command: "mas install #{app_id_for?}", user: system_user)
+              .with(command: "mas install #{app_id_for?}")
           end
         end
 
@@ -163,8 +134,7 @@ shared_context 'resources::mac_app_store_app::mac_os_x' do
 
           it 'upgrades the app using RtUN' do
             expect(chef_run).to run_execute("Upgrade #{name} with Mas").with(
-              command: "reattach-to-user-namespace mas install #{app_id_for?}",
-              user: getlogin
+              command: "reattach-to-user-namespace mas install #{app_id_for?}"
             )
           end
         end
