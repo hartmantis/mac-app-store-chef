@@ -1,4 +1,5 @@
-# Encoding: UTF-8
+# encoding: utf-8
+# frozen_string_literal: true
 
 require 'chef'
 require 'chefspec'
@@ -10,6 +11,7 @@ require_relative '../libraries/matchers'
 
 RSpec.configure do |c|
   c.color = true
+  c.file_cache_path = '/tmp'
 end
 
 SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(

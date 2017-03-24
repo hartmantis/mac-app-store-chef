@@ -1,9 +1,10 @@
-# Encoding: UTF-8
+# encoding: utf-8
+# frozen_string_literal: true
 #
 # Cookbook Name:: mac-app-store
 # Library:: resource_mac_app_store_app
 #
-# Copyright 2015-2016, Jonathan Hartman
+# Copyright 2015-2017, Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,11 +39,6 @@ class Chef
       property :app_name, String, name_property: true
 
       #
-      # The system user to execute Mas commands as.
-      #
-      property :system_user, String, default: Etc.getlogin, desired_state: false
-
-      #
       # If circumstances require, the reattach-to-user-namespace utility can be
       # used every time we shell out to Mas.
       #
@@ -66,14 +62,12 @@ class Chef
       default_action :install
 
       load_current_value do |desired|
-        MacAppStore::Helpers::App.user = desired.system_user
         installed(MacAppStore::Helpers::App.installed?(desired.app_name))
         upgradable(MacAppStore::Helpers::App.upgradable?(desired.app_name))
       end
 
       action :install do
         new_resource.installed(true)
-        MacAppStore::Helpers::App.user = new_resource.system_user
 
         converge_if_changed :installed do
           app_id = MacAppStore::Helpers::App.app_id_for?(new_resource.app_name)
@@ -87,7 +81,6 @@ class Chef
                 end
           execute "Install #{new_resource.app_name} with Mas" do
             command cmd
-            user new_resource.system_user
           end
         end
       end
@@ -95,7 +88,6 @@ class Chef
       action :upgrade do
         new_resource.installed(true)
         new_resource.upgradable(false)
-        MacAppStore::Helpers::App.user = new_resource.system_user
 
         converge_if_changed :installed, :upgradable do
           app_id = MacAppStore::Helpers::App.app_id_for?(new_resource.app_name)
@@ -109,7 +101,6 @@ class Chef
                 end
           execute "Upgrade #{new_resource.app_name} with Mas" do
             command cmd
-            user new_resource.system_user
           end
         end
       end

@@ -1,9 +1,10 @@
-# Encoding: UTF-8
+# encoding: utf-8
+# frozen_string_literal: true
 #
 # Cookbook Name:: mac-app-store
 # Library:: helpers_mas
 #
-# Copyright 2015-2016, Jonathan Hartman
+# Copyright 2015-2017, Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,8 +32,6 @@ module MacAppStore
       class << self
         include Chef::Mixin::ShellOut
 
-        attr_accessor :user
-
         #
         # Check whether any installed apps are outdated.
         #
@@ -40,7 +39,7 @@ module MacAppStore
         #
         def upgradable_apps?
           return nil unless installed?
-          outdated = shell_out('mas outdated', user: user).stdout.strip
+          outdated = shell_out('mas outdated').stdout.strip
           outdated.empty? ? false : true
         end
 
@@ -51,7 +50,7 @@ module MacAppStore
         #
         def signed_in_as?
           return nil unless installed?
-          acct = shell_out('mas account', user: user).stdout.strip
+          acct = shell_out('mas account').stdout.strip
           acct == 'Not signed in' ? nil : acct
         end
 
@@ -62,8 +61,7 @@ module MacAppStore
         #
         def installed_by?
           return nil unless installed?
-          brew = shell_out('brew list argon/mas/mas || true', user: user)
-                 .stdout.strip
+          brew = shell_out('brew list mas || true').stdout.strip
           brew.empty? ? :direct : :homebrew
         end
 
@@ -74,7 +72,7 @@ module MacAppStore
         # @return [String, NilClass] the version of Mas installed
         #
         def installed_version?
-          res = shell_out('mas version || true', user: user).stdout.strip
+          res = shell_out('mas version || true').stdout.strip
           res.empty? ? nil : res
         end
 
@@ -84,7 +82,7 @@ module MacAppStore
         # @return [TrueClass, FalseClass] whether Mas is installed
         #
         def installed?
-          res = shell_out('mas version || true', user: user).stdout.strip
+          res = shell_out('mas version || true').stdout.strip
           res.empty? ? false : true
         end
 
@@ -96,7 +94,7 @@ module MacAppStore
         def latest_version?
           @latest_version ||= JSON.parse(
             Net::HTTP.get(
-              URI('https://api.github.com/repos/argon/mas/releases')
+              URI('https://api.github.com/repos/mas-cli/mas/releases')
             )
           ).first['tag_name'].gsub(/^v/, '')
         end

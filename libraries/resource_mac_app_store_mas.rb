@@ -1,9 +1,10 @@
-# Encoding: UTF-8
+# encoding: utf-8
+# frozen_string_literal: true
 #
 # Cookbook Name:: mac-app-store
 # Library:: resource_mac_app_store_mas
 #
-# Copyright 2015-2016, Jonathan Hartman
+# Copyright 2015-2017, Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -58,12 +59,7 @@ class Chef
       #
       # The password for the Apple ID user.
       #
-      property :password, String, desired_state: false
-
-      #
-      # The system user to execute Mas commands as,
-      #
-      property :system_user, String, default: Etc.getlogin, desired_state: false
+      property :password, String, sensitive: true, desired_state: false
 
       #
       # If circumstances require, the reattach-to-user-namespace utility can be
@@ -88,8 +84,7 @@ class Chef
 
       default_action %i(install sign_in)
 
-      load_current_value do |desired|
-        MacAppStore::Helpers::Mas.user = desired.system_user
+      load_current_value do
         installed(MacAppStore::Helpers::Mas.installed?)
         if installed
           version(MacAppStore::Helpers::Mas.installed_version?)
@@ -104,28 +99,25 @@ class Chef
       # it or the most recent one.
       #
       action :install do
-        new_resource.installed(true)
-        MacAppStore::Helpers::Mas.user = new_resource.system_user
+        return if current_resource.installed
 
         unless new_resource.version
           new_resource.version(MacAppStore::Helpers::Mas.latest_version?)
         end
 
-        converge_if_changed :installed do
-          case new_resource.source
-          when :direct
-            path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
-            remote_file path do
-              source 'https://github.com/argon/mas/releases/download/' \
-                     "v#{new_resource.version}/mas-cli.zip"
-            end
-            execute 'Extract Mas-CLI zip file' do
-              command "unzip -d /usr/local/bin/ -o #{path}"
-            end
-          when :homebrew
-            include_recipe 'homebrew'
-            homebrew_package 'mas'
+        case new_resource.source
+        when :direct
+          path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
+          remote_file path do
+            source 'https://github.com/mas-cli/mas/releases/download/' \
+                   "v#{new_resource.version}/mas-cli.zip"
           end
+          execute 'Extract Mas-CLI zip file' do
+            command "unzip -d /usr/local/bin/ -o #{path}"
+          end
+        when :homebrew
+          include_recipe 'homebrew'
+          homebrew_package 'mas'
         end
       end
 
@@ -134,9 +126,6 @@ class Chef
       # installed.
       #
       action :upgrade do
-        new_resource.installed(true)
-        MacAppStore::Helpers::Mas.user = new_resource.system_user
-
         unless new_resource.version
           new_resource.version(MacAppStore::Helpers::Mas.latest_version?)
         end
@@ -146,7 +135,7 @@ class Chef
           when :direct
             path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
             remote_file path do
-              source 'https://github.com/argon/mas/releases/download/' \
+              source 'https://github.com/mas-cli/mas/releases/download/' \
                      "v#{new_resource.version}/mas-cli.zip"
             end
             execute 'Extract Mas-CLI zip file' do
@@ -164,16 +153,14 @@ class Chef
       # package.
       #
       action :remove do
-        new_resource.installed(false)
+        return unless current_resource.installed
 
-        converge_if_changed :installed do
-          case new_resource.source
-          when :direct
-            file('/usr/local/bin/mas') { action :delete }
-          when :homebrew
-            include_recipe 'homebrew'
-            homebrew_package('mas') { action :remove }
-          end
+        case new_resource.source
+        when :direct
+          file('/usr/local/bin/mas') { action :delete }
+        when :homebrew
+          include_recipe 'homebrew'
+          homebrew_package('mas') { action :remove }
         end
       end
 
@@ -187,6 +174,8 @@ class Chef
         )
 
         converge_if_changed :username do
+          action_sign_out if current_resource.username
+
           cmd = if new_resource.use_rtun
                   include_recipe 'reattach-to-user-namespace'
                   'reattach-to-user-namespace mas signin ' \
@@ -197,8 +186,6 @@ class Chef
                 end
           execute "Sign in to Mas as #{new_resource.username}" do
             command cmd
-            user new_resource.system_user
-            returns [0, 6]
             sensitive true
           end
         end
@@ -208,19 +195,16 @@ class Chef
       # Log out of Mas.
       #
       action :sign_out do
-        new_resource.username(false)
+        return unless current_resource.username
 
-        converge_if_changed :username do
-          cmd = if new_resource.use_rtun
-                  include_recipe 'reattach-to-user-namespace'
-                  'reattach-to-user-namespace mas signout'
-                else
-                  'mas signout'
-                end
-          execute 'Sign out of Mas' do
-            command cmd
-            user new_resource.system_user
-          end
+        cmd = if new_resource.use_rtun
+                include_recipe 'reattach-to-user-namespace'
+                'reattach-to-user-namespace mas signout'
+              else
+                'mas signout'
+              end
+        execute 'Sign out of Mas' do
+          command cmd
         end
       end
 
@@ -228,29 +212,17 @@ class Chef
       # Upgrade all installed apps.
       #
       action :upgrade_apps do
-        new_resource.upgradable_apps(false)
+        return unless current_resource.upgradable_apps
 
-        converge_if_changed :upgradable_apps do
-          cmd = if new_resource.use_rtun
-                  include_recipe 'reattach-to-user-namespace'
-                  'reattach-to-user-namespace mas upgrade'
-                else
-                  'mas upgrade'
-                end
-          execute 'Upgrade all installed apps' do
-            command cmd
-            user new_resource.system_user
-          end
+        cmd = if new_resource.use_rtun
+                include_recipe 'reattach-to-user-namespace'
+                'reattach-to-user-namespace mas upgrade'
+              else
+                'mas upgrade'
+              end
+        execute 'Upgrade all installed apps' do
+          command cmd
         end
-      end
-
-      #
-      # Override resource's text rendering to remove password information.
-      #
-      # @return [String]
-      #
-      def to_text
-        password.nil? ? super : super.gsub(password, '****************')
       end
     end
   end
