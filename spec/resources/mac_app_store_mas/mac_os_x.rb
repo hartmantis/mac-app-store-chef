@@ -155,9 +155,7 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
       context 'an overridden source property' do
         include_context description
 
-        context 'not already installed' do
-          include_context description
-
+        shared_examples_for 'any installed state' do
           it 'includes the homebrew default recipe' do
             expect(chef_run).to include_recipe('homebrew')
           end
@@ -165,30 +163,24 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
           it 'upgrades Mas via Homebrew' do
             expect(chef_run).to upgrade_homebrew_package('mas')
           end
+        end
+
+        context 'not already installed' do
+          include_context description
+
+          it_behaves_like 'any installed state'
         end
 
         context 'already installed' do
           include_context description
 
-          it 'does not include the homebrew default recipe' do
-            expect(chef_run).to_not include_recipe('homebrew')
-          end
-
-          it 'does not upgrade Mas via Homebrew' do
-            expect(chef_run).to_not upgrade_homebrew_package('mas')
-          end
+          it_behaves_like 'any installed state'
         end
 
         context 'installed and upgradable' do
           include_context description
 
-          it 'includes the homebrew default recipe' do
-            expect(chef_run).to include_recipe('homebrew')
-          end
-
-          it 'upgrades Mas via Homebrew' do
-            expect(chef_run).to upgrade_homebrew_package('mas')
-          end
+          it_behaves_like 'any installed state'
         end
       end
     end

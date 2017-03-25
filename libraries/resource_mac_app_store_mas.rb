@@ -85,13 +85,12 @@ class Chef
       default_action %i(install sign_in)
 
       load_current_value do
-        installed(MacAppStore::Helpers::Mas.installed?)
-        if installed
-          version(MacAppStore::Helpers::Mas.installed_version?)
-          username(MacAppStore::Helpers::Mas.signed_in_as? || false)
-          source(MacAppStore::Helpers::Mas.installed_by?)
-          upgradable_apps(MacAppStore::Helpers::Mas.upgradable_apps?)
-        end
+        current_value_does_not_exist! unless MacAppStore::Helpers::Mas.installed?
+        installed(true)
+        version(MacAppStore::Helpers::Mas.installed_version?)
+        username(MacAppStore::Helpers::Mas.signed_in_as? || false)
+        source(MacAppStore::Helpers::Mas.installed_by?)
+        upgradable_apps(MacAppStore::Helpers::Mas.upgradable_apps?)
       end
 
       #
@@ -99,18 +98,15 @@ class Chef
       # it or the most recent one.
       #
       action :install do
-        return if current_resource.installed
-
-        unless new_resource.version
-          new_resource.version(MacAppStore::Helpers::Mas.latest_version?)
-        end
+        return if current_resource
 
         case new_resource.source
         when :direct
+          ver = new_resource.version || MacAppStore::Helpers::Mas.latest_version?
           path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
           remote_file path do
             source 'https://github.com/mas-cli/mas/releases/download/' \
-                   "v#{new_resource.version}/mas-cli.zip"
+                   "v#{ver}/mas-cli.zip"
           end
           execute 'Extract Mas-CLI zip file' do
             command "unzip -d /usr/local/bin/ -o #{path}"
@@ -126,25 +122,22 @@ class Chef
       # installed.
       #
       action :upgrade do
-        unless new_resource.version
-          new_resource.version(MacAppStore::Helpers::Mas.latest_version?)
-        end
+        case new_resource.source
+        when :direct
+          ver = new_resource.version || MacAppStore::Helpers::Mas.latest_version?
+          return if current_resource && current_resource.version == ver
 
-        converge_if_changed :version do
-          case new_resource.source
-          when :direct
-            path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
-            remote_file path do
-              source 'https://github.com/mas-cli/mas/releases/download/' \
-                     "v#{new_resource.version}/mas-cli.zip"
-            end
-            execute 'Extract Mas-CLI zip file' do
-              command "unzip -d /usr/local/bin/ -o #{path}"
-            end
-          when :homebrew
-            include_recipe 'homebrew'
-            homebrew_package('mas') { action :upgrade }
+          path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
+          remote_file path do
+            source 'https://github.com/mas-cli/mas/releases/download/' \
+                   "v#{ver}/mas-cli.zip"
           end
+          execute 'Extract Mas-CLI zip file' do
+            command "unzip -d /usr/local/bin/ -o #{path}"
+          end
+        when :homebrew
+          include_recipe 'homebrew'
+          homebrew_package('mas') { action :upgrade }
         end
       end
 
@@ -153,7 +146,7 @@ class Chef
       # package.
       #
       action :remove do
-        return unless current_resource.installed
+        return unless current_resource
 
         case new_resource.source
         when :direct
@@ -174,7 +167,7 @@ class Chef
         )
 
         converge_if_changed :username do
-          action_sign_out if current_resource.username
+          action_sign_out if current_resource && current_resource.username
 
           cmd = if new_resource.use_rtun
                   include_recipe 'reattach-to-user-namespace'
@@ -195,7 +188,7 @@ class Chef
       # Log out of Mas.
       #
       action :sign_out do
-        return unless current_resource.username
+        return unless current_resource && current_resource.username
 
         cmd = if new_resource.use_rtun
                 include_recipe 'reattach-to-user-namespace'
@@ -212,7 +205,7 @@ class Chef
       # Upgrade all installed apps.
       #
       action :upgrade_apps do
-        return unless current_resource.upgradable_apps
+        return unless current_resource && current_resource.upgradable_apps
 
         cmd = if new_resource.use_rtun
                 include_recipe 'reattach-to-user-namespace'
