@@ -77,20 +77,16 @@ class Chef
       #
       property :installed, [TrueClass, FalseClass]
 
-      #
-      # A property to track whether any app upgrades are available.
-      #
-      property :upgradable_apps, [TrueClass, FalseClass]
-
       default_action %i(install sign_in)
 
       load_current_value do
-        current_value_does_not_exist! unless MacAppStore::Helpers::Mas.installed?
+        unless MacAppStore::Helpers::Mas.installed?
+          current_value_does_not_exist!
+        end
         installed(true)
         version(MacAppStore::Helpers::Mas.installed_version?)
         username(MacAppStore::Helpers::Mas.signed_in_as? || false)
         source(MacAppStore::Helpers::Mas.installed_by?)
-        upgradable_apps(MacAppStore::Helpers::Mas.upgradable_apps?)
       end
 
       #
@@ -102,7 +98,8 @@ class Chef
 
         case new_resource.source
         when :direct
-          ver = new_resource.version || MacAppStore::Helpers::Mas.latest_version?
+          ver = new_resource.version || \
+                MacAppStore::Helpers::Mas.latest_version?
           path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
           remote_file path do
             source 'https://github.com/mas-cli/mas/releases/download/' \
@@ -124,7 +121,8 @@ class Chef
       action :upgrade do
         case new_resource.source
         when :direct
-          ver = new_resource.version || MacAppStore::Helpers::Mas.latest_version?
+          ver = new_resource.version || \
+                MacAppStore::Helpers::Mas.latest_version?
           return if current_resource && current_resource.version == ver
 
           path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
@@ -205,7 +203,8 @@ class Chef
       # Upgrade all installed apps.
       #
       action :upgrade_apps do
-        return unless current_resource && current_resource.upgradable_apps
+        return unless current_resource && \
+                      MacAppStore::Helpers::Mas.upgradable_apps?
 
         cmd = if new_resource.use_rtun
                 include_recipe 'reattach-to-user-namespace'
