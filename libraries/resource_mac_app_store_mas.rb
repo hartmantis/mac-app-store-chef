@@ -67,23 +67,12 @@ class Chef
       #
       property :use_rtun, [TrueClass, FalseClass], default: false
 
-      ######################################################################
-      # Every property below this point is for tracking resource state and #
-      # should *not* be overridden.                                        #
-      ######################################################################
-
-      #
-      # A property to track the installed state of Mas.
-      #
-      property :installed, [TrueClass, FalseClass]
-
       default_action %i(install sign_in)
 
       load_current_value do
         unless MacAppStore::Helpers::Mas.installed?
           current_value_does_not_exist!
         end
-        installed(true)
         version(MacAppStore::Helpers::Mas.installed_version?)
         username(MacAppStore::Helpers::Mas.signed_in_as? || false)
         source(MacAppStore::Helpers::Mas.installed_by?)
