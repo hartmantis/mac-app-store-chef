@@ -1,5 +1,6 @@
 # encoding: utf-8
 # frozen_string_literal: true
+
 #
 # Cookbook Name:: mac-app-store
 # Library:: resource_mac_app_store_mas
