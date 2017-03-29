@@ -68,29 +68,53 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
         context 'already installed' do
           include_context description
 
-          it 'does not include the homebrew default recipe' do
-            expect(chef_run).to_not include_recipe('homebrew')
+          it 'includes the homebrew default recipe' do
+            expect(chef_run).to include_recipe('homebrew')
           end
 
-          it 'does not install Mas via Homebrew' do
-            expect(chef_run).to_not install_homebrew_package('mas')
+          it 'installs Mas via Homebrew' do
+            expect(chef_run).to install_homebrew_package('mas')
           end
         end
       end
 
-      context 'a missing username property' do
+      context 'an overridden version property' do
         include_context description
 
-        it 'raises an error' do
-          expect { chef_run }.to raise_error(Chef::Exceptions::ValidationFailed)
+        context 'not already installed' do
+          include_context description
+
+          it 'downloads mas-cli.zip from GitHub' do
+            expect(chef_run).to create_remote_file(
+              "#{Chef::Config[:file_cache_path]}/mas-cli.zip"
+            ).with(source: 'https://github.com/mas-cli/mas/releases/download/' \
+                           'v0.1.0/mas-cli.zip')
+          end
+
+          it 'unzips mas-cli.zip into place' do
+            expect(chef_run).to run_execute('Extract Mas-CLI zip file').with(
+              command: 'unzip -d /usr/local/bin/ -o ' \
+                       "#{Chef::Config[:file_cache_path]}/mas-cli.zip"
+            )
+          end
         end
-      end
 
-      context 'a missing password property' do
-        include_context description
+        context 'already installed' do
+          include_context description
 
-        it 'raises an error' do
-          expect { chef_run }.to raise_error(Chef::Exceptions::ValidationFailed)
+          it 'downloads mas-cli.zip from GitHub' do
+            expect(chef_run).to create_remote_file(
+              "#{Chef::Config[:file_cache_path]}/mas-cli.zip"
+            ).with(source: 'https://github.com/mas-cli/mas/releases/download/' \
+                           'v0.1.0/mas-cli.zip')
+          end
+
+          it 'unzips mas-cli.zip into place' do
+            expect(chef_run).to run_execute('Extract Mas-CLI zip file').with(
+              command: 'unzip -d /usr/local/bin/ -o ' \
+                       "#{Chef::Config[:file_cache_path]}/mas-cli.zip"
+            )
+          end
         end
       end
     end
@@ -155,9 +179,7 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
       context 'an overridden source property' do
         include_context description
 
-        context 'not already installed' do
-          include_context description
-
+        shared_examples_for 'any installed state' do
           it 'includes the homebrew default recipe' do
             expect(chef_run).to include_recipe('homebrew')
           end
@@ -165,30 +187,24 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
           it 'upgrades Mas via Homebrew' do
             expect(chef_run).to upgrade_homebrew_package('mas')
           end
+        end
+
+        context 'not already installed' do
+          include_context description
+
+          it_behaves_like 'any installed state'
         end
 
         context 'already installed' do
           include_context description
 
-          it 'does not include the homebrew default recipe' do
-            expect(chef_run).to_not include_recipe('homebrew')
-          end
-
-          it 'does not upgrade Mas via Homebrew' do
-            expect(chef_run).to_not upgrade_homebrew_package('mas')
-          end
+          it_behaves_like 'any installed state'
         end
 
         context 'installed and upgradable' do
           include_context description
 
-          it 'includes the homebrew default recipe' do
-            expect(chef_run).to include_recipe('homebrew')
-          end
-
-          it 'upgrades Mas via Homebrew' do
-            expect(chef_run).to upgrade_homebrew_package('mas')
-          end
+          it_behaves_like 'any installed state'
         end
       end
     end
@@ -323,9 +339,11 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
       end
 
       context 'not already installed' do
-        it 'does an as-yet undecided thing' do
-          pending
-          expect(true).to eq(false)
+        include_context description
+
+        it 'raises an error' do
+          expected = Chef::Exceptions::ValidationFailed
+          expect { chef_run }.to raise_error(expected)
         end
       end
     end
@@ -372,9 +390,11 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
       end
 
       context 'not already installed' do
-        it 'does an as-yet undecided thing' do
-          pending
-          expect(true).to eq(false)
+        include_context description
+
+        it 'raises an error' do
+          expected = Chef::Exceptions::ValidationFailed
+          expect { chef_run }.to raise_error(expected)
         end
       end
     end
@@ -423,9 +443,9 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
       context 'not already installed' do
         include_context description
 
-        it 'does an as-yet undecided thing' do
-          pending
-          expect(true).to eq(false)
+        it 'raises an error' do
+          expected = Chef::Exceptions::ValidationFailed
+          expect { chef_run }.to raise_error(expected)
         end
       end
     end
