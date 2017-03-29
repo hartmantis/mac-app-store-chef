@@ -117,22 +117,6 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
           end
         end
       end
-
-      context 'a missing username property' do
-        include_context description
-
-        it 'raises an error' do
-          expect { chef_run }.to raise_error(Chef::Exceptions::ValidationFailed)
-        end
-      end
-
-      context 'a missing password property' do
-        include_context description
-
-        it 'raises an error' do
-          expect { chef_run }.to raise_error(Chef::Exceptions::ValidationFailed)
-        end
-      end
     end
 
     context 'the :upgrade action' do
@@ -355,9 +339,11 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
       end
 
       context 'not already installed' do
-        it 'does an as-yet undecided thing' do
-          pending
-          expect(true).to eq(false)
+        include_context description
+
+        it 'raises an error' do
+          expected = Chef::Exceptions::ValidationFailed
+          expect { chef_run }.to raise_error(expected)
         end
       end
     end
@@ -404,9 +390,11 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
       end
 
       context 'not already installed' do
-        it 'does an as-yet undecided thing' do
-          pending
-          expect(true).to eq(false)
+        include_context description
+
+        it 'raises an error' do
+          expected = Chef::Exceptions::ValidationFailed
+          expect { chef_run }.to raise_error(expected)
         end
       end
     end
@@ -455,9 +443,9 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
       context 'not already installed' do
         include_context description
 
-        it 'does an as-yet undecided thing' do
-          pending
-          expect(true).to eq(false)
+        it 'raises an error' do
+          expected = Chef::Exceptions::ValidationFailed
+          expect { chef_run }.to raise_error(expected)
         end
       end
     end

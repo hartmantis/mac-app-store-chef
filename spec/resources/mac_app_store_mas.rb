@@ -55,6 +55,7 @@ shared_context 'resources::mac_app_store_mas' do
     let(:username) { 'example@example.com' }
     let(:password) { 'abc123' }
     let(:latest_version?) { '1.3.0' }
+    let(:action) { :install }
   end
 
   shared_context 'the :upgrade action' do
@@ -170,24 +171,36 @@ shared_context 'resources::mac_app_store_mas' do
     context 'the :sign_in action' do
       include_context description
 
-      it 'signs in a mac_app_store_mas resource' do
-        expect(chef_run).to sign_in_mac_app_store_mas(name)
+      context 'already installed' do
+        include_context description
+
+        it 'signs in a mac_app_store_mas resource' do
+          expect(chef_run).to sign_in_mac_app_store_mas(name)
+        end
       end
     end
 
     context 'the :sign_out action' do
       include_context description
 
-      it 'signs out a mac_app_store_mas resource' do
-        expect(chef_run).to sign_out_mac_app_store_mas(name)
+      context 'already installed' do
+        include_context description
+
+        it 'signs out a mac_app_store_mas resource' do
+          expect(chef_run).to sign_out_mac_app_store_mas(name)
+        end
       end
     end
 
     context 'the :upgrade_apps action' do
       include_context description
 
-      it 'upgrades apps on a mac_app_store_mas resource' do
-        expect(chef_run).to upgrade_apps_mac_app_store_mas(name)
+      context 'already installed' do
+        include_context description
+
+        it 'upgrades apps on a mac_app_store_mas resource' do
+          expect(chef_run).to upgrade_apps_mac_app_store_mas(name)
+        end
       end
     end
   end

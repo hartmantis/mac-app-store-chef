@@ -7,6 +7,7 @@ Unreleased
 - Sign out of Mas before trying to sign in as another user
 - Remove all system_user attributes and properties
 - Respect a version property in mac_app_store_mas::install
+- Raise an error if trying to use Mas before it's installed
 
 v2.1.0 (2016-06-08)
 -------------------

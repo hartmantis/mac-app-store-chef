@@ -154,6 +154,10 @@ class Chef
       # Log in via Mas with an Apple ID and password.
       #
       action :sign_in do
+        current_resource || raise(
+          Chef::Exceptions::ValidationFailed,
+          'Mas must be installed before you can sign in'
+        )
         new_resource.username && new_resource.password || raise(
           Chef::Exceptions::ValidationFailed,
           'A username and password are required to sign into Mas'
@@ -181,7 +185,11 @@ class Chef
       # Log out of Mas.
       #
       action :sign_out do
-        return unless current_resource && current_resource.username
+        current_resource || raise(
+          Chef::Exceptions::ValidationFailed,
+          'Mas must be installed before you can sign out'
+        )
+        return unless current_resource.username
 
         cmd = if new_resource.use_rtun
                 include_recipe 'reattach-to-user-namespace'
@@ -198,8 +206,11 @@ class Chef
       # Upgrade all installed apps.
       #
       action :upgrade_apps do
-        return unless current_resource && \
-                      MacAppStore::Helpers::Mas.upgradable_apps?
+        current_resource || raise(
+          Chef::Exceptions::ValidationFailed,
+          'Mas must be installed before you can upgrade apps'
+        )
+        return unless MacAppStore::Helpers::Mas.upgradable_apps?
 
         cmd = if new_resource.use_rtun
                 include_recipe 'reattach-to-user-namespace'
