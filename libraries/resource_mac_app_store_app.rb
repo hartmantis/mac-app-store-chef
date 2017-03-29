@@ -45,64 +45,46 @@ class Chef
       #
       property :use_rtun, [TrueClass, FalseClass], default: false
 
-      ######################################################################
-      # Every property below this point is for tracking resource state and #
-      # should *not* be overridden.                                        #
-      ######################################################################
-
-      #
-      # A state property for whether the app is installed.
-      #
-      property :installed, [TrueClass, FalseClass]
-
-      #
-      # A state property for whether an upgrade is available.
-      #
-      property :upgradable, [TrueClass, FalseClass], desired_state: false
-
       default_action :install
 
       load_current_value do |desired|
-        installed(MacAppStore::Helpers::App.installed?(desired.app_name))
-        upgradable(MacAppStore::Helpers::App.upgradable?(desired.app_name))
+        unless MacAppStore::Helpers::App.installed?(desired.app_name)
+          current_value_does_not_exist!
+        end
       end
 
       action :install do
-        new_resource.installed(true)
+        return if current_resource
 
-        converge_if_changed :installed do
-          app_id = MacAppStore::Helpers::App.app_id_for?(new_resource.app_name)
-          raise(Exceptions::InvalidAppName, new_resource.app_name) unless app_id
+        app_id = MacAppStore::Helpers::App.app_id_for?(new_resource.app_name)
+        raise(Exceptions::InvalidAppName, new_resource.app_name) unless app_id
 
-          cmd = if new_resource.use_rtun
-                  include_recipe 'reattach-to-user-namespace'
-                  "reattach-to-user-namespace mas install #{app_id}"
-                else
-                  "mas install #{app_id}"
-                end
-          execute "Install #{new_resource.app_name} with Mas" do
-            command cmd
-          end
+        cmd = if new_resource.use_rtun
+                include_recipe 'reattach-to-user-namespace'
+                "reattach-to-user-namespace mas install #{app_id}"
+              else
+                "mas install #{app_id}"
+              end
+        execute "Install #{new_resource.app_name} with Mas" do
+          command cmd
         end
       end
 
       action :upgrade do
-        new_resource.installed(true)
-        new_resource.upgradable(false)
+        return if current_resource && \
+                  !MacAppStore::Helpers::App.upgradable?(new_resource.app_name)
 
-        converge_if_changed :installed, :upgradable do
-          app_id = MacAppStore::Helpers::App.app_id_for?(new_resource.app_name)
-          raise(Exceptions::InvalidAppName, new_resource.app_name) unless app_id
+        app_id = MacAppStore::Helpers::App.app_id_for?(new_resource.app_name)
+        raise(Exceptions::InvalidAppName, new_resource.app_name) unless app_id
 
-          cmd = if new_resource.use_rtun
-                  include_recipe 'reattach-to-user-namespace'
-                  "reattach-to-user-namespace mas install #{app_id}"
-                else
-                  "mas install #{app_id}"
-                end
-          execute "Upgrade #{new_resource.app_name} with Mas" do
-            command cmd
-          end
+        cmd = if new_resource.use_rtun
+                include_recipe 'reattach-to-user-namespace'
+                "reattach-to-user-namespace mas install #{app_id}"
+              else
+                "mas install #{app_id}"
+              end
+        execute "Upgrade #{new_resource.app_name} with Mas" do
+          command cmd
         end
       end
 
