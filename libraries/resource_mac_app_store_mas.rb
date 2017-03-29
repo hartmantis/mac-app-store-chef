@@ -87,10 +87,12 @@ class Chef
       # it or the most recent one.
       #
       action :install do
-        return if current_resource
-
         case new_resource.source
         when :direct
+          return if current_resource && \
+                    (new_resource.version.nil? || \
+                     new_resource.version == current_resource.version)
+
           ver = new_resource.version || \
                 MacAppStore::Helpers::Mas.latest_version?
           path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')

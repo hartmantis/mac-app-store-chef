@@ -68,12 +68,52 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
         context 'already installed' do
           include_context description
 
-          it 'does not include the homebrew default recipe' do
-            expect(chef_run).to_not include_recipe('homebrew')
+          it 'includes the homebrew default recipe' do
+            expect(chef_run).to include_recipe('homebrew')
           end
 
-          it 'does not install Mas via Homebrew' do
-            expect(chef_run).to_not install_homebrew_package('mas')
+          it 'installs Mas via Homebrew' do
+            expect(chef_run).to install_homebrew_package('mas')
+          end
+        end
+      end
+
+      context 'an overridden version property' do
+        include_context description
+
+        context 'not already installed' do
+          include_context description
+
+          it 'downloads mas-cli.zip from GitHub' do
+            expect(chef_run).to create_remote_file(
+              "#{Chef::Config[:file_cache_path]}/mas-cli.zip"
+            ).with(source: 'https://github.com/mas-cli/mas/releases/download/' \
+                           'v0.1.0/mas-cli.zip')
+          end
+
+          it 'unzips mas-cli.zip into place' do
+            expect(chef_run).to run_execute('Extract Mas-CLI zip file').with(
+              command: 'unzip -d /usr/local/bin/ -o ' \
+                       "#{Chef::Config[:file_cache_path]}/mas-cli.zip"
+            )
+          end
+        end
+
+        context 'already installed' do
+          include_context description
+
+          it 'downloads mas-cli.zip from GitHub' do
+            expect(chef_run).to create_remote_file(
+              "#{Chef::Config[:file_cache_path]}/mas-cli.zip"
+            ).with(source: 'https://github.com/mas-cli/mas/releases/download/' \
+                           'v0.1.0/mas-cli.zip')
+          end
+
+          it 'unzips mas-cli.zip into place' do
+            expect(chef_run).to run_execute('Extract Mas-CLI zip file').with(
+              command: 'unzip -d /usr/local/bin/ -o ' \
+                       "#{Chef::Config[:file_cache_path]}/mas-cli.zip"
+            )
           end
         end
       end

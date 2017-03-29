@@ -91,6 +91,10 @@ shared_context 'resources::mac_app_store_mas' do
     end
   end
 
+  shared_context 'an overridden version property' do
+    let(:version) { '0.1.0' }
+  end
+
   shared_context 'an overridden use_rtun property' do
     let(:use_rtun) { true }
   end
