@@ -43,7 +43,10 @@ class Chef
       # If circumstances require, the reattach-to-user-namespace utility can be
       # used every time we shell out to Mas.
       #
-      property :use_rtun, [TrueClass, FalseClass], default: false
+      property :use_rtun,
+               [TrueClass, FalseClass],
+               default: false,
+               desired_state: false
 
       default_action :install
 
