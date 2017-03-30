@@ -49,6 +49,7 @@ shared_context 'resources::mac_app_store_mas' do
   end
 
   before(:each) do
+    stub_command('which git').and_return('/usr/bin/git')
   end
 
   shared_context 'the :install action' do
@@ -85,14 +86,11 @@ shared_context 'resources::mac_app_store_mas' do
   end
 
   shared_context 'an overridden source property' do
-    let(:source) { :homebrew }
-
-    before do
-      stub_command('which git').and_return('/usr/bin/git')
-    end
+    let(:source) { :direct }
   end
 
-  shared_context 'an overridden version property' do
+  shared_context 'an overridden source and version property' do
+    let(:source) { :direct }
     let(:version) { '0.1.0' }
   end
 

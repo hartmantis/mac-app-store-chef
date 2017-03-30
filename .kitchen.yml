@@ -19,5 +19,3 @@ suites:
         apps:
           Microsoft Remote Desktop: true
           White Noise Free: true
-        mas:
-          version: 1.3.1
