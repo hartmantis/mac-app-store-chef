@@ -36,13 +36,14 @@ class Chef
       provides :mac_app_store_mas, platform_family: 'mac_os_x'
 
       #
-      # The method of installation for Mas, either :direct (GitHub) or :homebrew
+      # The method of installation for Mas, either :homebrew or :direct
+      # (GitHub).
       #
       property :source,
                Symbol,
                coerce: proc { |v| v.to_sym },
-               equal_to: %i(direct homebrew),
-               default: :direct
+               equal_to: %i(homebrew direct),
+               default: :homebrew
 
       #
       # Optionally specify a version of Mas to install.
@@ -88,6 +89,9 @@ class Chef
       #
       action :install do
         case new_resource.source
+        when :homebrew
+          include_recipe 'homebrew'
+          homebrew_package 'mas'
         when :direct
           return if current_resource && \
                     (new_resource.version.nil? || \
@@ -103,9 +107,6 @@ class Chef
           execute 'Extract Mas-CLI zip file' do
             command "unzip -d /usr/local/bin/ -o #{path}"
           end
-        when :homebrew
-          include_recipe 'homebrew'
-          homebrew_package 'mas'
         end
       end
 
@@ -115,6 +116,9 @@ class Chef
       #
       action :upgrade do
         case new_resource.source
+        when :homebrew
+          include_recipe 'homebrew'
+          homebrew_package('mas') { action :upgrade }
         when :direct
           ver = new_resource.version || \
                 MacAppStore::Helpers::Mas.latest_version?
@@ -128,25 +132,22 @@ class Chef
           execute 'Extract Mas-CLI zip file' do
             command "unzip -d /usr/local/bin/ -o #{path}"
           end
-        when :homebrew
-          include_recipe 'homebrew'
-          homebrew_package('mas') { action :upgrade }
         end
       end
 
       #
-      # Uninstall Mas by either deleting the file or removing the Homebrew
-      # package.
+      # Uninstall Mas by either removing the Homebrew package or deleting the
+      # file.
       #
       action :remove do
         return unless current_resource
 
         case new_resource.source
-        when :direct
-          file('/usr/local/bin/mas') { action :delete }
         when :homebrew
           include_recipe 'homebrew'
           homebrew_package('mas') { action :remove }
+        when :direct
+          file('/usr/local/bin/mas') { action :delete }
         end
       end
 

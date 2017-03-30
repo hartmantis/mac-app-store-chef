@@ -54,8 +54,8 @@ and value is true to install it or false to not. For example:
 
     default['mac_app_store']['apps']['Growl'] = true
 
-Mas can be installed via GitHub download (`:direct`, the default) or from
-`:homebrew`.
+Mas can be installed via Homebrew (`:homebrew`, the default) or GitHub
+download (`:direct`).
 
     default['mac_app_store']['mas']['source'] = nil
 
@@ -102,7 +102,7 @@ Properties:
 
 | Property    | Default               | Description                                    |
 |-------------|-----------------------|------------------------------------------------|
-| source      | `:direct`             | Install from GitHub (`:direct`) or `:homebrew` |
+| source      | `:homebrew`           | Install from `:homebrew` or GitHub (`:direct`) |
 | version     | `nil`                 | The version of Mas to install                  |
 | username    | `nil`                 | An Apple ID username                           |
 | password    | `nil`                 | An Apple ID password                           |
