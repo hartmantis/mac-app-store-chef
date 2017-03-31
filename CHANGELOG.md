@@ -1,8 +1,8 @@
 Mac App Store Cookbook CHANGELOG
 ================================
 
-Unreleased
-----------
+v3.0.0 (2017-03-31)
+-------------------
 - Update the cookbook dependency pinned versions
 - Sign out of Mas before trying to sign in as another user
 - Remove all system_user attributes and properties

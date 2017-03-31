@@ -7,7 +7,7 @@ maintainer_email 'j@p4nt5.com'
 license 'Apache v2.0'
 description 'Automates installation of Mac App Store apps'
 long_description 'Automates installation of Mac App Store apps'
-version '2.1.1'
+version '3.0.0'
 chef_version '>= 12.1'
 
 source_url 'https://github.com/roboticcheese/mac-app-store-chef'
