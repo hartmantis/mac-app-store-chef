@@ -4,16 +4,16 @@
 require 'spec_helper'
 
 describe 'mac-app-store::default' do
-  %i(username password apps source version use_rtun).each do |a|
+  %i[username password apps source version use_rtun].each do |a|
     let(a) { nil }
   end
   let(:platform) { { platform: nil, version: nil } }
   let(:runner) do
     ChefSpec::SoloRunner.new(platform) do |node|
-      %i(username password apps).each do |a|
+      %i[username password apps].each do |a|
         node.normal['mac_app_store'][a] = send(a) unless send(a).nil?
       end
-      %i(source version use_rtun).each do |a|
+      %i[source version use_rtun].each do |a|
         node.normal['mac_app_store']['mas'][a] = send(a) unless send(a).nil?
       end
     end

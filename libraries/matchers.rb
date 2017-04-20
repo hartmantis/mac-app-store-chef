@@ -22,8 +22,8 @@
 
 if defined?(ChefSpec)
   {
-    mac_app_store_mas: %i(install upgrade remove sign_in sign_out upgrade_apps),
-    mac_app_store_app: %i(install upgrade)
+    mac_app_store_mas: %i[install upgrade remove sign_in sign_out upgrade_apps],
+    mac_app_store_app: %i[install upgrade]
   }.each do |resource, actions|
     ChefSpec.define_matcher(resource)
 

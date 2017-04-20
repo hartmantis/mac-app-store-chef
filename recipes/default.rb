@@ -36,7 +36,7 @@ mac_app_store_mas 'default' do
   unless node['mac_app_store']['mas']['use_rtun'].nil?
     use_rtun node['mac_app_store']['mas']['use_rtun']
   end
-  action %i(install sign_in)
+  action %i[install sign_in]
 end
 
 node['mac_app_store']['apps'].to_h.each do |k, v|

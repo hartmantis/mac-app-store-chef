@@ -4,13 +4,13 @@
 require_relative 'spec_helper'
 
 shared_context 'resources' do
-  %i(resource name platform platform_version action).each { |p| let(p) { nil } }
+  %i[resource name platform platform_version action].each { |p| let(p) { nil } }
   let(:properties) { {} }
   let(:runner) do
     ChefSpec::SoloRunner.new(
       step_into: resource, platform: platform, version: platform_version
     ) do |node|
-      %i(resource name action).each do |p|
+      %i[resource name action].each do |p|
         next if send(p).nil?
         node.default['resource_test'][p] = send(p)
       end

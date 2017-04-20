@@ -4,7 +4,7 @@
 name 'mac-app-store'
 maintainer 'Jonathan Hartman'
 maintainer_email 'j@p4nt5.com'
-license 'Apache v2.0'
+license 'Apache-2.0'
 description 'Automates installation of Mac App Store apps'
 long_description 'Automates installation of Mac App Store apps'
 version '3.0.0'

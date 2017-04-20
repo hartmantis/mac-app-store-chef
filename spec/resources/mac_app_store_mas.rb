@@ -7,9 +7,9 @@ shared_context 'resources::mac_app_store_mas' do
   include_context 'resources'
 
   let(:resource) { 'mac_app_store_mas' }
-  %w(
+  %w[
     source version username password use_rtun
-  ).each { |p| let(p) { nil } }
+  ].each { |p| let(p) { nil } }
   let(:properties) do
     {
       source: source,
@@ -21,14 +21,14 @@ shared_context 'resources::mac_app_store_mas' do
   end
   let(:name) { 'default' }
 
-  %i(
+  %i[
     installed?
     installed_version?
     installed_by?
     signed_in_as?
     latest_version?
     upgradable_apps?
-  ).each do |p|
+  ].each do |p|
     let(p) { nil }
   end
 
