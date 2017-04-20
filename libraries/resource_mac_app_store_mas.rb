@@ -42,7 +42,7 @@ class Chef
       property :source,
                Symbol,
                coerce: proc { |v| v.to_sym },
-               equal_to: %i(homebrew direct),
+               equal_to: %i[homebrew direct],
                default: :homebrew
 
       #
@@ -72,7 +72,7 @@ class Chef
                default: false,
                desired_state: false
 
-      default_action %i(install sign_in)
+      default_action %i[install sign_in]
 
       load_current_value do
         unless MacAppStore::Helpers::Mas.installed?

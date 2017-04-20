@@ -7,13 +7,13 @@ shared_context 'resources::mac_app_store_app' do
   include_context 'resources'
 
   let(:resource) { 'mac_app_store_app' }
-  %w(app_name use_rtun).each { |p| let(p) { nil } }
+  %w[app_name use_rtun].each { |p| let(p) { nil } }
   let(:properties) do
     { app_name: app_name, use_rtun: use_rtun }
   end
   let(:name) { 'Some App' }
 
-  %i(installed? upgradable?).each { |i| let(i) { nil } }
+  %i[installed? upgradable?].each { |i| let(i) { nil } }
   let(:app_id_for?) { 'abc123' }
 
   before(:each) do
