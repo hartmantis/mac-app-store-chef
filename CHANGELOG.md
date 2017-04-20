@@ -1,6 +1,10 @@
 Mac App Store Cookbook CHANGELOG
 ================================
 
+v3.1.0 (2017-04-20)
+-------------------
+- Update the homebrew cookbook dependency
+
 v3.0.0 (2017-03-31)
 -------------------
 - Update the cookbook dependency pinned versions
