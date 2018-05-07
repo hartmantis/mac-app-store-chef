@@ -9,7 +9,10 @@ platforms:
   - name: macos-10.12
 
 suites:
-  - name: two-sample-apps
+<% %w(12 13 14).each do |version| %>
+  - name: two-sample-apps_chef-<%= version %>
+    provisioner:
+      require_chef_omnibus: <%= version %>
     run_list:
       - recipe[mac-app-store]
     attributes:
@@ -19,3 +22,4 @@ suites:
         apps:
           Microsoft Remote Desktop: true
           White Noise Free: true
+<% end %>
