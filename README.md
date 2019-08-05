@@ -16,48 +16,7 @@ A user must be logged into OS X for Mas to operate properly.
 
 ## Usage
 
-Apps can be installed by using the included custom resources in recipes of your own, or with the predefined recipe and set of attributes.
-
-## Recipes
-
-***default***
-
-Installs the Mas CLI tool and an attribute-derived set of App Store apps.
-
-## Attributes
-
-***default***
-
-```ruby
-default['mac_app_store']['username'] = nil
-default['mac_app_store']['password'] = nil
-```
-
-Set these two attributes with the Apple ID user and password you wish to log
-into the App Store as.
-
-```ruby
-default['mac_app_store']['apps'] = {}
-```
-
-Set apps as keys+values under this space, where the key is the full app name
-and value is true to install it or false to not. For example:
-
-```ruby
-default['mac_app_store']['apps']['Growl'] = true
-```
-
-Mas can be installed via Homebrew (`:homebrew`, the default) or GitHub download (`:direct`).
-
-```ruby
-default['mac_app_store']['mas']['source'] = nil
-```
-
-If desired, a specific version of Mas can be installed rather than the latest:
-
-```ruby
-default['mac_app_store']['mas']['version'] = nil
-```
+Use the included custom resources to install the Mas utility and Mac App Store apps.
 
 ## Resources
 
