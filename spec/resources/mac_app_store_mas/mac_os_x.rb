@@ -20,10 +20,6 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
         context 'not already installed' do
           include_context description
 
-          it 'includes the homebrew default recipe' do
-            expect(chef_run).to include_recipe('homebrew')
-          end
-
           it 'installs Mas via Homebrew' do
             expect(chef_run).to install_homebrew_package('mas')
           end
@@ -31,10 +27,6 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
 
         context 'already installed' do
           include_context description
-
-          it 'includes the homebrew default recipe' do
-            expect(chef_run).to include_recipe('homebrew')
-          end
 
           it 'installs Mas via Homebrew' do
             expect(chef_run).to install_homebrew_package('mas')
@@ -126,10 +118,6 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
         include_context description
 
         shared_examples_for 'any installed state' do
-          it 'includes the homebrew default recipe' do
-            expect(chef_run).to include_recipe('homebrew')
-          end
-
           it 'upgrades Mas via Homebrew' do
             expect(chef_run).to upgrade_homebrew_package('mas')
           end
@@ -218,10 +206,6 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
         context 'all default properties' do
           include_context description
 
-          it 'includes the homebrew default recipe' do
-            expect(chef_run).to include_recipe('homebrew')
-          end
-
           it 'removes Mas via Homebrew' do
             expect(chef_run).to remove_homebrew_package('mas')
           end
@@ -241,10 +225,6 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
 
         context 'all default properties' do
           include_context description
-
-          it 'does not include the homebrew default recipe' do
-            expect(chef_run).to_not include_recipe('homebrew')
-          end
 
           it 'does not remove Mas via Homebrew' do
             expect(chef_run).to_not remove_homebrew_package('mas')
