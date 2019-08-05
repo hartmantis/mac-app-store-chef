@@ -35,16 +35,6 @@ shared_context 'resources::mac_app_store_app::mac_os_x' do
           end
         end
 
-        context 'an overridden use_rtun property' do
-          include_context description
-
-          it 'installs the app using RtUN' do
-            expect(chef_run).to run_execute("Install #{name} with Mas").with(
-              command: "reattach-to-user-namespace mas install #{app_id_for?}"
-            )
-          end
-        end
-
         context 'app non-existent' do
           include_context description
 
@@ -87,16 +77,6 @@ shared_context 'resources::mac_app_store_app::mac_os_x' do
               .with(command: "mas install #{app_id_for?}")
           end
         end
-
-        context 'an overridden use_rtun property' do
-          include_context description
-
-          it 'upgrades the app using RtUN' do
-            expect(chef_run).to run_execute("Upgrade #{name} with Mas").with(
-              command: "reattach-to-user-namespace mas install #{app_id_for?}"
-            )
-          end
-        end
       end
 
       context 'app non-existent' do
@@ -126,16 +106,6 @@ shared_context 'resources::mac_app_store_app::mac_os_x' do
           it 'upgrades the app with the correct name' do
             expect(chef_run).to run_execute("Upgrade #{app_name} with Mas")
               .with(command: "mas install #{app_id_for?}")
-          end
-        end
-
-        context 'an overridden use_rtun property' do
-          include_context description
-
-          it 'upgrades the app using RtUN' do
-            expect(chef_run).to run_execute("Upgrade #{name} with Mas").with(
-              command: "reattach-to-user-namespace mas install #{app_id_for?}"
-            )
           end
         end
       end

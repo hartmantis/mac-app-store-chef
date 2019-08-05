@@ -7,6 +7,7 @@ This file is used to list changes made in each version of the mac-app-store cook
 - Update all the cookbook boilerplate
 - Drop support for Chef < 14
 - Convert integration tests from ServerSpec to Inspec
+- Remove all references to reattach-to-user-namespace
 
 ## 3.1.0 (2017-04-20)
 

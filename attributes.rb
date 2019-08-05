@@ -27,5 +27,4 @@ default['mac_app_store'].tap do |m|
 
   m['mas']['source'] = nil
   m['mas']['version'] = nil
-  m['mas']['use_rtun'] = nil
 end

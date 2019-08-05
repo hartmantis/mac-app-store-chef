@@ -62,15 +62,6 @@ class Chef
       #
       property :password, String, sensitive: true, desired_state: false
 
-      #
-      # If circumstances require, the reattach-to-user-namespace utility can be
-      # used every time we shell out to Mas.
-      #
-      property :use_rtun,
-               [TrueClass, FalseClass],
-               default: false,
-               desired_state: false
-
       default_action %i[install sign_in]
 
       load_current_value do
@@ -163,14 +154,7 @@ class Chef
         converge_if_changed :username do
           action_sign_out if current_resource && current_resource.username
 
-          cmd = if new_resource.use_rtun
-                  include_recipe 'reattach-to-user-namespace'
-                  'reattach-to-user-namespace mas signin ' \
-                    "'#{new_resource.username}' '#{new_resource.password}'"
-                else
-                  "mas signin '#{new_resource.username}' " \
-                    "'#{new_resource.password}'"
-                end
+          cmd = "mas signin '#{new_resource.username}' '#{new_resource.password}'"
           execute "Sign in to Mas as #{new_resource.username}" do
             command cmd
             sensitive true
@@ -188,14 +172,8 @@ class Chef
         )
         return unless current_resource.username
 
-        cmd = if new_resource.use_rtun
-                include_recipe 'reattach-to-user-namespace'
-                'reattach-to-user-namespace mas signout'
-              else
-                'mas signout'
-              end
         execute 'Sign out of Mas' do
-          command cmd
+          command 'mas signout'
         end
       end
 
@@ -209,14 +187,8 @@ class Chef
         )
         return unless MacAppStore::Helpers::Mas.upgradable_apps?
 
-        cmd = if new_resource.use_rtun
-                include_recipe 'reattach-to-user-namespace'
-                'reattach-to-user-namespace mas upgrade'
-              else
-                'mas upgrade'
-              end
         execute 'Upgrade all installed apps' do
-          command cmd
+          command 'mas upgrade'
         end
       end
     end

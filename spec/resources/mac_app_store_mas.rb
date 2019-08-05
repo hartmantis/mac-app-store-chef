@@ -8,15 +8,14 @@ shared_context 'resources::mac_app_store_mas' do
 
   let(:resource) { 'mac_app_store_mas' }
   %w[
-    source version username password use_rtun
+    source version username password
   ].each { |p| let(p) { nil } }
   let(:properties) do
     {
       source: source,
       version: version,
       username: username,
-      password: password,
-      use_rtun: use_rtun
+      password: password
     }
   end
   let(:name) { 'default' }
@@ -92,10 +91,6 @@ shared_context 'resources::mac_app_store_mas' do
   shared_context 'an overridden source and version property' do
     let(:source) { :direct }
     let(:version) { '0.1.0' }
-  end
-
-  shared_context 'an overridden use_rtun property' do
-    let(:use_rtun) { true }
   end
 
   shared_context 'a missing username property' do

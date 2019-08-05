@@ -12,8 +12,4 @@ chef_version '>= 14.0'
 source_url 'https://github.com/roboticcheese/mac-app-store-chef'
 issues_url 'https://github.com/roboticcheese/mac-app-store-chef/issues'
 
-depends 'reattach-to-user-namespace', '~> 0.2'
-
 supports 'mac_os_x'
-
-chef_version '~> 12'

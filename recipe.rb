@@ -25,7 +25,7 @@ mac_app_store_mas do
   username node['mac_app_store']['username']
   password node['mac_app_store']['password']
 
-  %w[source version use_rtun].each do |p|
+  %w[source version].each do |p|
     send(p, mattrs[p]) unless mattrs[p].nil?
   end
   action %i[install sign_in]
@@ -33,7 +33,5 @@ end
 
 node['mac_app_store']['apps'].to_h.each do |k, v|
   next unless v == true
-  mac_app_store_app k do
-    use_rtun mattrs['use_rtun'] unless mattrs['use_rtun'].nil?
-  end
+  mac_app_store_app k
 end

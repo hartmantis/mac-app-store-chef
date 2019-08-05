@@ -259,21 +259,6 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
                       sensitive: true)
             end
           end
-
-          context 'an overridden use_rtun property' do
-            include_context description
-
-            it 'ensures RtUN is installed' do
-              expect(chef_run).to include_recipe('reattach-to-user-namespace')
-            end
-
-            it 'signs into Mas using RtUN' do
-              expect(chef_run).to run_execute("Sign in to Mas as #{username}")
-                .with(command: 'reattach-to-user-namespace mas signin ' \
-                               "'#{username}' '#{password}'",
-                      sensitive: true)
-            end
-          end
         end
 
         context 'already signed in' do
@@ -345,19 +330,6 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
                 .with(command: 'mas signout')
             end
           end
-
-          context 'an overridden use_rtun property' do
-            include_context description
-
-            it 'ensures RtUN is installed' do
-              expect(chef_run).to include_recipe('reattach-to-user-namespace')
-            end
-
-            it 'signs out of Mas using RtUN' do
-              expect(chef_run).to run_execute('Sign out of Mas')
-                .with(command: 'reattach-to-user-namespace mas signout')
-            end
-          end
         end
 
         context 'not already signed in' do
@@ -394,19 +366,6 @@ shared_context 'resources::mac_app_store_mas::mac_os_x' do
             it 'runs a Mas upgrade' do
               expect(chef_run).to run_execute('Upgrade all installed apps')
                 .with(command: 'mas upgrade')
-            end
-          end
-
-          context 'an overridden use_rtun property' do
-            include_context description
-
-            it 'ensures RtUN is installed' do
-              expect(chef_run).to include_recipe('reattach-to-user-namespace')
-            end
-
-            it 'runs a Mas upgrade using RtUN' do
-              expect(chef_run).to run_execute('Upgrade all installed apps')
-                .with(command: 'reattach-to-user-namespace mas upgrade')
             end
           end
         end

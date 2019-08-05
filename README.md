@@ -59,12 +59,6 @@ If desired, a specific version of Mas can be installed rather than the latest:
 default['mac_app_store']['mas']['version'] = nil
 ```
 
-In certain circumstances-e.g. Chef running as root-it may be necessary to run Mas via the `reattach-to-user-namespace` utility:
-
-```ruby
-default['mac_app_store']['mas']['use_rtun'] = nil
-```
-
 ## Resources
 
 ***mac_app_store_mas***
@@ -79,7 +73,6 @@ mac_app_store_mas 'default' do
   version: '1.2.3'
   username 'example@example.com'
   password 'abc123'
-  use_rtun false
   action %i[install sign_in]
 end
 ```
@@ -92,7 +85,6 @@ Properties:
 | version     | `nil`                 | The version of Mas to install                  |
 | username    | `nil`                 | An Apple ID username                           |
 | password    | `nil`                 | An Apple ID password                           |
-| use_rtun    | `false`               | Use RtUN when shelling out to Mas              |
 | action      | `%i[install sign_in]` | Action(s) to perform                           |
 
 Actions:
@@ -115,7 +107,6 @@ Syntax:
 ```ruby
 mac_app_store_app 'Some App' do
   app_name 'Some App'
-  use_rtun false
   action :install
 end
 ```
@@ -125,7 +116,6 @@ Properties:
 | Property    | Default        | Description                                |
 |-------------|----------------|--------------------------------------------|
 | app_name    | resource name  | App name if it doesn't match resource name |
-| use_rtun    | `false`        | Use RtUN when shelling out to Mas          |
 | action      | `:install`     | Action(s) to perform                       |
 
 Actions:

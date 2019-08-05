@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 describe 'mac-app-store::default' do
-  %i[username password apps source version use_rtun].each do |a|
+  %i[username password apps source version].each do |a|
     let(a) { nil }
   end
   let(:platform) { { platform: nil, version: nil } }
@@ -12,7 +12,7 @@ describe 'mac-app-store::default' do
       %i[username password apps].each do |a|
         node.normal['mac_app_store'][a] = send(a) unless send(a).nil?
       end
-      %i[source version use_rtun].each do |a|
+      %i[source version].each do |a|
         node.normal['mac_app_store']['mas'][a] = send(a) unless send(a).nil?
       end
     end
@@ -24,34 +24,19 @@ describe 'mac-app-store::default' do
 
     shared_examples_for 'any attribute set' do
       it 'installs Mas' do
-        if use_rtun
-          expect(chef_run).to install_mac_app_store_mas('default')
-            .with(use_rtun: true)
-        else
-          expect(chef_run).to install_mac_app_store_mas('default')
-        end
+        expect(chef_run).to install_mac_app_store_mas('default')
       end
 
       it 'signs into Mas' do
-        if use_rtun
-          expect(chef_run).to sign_in_mac_app_store_mas('default')
-            .with(username: username, password: password, use_rtun: true)
-        else
-          expect(chef_run).to sign_in_mac_app_store_mas('default')
-            .with(username: username, password: password)
-        end
+        expect(chef_run).to sign_in_mac_app_store_mas('default')
+          .with(username: username, password: password)
       end
 
       it 'installs the specified apps' do
         if apps
           apps.each do |k, v|
             next unless v == true
-            if use_rtun
-              expect(chef_run).to install_mac_app_store_app(k)
-                .with(use_rtun: true)
-            else
-              expect(chef_run).to install_mac_app_store_app(k)
-            end
+            expect(chef_run).to install_mac_app_store_app(k)
           end
         else
           expect(chef_run.find_resources(:mac_app_store_app)).to be_empty
@@ -102,14 +87,6 @@ describe 'mac-app-store::default' do
         expect(chef_run).to install_mac_app_store_mas('default')
           .with(version: '1.2.3')
       end
-    end
-
-    context 'an overridden use_rtun attribute' do
-      let(:apps) { { 'App 1' => true, 'App 2' => true, 'App 3' => false } }
-      let(:use_rtun) { true }
-      cached(:chef_run) { converge }
-
-      it_behaves_like 'any attribute set'
     end
   end
 

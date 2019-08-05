@@ -7,9 +7,9 @@ shared_context 'resources::mac_app_store_app' do
   include_context 'resources'
 
   let(:resource) { 'mac_app_store_app' }
-  %w[app_name use_rtun].each { |p| let(p) { nil } }
+  %w[app_name].each { |p| let(p) { nil } }
   let(:properties) do
-    { app_name: app_name, use_rtun: use_rtun }
+    { app_name: app_name }
   end
   let(:name) { 'Some App' }
 
@@ -41,10 +41,6 @@ shared_context 'resources::mac_app_store_app' do
 
   shared_context 'an overridden app_name property' do
     let(:app_name) { 'Other App' }
-  end
-
-  shared_context 'an overridden use_rtun property' do
-    let(:use_rtun) { true }
   end
 
   shared_context 'app not already installed' do

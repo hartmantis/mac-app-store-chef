@@ -38,15 +38,6 @@ class Chef
       #
       property :app_name, String, name_property: true
 
-      #
-      # If circumstances require, the reattach-to-user-namespace utility can be
-      # used every time we shell out to Mas.
-      #
-      property :use_rtun,
-               [TrueClass, FalseClass],
-               default: false,
-               desired_state: false
-
       default_action :install
 
       load_current_value do |desired|
@@ -61,14 +52,8 @@ class Chef
         app_id = MacAppStore::Helpers::App.app_id_for?(new_resource.app_name)
         raise(Exceptions::InvalidAppName, new_resource.app_name) unless app_id
 
-        cmd = if new_resource.use_rtun
-                include_recipe 'reattach-to-user-namespace'
-                "reattach-to-user-namespace mas install #{app_id}"
-              else
-                "mas install #{app_id}"
-              end
         execute "Install #{new_resource.app_name} with Mas" do
-          command cmd
+          command "mas install #{app_id}"
         end
       end
 
@@ -79,14 +64,8 @@ class Chef
         app_id = MacAppStore::Helpers::App.app_id_for?(new_resource.app_name)
         raise(Exceptions::InvalidAppName, new_resource.app_name) unless app_id
 
-        cmd = if new_resource.use_rtun
-                include_recipe 'reattach-to-user-namespace'
-                "reattach-to-user-namespace mas install #{app_id}"
-              else
-                "mas install #{app_id}"
-              end
         execute "Upgrade #{new_resource.app_name} with Mas" do
-          command cmd
+          command "mas install #{app_id}"
         end
       end
 
