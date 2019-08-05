@@ -75,7 +75,7 @@ module MacAppStore
         def app_id_for?(name)
           search = shell_out("mas search '#{name}'", user: user).stdout
           app_line = search.lines.find do |l|
-            l.rstrip.split(' ')[1..-1].join(' ') == name
+            l.rstrip.split(' ')[1..-2].join(' ') == name
           end
           app_line && app_line.split(' ')[0]
         end
