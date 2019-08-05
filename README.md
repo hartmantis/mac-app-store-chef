@@ -10,9 +10,9 @@ A Chef cookbook for installation of Mac App Store apps via the [Mas](https://git
 
 ## Requirements
 
-Mas requires OS X 10.10+. As of v2.0, this cookbook requires Chef 12.5+ (or Chef 12.x and the [compat_resource](https://supermarket.chef.io/cookbooks/compat_resource) cookbook.
+This cookbook assumes a running macOS node, with Homebrew installed, that is supported for use with the [Mas](https://github.com/mas-cli/mas) utility.
 
-A user must be logged into OS X for Mas to operate properly.
+A user must be logged into macOS for Mas to operate properly.
 
 ## Usage
 
@@ -28,7 +28,6 @@ Syntax:
 
 ```ruby
 mac_app_store_mas 'default' do
-  source :direct
   version: '1.2.3'
   username 'example@example.com'
   password 'abc123'
@@ -40,7 +39,6 @@ Properties:
 
 | Property    | Default               | Description                                    |
 |-------------|-----------------------|------------------------------------------------|
-| source      | `:homebrew`           | Install from `:homebrew` or GitHub (`:direct`) |
 | version     | `nil`                 | The version of Mas to install                  |
 | username    | `nil`                 | An Apple ID username                           |
 | password    | `nil`                 | An Apple ID password                           |

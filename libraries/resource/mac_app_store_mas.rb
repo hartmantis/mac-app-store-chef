@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 #
-# Cookbook Name:: mac-app-store
+# Cookbook:: mac-app-store
 # Library:: resource/mac_app_store_mas
 #
-# Copyright 2015-2019, Jonathan Hartman
+# Copyright:: 2015-2019, Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,24 +25,14 @@ require_relative '../helpers/mas'
 
 class Chef
   class Resource
+    #
     # A Chef resource for managing installation of the Mas CLI tool for the
     # Mac App Store.
     #
-    # @author Jonathan Hartman <j@p4nt5.com>
     class MacAppStoreMas < Resource
       include Chef::Mixin::ShellOut
 
       provides :mac_app_store_mas, platform_family: 'mac_os_x'
-
-      #
-      # The method of installation for Mas, either :homebrew or :direct
-      # (GitHub).
-      #
-      property :source,
-               Symbol,
-               coerce: proc { |v| v.to_sym },
-               equal_to: %i[homebrew direct],
-               default: :homebrew
 
       #
       # Optionally specify a version of Mas to install.
@@ -65,77 +55,33 @@ class Chef
       default_action %i[install sign_in]
 
       load_current_value do
-        unless MacAppStore::Helpers::Mas.installed?
-          current_value_does_not_exist!
-        end
-        version(MacAppStore::Helpers::Mas.installed_version?)
         username(MacAppStore::Helpers::Mas.signed_in_as? || false)
-        source(MacAppStore::Helpers::Mas.installed_by?)
       end
 
       #
-      # If Mas is not installed, install either the user-specified version of
-      # it or the most recent one.
+      # Install the Mas Homebrew package.
       #
       action :install do
-        case new_resource.source
-        when :homebrew
-          homebrew_package 'mas'
-        when :direct
-          return if current_resource && \
-                    (new_resource.version.nil? || \
-                     new_resource.version == current_resource.version)
-
-          ver = new_resource.version || \
-                MacAppStore::Helpers::Mas.latest_version?
-          path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
-          remote_file path do
-            source 'https://github.com/mas-cli/mas/releases/download/' \
-                   "v#{ver}/mas-cli.zip"
-          end
-          execute 'Extract Mas-CLI zip file' do
-            command "unzip -d /usr/local/bin/ -o #{path}"
-          end
+        homebrew_package 'mas' do
+          version new_resource.version unless new_resource.version.nil?
         end
       end
 
       #
-      # Upgrade Mas if there's a more recent version than is currently
-      # installed.
+      # Upgrade the Mas Homebrew package.
       #
       action :upgrade do
-        case new_resource.source
-        when :homebrew
-          homebrew_package('mas') { action :upgrade }
-        when :direct
-          ver = new_resource.version || \
-                MacAppStore::Helpers::Mas.latest_version?
-          return if current_resource && current_resource.version == ver
-
-          path = ::File.join(Chef::Config[:file_cache_path], 'mas-cli.zip')
-          remote_file path do
-            source 'https://github.com/mas-cli/mas/releases/download/' \
-                   "v#{ver}/mas-cli.zip"
-          end
-          execute 'Extract Mas-CLI zip file' do
-            command "unzip -d /usr/local/bin/ -o #{path}"
-          end
+        homebrew_package 'mas' do
+          version new_resource.version unless new_resource.version.nil?
+          action :upgrade
         end
       end
 
       #
-      # Uninstall Mas by either removing the Homebrew package or deleting the
-      # file.
+      # Uninstall the Mas Homebrew package.
       #
       action :remove do
-        return unless current_resource
-
-        case new_resource.source
-        when :homebrew
-          homebrew_package('mas') { action :remove }
-        when :direct
-          file('/usr/local/bin/mas') { action :delete }
-        end
+        homebrew_package('mas') { action :remove }
       end
 
       #

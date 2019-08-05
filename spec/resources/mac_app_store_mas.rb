@@ -12,7 +12,6 @@ shared_context 'resources::mac_app_store_mas' do
   ].each { |p| let(p) { nil } }
   let(:properties) do
     {
-      source: source,
       version: version,
       username: username,
       password: password
@@ -21,11 +20,7 @@ shared_context 'resources::mac_app_store_mas' do
   let(:name) { 'default' }
 
   %i[
-    installed?
-    installed_version?
-    installed_by?
     signed_in_as?
-    latest_version?
     upgradable_apps?
   ].each do |p|
     let(p) { nil }
@@ -36,10 +31,6 @@ shared_context 'resources::mac_app_store_mas' do
     allow(Kernel).to receive(:load)
       .with(%r{mac-app-store/libraries/helpers_mas\.rb}).and_return(true)
     {
-      latest_version?: latest_version?,
-      installed?: installed?,
-      installed_version?: installed_version?,
-      installed_by?: installed_by?,
       signed_in_as?: signed_in_as?,
       upgradable_apps?: upgradable_apps?
     }.each do |k, v|
@@ -47,19 +38,13 @@ shared_context 'resources::mac_app_store_mas' do
     end
   end
 
-  before(:each) do
-    stub_command('which git').and_return('/usr/bin/git')
-  end
-
   shared_context 'the :install action' do
     let(:username) { 'example@example.com' }
     let(:password) { 'abc123' }
-    let(:latest_version?) { '1.3.0' }
     let(:action) { :install }
   end
 
   shared_context 'the :upgrade action' do
-    let(:latest_version?) { '1.3.0' }
     let(:action) { :upgrade }
   end
 
@@ -84,37 +69,12 @@ shared_context 'resources::mac_app_store_mas' do
   shared_context 'all default properties' do
   end
 
-  shared_context 'an overridden source property' do
-    let(:source) { :direct }
-  end
-
-  shared_context 'an overridden source and version property' do
-    let(:source) { :direct }
-    let(:version) { '0.1.0' }
-  end
-
   shared_context 'a missing username property' do
     let(:username) { nil }
   end
 
   shared_context 'a missing password property' do
     let(:password) { nil }
-  end
-
-  shared_context 'not already installed' do
-    let(:installed?) { false }
-  end
-
-  shared_context 'already installed' do
-    let(:installed?) { true }
-    let(:installed_version?) { '1.3.0' }
-    let(:installed_by?) { :direct }
-  end
-
-  shared_context 'installed and upgradable' do
-    let(:installed?) { true }
-    let(:installed_version?) { '1.2.0' }
-    let(:installed_by?) { :direct }
   end
 
   shared_context 'not already signed in' do

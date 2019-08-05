@@ -9,6 +9,7 @@ This file is used to list changes made in each version of the mac-app-store cook
 - Convert integration tests from ServerSpec to Inspec
 - Remove all references to reattach-to-user-namespace
 - Switch to a custom resource-only, recipe-less model
+- Drop support for installing Mas outside of Homebrew
 
 ## 3.1.0 (2017-04-20)
 

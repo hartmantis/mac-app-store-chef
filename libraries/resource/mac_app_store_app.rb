@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 #
-# Cookbook Name:: mac-app-store
+# Cookbook:: mac-app-store
 # Library:: resource/mac_app_store_app
 #
-# Copyright 2015-2019, Jonathan Hartman
+# Copyright:: 2015-2019, Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,13 +25,14 @@ require_relative '../helpers/app'
 
 class Chef
   class Resource
+    #
     # A Chef resource for Mac App Store applications.
     #
-    # @author Jonathan Hartman <j@p4nt5.com>
     class MacAppStoreApp < Resource
       include Chef::Mixin::ShellOut
 
       provides :mac_app_store_app, platform_family: 'mac_os_x'
+      provides :mac_app_store_package, platform_family: 'mac_os_x'
 
       #
       # The name of the app to be installed (defaults to the resource name).

@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 #
-# Cookbook Name:: mac-app-store
+# Cookbook:: mac-app-store
 # Library:: helpers/app
 #
-# Copyright 2015-2019, Jonathan Hartman
+# Copyright:: 2015-2019, Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
