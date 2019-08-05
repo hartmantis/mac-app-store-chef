@@ -1,11 +1,10 @@
-# encoding: utf-8
 # frozen_string_literal: true
 
 #
 # Cookbook Name:: mac-app-store
-# Library:: matchers
+# Recipe:: default
 #
-# Copyright 2015-2017, Jonathan Hartman
+# Copyright 2015-2019, Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,17 +19,21 @@
 # limitations under the License.
 #
 
-if defined?(ChefSpec)
-  {
-    mac_app_store_mas: %i[install upgrade remove sign_in sign_out upgrade_apps],
-    mac_app_store_app: %i[install upgrade]
-  }.each do |resource, actions|
-    ChefSpec.define_matcher(resource)
+mattrs = node['mac_app_store']['mas']
 
-    actions.each do |action|
-      define_method("#{action}_#{resource}") do |name|
-        ChefSpec::Matchers::ResourceMatcher.new(resource, action, name)
-      end
-    end
+mac_app_store_mas do
+  username node['mac_app_store']['username']
+  password node['mac_app_store']['password']
+
+  %w[source version use_rtun].each do |p|
+    send(p, mattrs[p]) unless mattrs[p].nil?
+  end
+  action %i[install sign_in]
+end
+
+node['mac_app_store']['apps'].to_h.each do |k, v|
+  next unless v == true
+  mac_app_store_app k do
+    use_rtun mattrs['use_rtun'] unless mattrs['use_rtun'].nil?
   end
 end

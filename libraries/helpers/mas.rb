@@ -1,11 +1,10 @@
-# encoding: utf-8
 # frozen_string_literal: true
 
 #
 # Cookbook Name:: mac-app-store
-# Library:: helpers_mas
+# Library:: helpers/mas
 #
-# Copyright 2015-2017, Jonathan Hartman
+# Copyright 2015-2019, Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.

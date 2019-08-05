@@ -1,0 +1,14 @@
+---
+driver:
+  name: vagrant
+
+provisioner:
+  name: chef_zero
+
+platforms:
+  - name: macos-10.14
+
+suites:
+  - name: default
+    run_list:
+      - recipe[test]

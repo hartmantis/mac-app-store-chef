@@ -1,0 +1,17 @@
+trigger:
+  - master
+
+jobs:
+  - job: unit
+    pool:
+      vmImage: ubuntu-18.04
+    steps:
+      - script: curl https://omnitruck.chef.io/install.sh | sudo bash -s -- -c current -P chef-workstation
+      - script: chef exec delivery local all
+  - job: macos
+    pool:
+      vmImage: macos-10.14
+    steps:
+      - script: brew cask install chef/chef/chef-workstation
+      - script: cp kitchen.exec.yml kitchen.local.yml
+      - script: chef exec kitchen test

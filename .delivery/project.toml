@@ -1,0 +1,9 @@
+[local_phases]
+unit = "rspec"
+lint = "rubocop"
+syntax = "foodcritic -f any ."
+provision = "echo Skipping..."
+deploy = "echo Skipping..."
+smoke = "echo Skipping..."
+functional = "echo Skipping..."
+cleanup = "echo Skipping..."

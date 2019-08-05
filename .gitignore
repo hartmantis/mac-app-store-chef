@@ -1,6 +1,4 @@
 .vagrant
-Berksfile.lock
-berks-cookbooks
 *~
 *#
 .#*
@@ -14,11 +12,21 @@ berks-cookbooks
 
 # Bundler
 Gemfile.lock
+gems.locked
 bin/*
 .bundle/*
 
+# RuboCop
+.rubocop-http*
+
+# ChefSpec
+coverage/
+
+# Test Kitchen
 .kitchen/
 .kitchen.local.yml
 
-.env.sh
-coverage
+# Chef
+Berksfile.lock
+.zero-knife.rb
+Policyfile.lock.json
