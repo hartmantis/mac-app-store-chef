@@ -20,7 +20,7 @@ group :test do
   gem 'kitchen-vagrant'
   gem 'rake'
   gem 'rspec'
-  gem 'rubocop'
+  gem 'rubocop', '0.47.1'
   gem 'simplecov'
   gem 'simplecov-console'
   gem 'test-kitchen'
