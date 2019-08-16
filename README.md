@@ -12,7 +12,7 @@ A Chef cookbook for installation of Mac App Store apps via the [Mas](https://git
 
 This cookbook assumes a running macOS node, with Homebrew installed, that is supported for use with the [Mas](https://github.com/mas-cli/mas) utility.
 
-A user must be logged into macOS for Mas to operate properly.
+A user must be signed into the App Store for Mas to be able to install apps.
 
 ## Usage
 

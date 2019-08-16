@@ -19,7 +19,6 @@
 # limitations under the License.
 #
 
-require 'etc'
 require 'chef/resource'
 require_relative '../helpers/mas'
 
@@ -30,33 +29,19 @@ class Chef
     # Mac App Store.
     #
     class MacAppStoreMas < Resource
-      include Chef::Mixin::ShellOut
-
       provides :mac_app_store_mas, platform_family: 'mac_os_x'
+
+      #
+      # The resource name is never used.
+      #
+      property :name, String, default: 'default'
 
       #
       # Optionally specify a version of Mas to install.
       #
       property :version, String
 
-      #
-      # The Apple ID user to sign in as, or false for none. The
-      # converge_if_changed method does not detect a state change if a property
-      # is being changed to nil, so we must use false here instead to support
-      # "signed out" as a desired state.
-      #
-      property :username, [String, FalseClass]
-
-      #
-      # The password for the Apple ID user.
-      #
-      property :password, String, sensitive: true, desired_state: false
-
-      default_action %i[install sign_in]
-
-      load_current_value do
-        username(MacAppStore::Helpers::Mas.signed_in_as? || false)
-      end
+      default_action :install
 
       #
       # Install the Mas Homebrew package.
@@ -85,53 +70,10 @@ class Chef
       end
 
       #
-      # Log in via Mas with an Apple ID and password.
-      #
-      action :sign_in do
-        current_resource || raise(
-          Chef::Exceptions::ValidationFailed,
-          'Mas must be installed before you can sign in'
-        )
-        new_resource.username && new_resource.password || raise(
-          Chef::Exceptions::ValidationFailed,
-          'A username and password are required to sign into Mas'
-        )
-
-        converge_if_changed :username do
-          action_sign_out if current_resource && current_resource.username
-
-          cmd = "mas signin '#{new_resource.username}' '#{new_resource.password}'"
-          execute "Sign in to Mas as #{new_resource.username}" do
-            command cmd
-            sensitive true
-          end
-        end
-      end
-
-      #
-      # Log out of Mas.
-      #
-      action :sign_out do
-        current_resource || raise(
-          Chef::Exceptions::ValidationFailed,
-          'Mas must be installed before you can sign out'
-        )
-        return unless current_resource.username
-
-        execute 'Sign out of Mas' do
-          command 'mas signout'
-        end
-      end
-
-      #
       # Upgrade all installed apps.
       #
       action :upgrade_apps do
-        current_resource || raise(
-          Chef::Exceptions::ValidationFailed,
-          'Mas must be installed before you can upgrade apps'
-        )
-        return unless MacAppStore::Helpers::Mas.upgradable_apps?
+        return if shell_out!('mas outdated').stdout.strip.empty?
 
         execute 'Upgrade all installed apps' do
           command 'mas upgrade'
